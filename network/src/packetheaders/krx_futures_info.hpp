@@ -66,7 +66,7 @@ struct KrxFuturesDesc{
 	byte dealbasepricetype[1]; // 45 baseprice type for the sake of trading.
 	byte signadjlastprice[1];
 	byte lastadjprice[17];
-	byte darkpoolyn[1];
+	byte blocktradeyn[1];
 	byte prevmarginbaseprice[17];
 	byte prevmarginbasepricetype[2]; // 50 prevday baseprice type code
 	byte settledtheoreticprice[15];
@@ -119,10 +119,23 @@ struct KrxFuturesDesc{
 	byte nprevdaycontracts[16];
 	byte prevdayquantity[12];
 	byte prevdaytotalamount[22]; // 100 전일거래대금
-
-	//shi ba..
-
-
+	byte prevdayblocktradequantity[12];
+	byte prevdayblocktradeamount[22];
+	byte rate_cd[6];
+	byte nmaxunsettledcontracts[8];
+	byte affiliatedcommoditygroup[4]; // 105 소속상품군
+	byte commodityoffsetrate[5];
+	byte limitorderconditioncode[1];
+	byte marketorderconditioncode[1];
+	byte conditionallimitorderconditioncode[1];
+	byte bestlimitorderconditioncode[1]; // 110 최유리지정가호가조건구분코드
+	byte subjectedtoefpyn[1];
+	byte subjectedtoflexyn[1];
+	byte prevdayefpquantity[12];
+	byte prevdayefpamount[22];
+	byte closureyn[1];
+	byte filler[113];
+	byte eot[1];
 };
 
 struct KrxFuturesBA{
@@ -130,5 +143,11 @@ struct KrxFuturesBA{
 };
 
 
+
+inline void headers_size_check(){
+	KrxFuturesDesc krxFuturesDesc;
+	printf("%d\n",sizeof(KrxFuturesDesc));
+	assert(sizeof(KrxFuturesDesc)==1200);
+}
 
 #endif /* KRX_FUTURES_INFO_HPP_ */
