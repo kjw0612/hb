@@ -19,7 +19,7 @@ struct KrxFuturesDesc{
 	 * no ga da..
 	 *
 	 */
-	byte datatype[2]; // 1 data gubun
+	byte datatype[2]; // 1 data gubun // A0
 	byte infotype[2];
 	byte markettype[1];
 	byte stocksnum[5];
@@ -138,13 +138,42 @@ struct KrxFuturesDesc{
 	byte eot[1];
 };
 
-struct KrxFuturesBestQuotation{
-	byte datatype[2]; // B6
+struct KrxFuturesHeaderPart{
+	byte datatype[2]; //
 	byte infotype[2]; // 01
 	byte markettype[1]; // 4
 	char krcode[12];
 	byte seq[2];
-	byte marketstatecode[2];
+};
+
+struct KrxFuturesTradePart{
+	byte currentpricesign[1];
+	byte currentprice[5];
+	byte tradequantity[6];
+	byte tradetype[2];
+
+	byte timestamp[8];
+
+	byte closesttradeprice[5];
+	byte distanttradeprice[5];
+
+	byte marketpricesign[1];
+	byte marketprice[5];
+
+	byte highpricesign[1];
+	byte highprice[5];
+
+	byte lowpricesign[1];
+	byte lowprice[5];
+
+	byte lastpricesign[1];
+	byte lastprice[5];
+
+	byte accumtradequantity[7];
+	byte accumtradeamount[12];
+};
+
+struct KrxFuturesQuotationPart{
 	byte bidtotalquantity[6];
 
 	byte bid1sign[1];
@@ -208,14 +237,66 @@ struct KrxFuturesBestQuotation{
 	byte ask3totalvalidnum[4];
 	byte ask4totalvalidnum[4];
 	byte ask5totalvalidnum[4];
+};
 
+struct KrxFuturesBestQuotation{ // K200선물 우선호가 // B6
+	KrxFuturesHeaderPart hp;
+	byte marketstatecode[2];
+	KrxFuturesQuotationPart qp;
 	byte timestamp[8];
-
 	byte expectpricesign[1];
 	byte expectprice[5];
-
 	byte eot[1];
 };
+
+struct KrxFuturesTrade{ // K200선물 체결 // A3
+	KrxFuturesHeaderPart hp;
+	KrxFuturesTradePart tp;
+	byte eot[1];
+};
+
+struct KrxFuturesTradeBestQuotation{ // K200선물 체결 우선호가 // G7
+	KrxFuturesHeaderPart hp;
+	KrxFuturesTradePart tp;
+	byte marketstatecode[2];
+	KrxFuturesQuotationPart qp;
+	byte eot[1];
+};
+
+struct KrxFuturesEnd{ // K200선물 종목마감 // A6
+	KrxFuturesHeaderPart hp;
+	byte endpricesign[1];
+	byte endprice[5];
+	byte endpricecode[1];
+	byte accumtradequantity[7];
+	byte accumtradeamount[12];
+	KrxFuturesQuotationPart qp;
+	byte eot[1];
+};
+
+struct KrxFuturesMarketManage{ // K200선물 장운용
+	byte datatype[2]; // A7
+	byte infotype[2]; // 01
+	byte markettype[1]; // 4
+	byte timestamp[8];
+	byte marketmanagecode[3];
+	byte stockid[10];
+	char krcode[12];
+	byte seq[2];
+	byte marketstatecode[2];
+	byte bidaskexistyn[1];
+	KrxFuturesQuotationPart qp;
+	byte eot[1];
+};
+
+struct KrxFuturesSpace{ // K200선물 SPACE
+	byte datatype[2]; // G9
+	byte infotype[2]; // 01
+	byte markettype[1]; // 4
+	byte eot[1];
+};
+
+typedef KrxFuturesSpace KrxFuturesClose; //datatype = H0 // K200선물 마감
 
 
 
@@ -227,6 +308,22 @@ inline void headers_size_check(){
 	KrxFuturesBestQuotation krxFuturesBestQuotation;
 	printf("%d\n",sizeof(krxFuturesBestQuotation));
 	assert(sizeof(KrxFuturesBestQuotation)==218);
+
+	KrxFuturesTrade krxFuturesTrade;
+	printf("%d\n",sizeof(krxFuturesTrade));
+	assert(sizeof(KrxFuturesTrade)==95);
+
+	KrxFuturesTradeBestQuotation krxFuturesTradeBestQuotation;
+	printf("%d\n",sizeof(krxFuturesTradeBestQuotation));
+	assert(sizeof(KrxFuturesTradeBestQuotation)==279);
+
+	KrxFuturesEnd krxFuturesEnd;
+	printf("%d\n",sizeof(krxFuturesEnd));
+	assert(sizeof(KrxFuturesEnd)==228);
+
+	KrxFuturesMarketManage krxFuturesMarketManage;
+	printf("%d\n",sizeof(krxFuturesMarketManage));
+	assert(sizeof(KrxFuturesMarketManage)==226);
 }
 
 #endif /* KRX_FUTURES_INFO_HPP_ */
