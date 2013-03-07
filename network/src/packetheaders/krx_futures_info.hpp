@@ -22,7 +22,7 @@ struct KrxFuturesDesc{
 	byte datatype[2]; // 1 data gubun
 	byte infotype[2];
 	byte markettype[1];
-	byte nstocks[5];
+	byte stocksnum[5];
 	byte tradeday[8]; // 5 trade day
 	char krcode[12];
 	byte seq[6];
@@ -36,9 +36,9 @@ struct KrxFuturesDesc{
 	byte expirydate[8]; // 15 expiry date on the security
 	byte longorshortspread[1];
 	byte cashorasset[1];
-	byte signupper[1];
+	byte upperlimitsign[1];
 	byte upperlimitprice[12];
-	byte signlower[1]; // 20 sign on lower limit price
+	byte lowerlimitsign[1]; // 20 sign on lower limit price
 	byte lowerlimitprice[12];
 	byte baseprice[12];
 	byte underlyingid[3];
@@ -64,7 +64,7 @@ struct KrxFuturesDesc{
 	byte adjustbaseprice[17];
 	byte basepricetype[2];
 	byte dealbasepricetype[1]; // 45 baseprice type for the sake of trading.
-	byte signadjlastprice[1];
+	byte lastadjpricesign[1];
 	byte lastadjprice[17];
 	byte blocktradeyn[1];
 	byte prevmarginbaseprice[17];
@@ -79,21 +79,21 @@ struct KrxFuturesDesc{
 	byte moneynesstype[1]; // 0:futures, 1 atm 2 itm 3 otm
 	byte lastdayyn[1];
 	byte exdividendprice[15]; // 60 배당락 후 배당가치.
-	byte signlastprice[1];
+	byte lastpricesign[1];
 	byte lastprice[12]; // 종가
 	byte lastpricetype[1]; // 1 : 실세 2 : 기세(삭제됨) 3 : 거래무
-	byte signtradeprice[1];
+	byte tradepricesign[1];
 	byte tradeprice[12]; // 65 전일시가
-	byte signhighprice[1];
+	byte highpricesign[1];
 	byte highprice[12];
-	byte signlowprice[1];
+	byte lowpricesign[1];
 	byte lowprice[12];
 	byte firstcontractedtime[8]; // 70 최초체결일자
 	byte lastcontractedtime[8];
 	byte lastsettlepricetype[2];
-	byte signsettletheordiff[1];
+	byte settletheordiffsign[1];
 	byte settletheoreticdiff[12];
-	byte nprevdayunsettledcontract[10];// 75 전일미결제약정수량
+	byte prevdayunsettledcontractnum[10];// 75 전일미결제약정수량
 	byte prevbestasksign[1];
 	byte prevbestaskprice[12];
 	byte prevbestbidsign[1];
@@ -113,16 +113,16 @@ struct KrxFuturesDesc{
 	byte alltimelowestdate[8];
 	byte annualhighestdate[8];
 	byte annuallowestdate[8];
-	byte nannualbasedays[8]; //  95 연간기준일수
-	byte nmonthlytradedays[8];
-	byte nyearlytradedays[8];
-	byte nprevdaycontracts[16];
+	byte annualbasedaysnum[8]; //  95 연간기준일수
+	byte monthlytradedaysnum[8];
+	byte yearlytradedaysnum[8];
+	byte prevdaycontractsnum[16];
 	byte prevdayquantity[12];
 	byte prevdaytotalamount[22]; // 100 전일거래대금
 	byte prevdayblocktradequantity[12];
 	byte prevdayblocktradeamount[22];
 	byte rate_cd[6];
-	byte nmaxunsettledcontracts[8];
+	byte maxunsettledcontractsnum[8];
 	byte affiliatedcommoditygroup[4]; // 105 소속상품군
 	byte commodityoffsetrate[5];
 	byte limitorderconditioncode[1];
@@ -138,8 +138,83 @@ struct KrxFuturesDesc{
 	byte eot[1];
 };
 
-struct KrxFuturesBA{
+struct KrxFuturesBestQuotation{
+	byte datatype[2]; // B6
+	byte infotype[2]; // 01
+	byte markettype[1]; // 4
+	char krcode[12];
+	byte seq[2];
+	byte marketstatecode[2];
+	byte bidtotalquantity[6];
 
+	byte bid1sign[1];
+	byte bid1price[5];
+	byte bid1quantity[6];
+
+	byte bid2sign[1];
+	byte bid2price[5];
+	byte bid2quantity[6];
+
+
+	byte bid3sign[1];
+	byte bid3price[5];
+	byte bid3quantity[6];
+
+
+	byte bid4sign[1];
+	byte bid4price[5];
+	byte bid4quantity[6];
+
+
+	byte bid5sign[1];
+	byte bid5price[5];
+	byte bid5quantity[6];
+
+	byte asktotalquantity[6];
+
+	byte ask1sign[1];
+	byte ask1price[5];
+	byte ask1quantity[6];
+
+	byte ask2sign[1];
+	byte ask2price[5];
+	byte ask2quantity[6];
+
+
+	byte ask3sign[1];
+	byte ask3price[5];
+	byte ask3quantity[6];
+
+
+	byte ask4sign[1];
+	byte ask4price[5];
+	byte ask4quantity[6];
+
+
+	byte ask5sign[1];
+	byte ask5price[5];
+	byte ask5quantity[6];
+
+	byte bidtotalvalidnum[5];
+	byte bid1totalvalidnum[4];
+	byte bid2totalvalidnum[4];
+	byte bid3totalvalidnum[4];
+	byte bid4totalvalidnum[4];
+	byte bid5totalvalidnum[4];
+
+	byte asktotalvalidnum[5];
+	byte ask1totalvalidnum[4];
+	byte ask2totalvalidnum[4];
+	byte ask3totalvalidnum[4];
+	byte ask4totalvalidnum[4];
+	byte ask5totalvalidnum[4];
+
+	byte timestamp[8];
+
+	byte expectpricesign[1];
+	byte expectprice[5];
+
+	byte eot[1];
 };
 
 
@@ -148,6 +223,10 @@ inline void headers_size_check(){
 	KrxFuturesDesc krxFuturesDesc;
 	printf("%d\n",sizeof(KrxFuturesDesc));
 	assert(sizeof(KrxFuturesDesc)==1200);
+
+	KrxFuturesBestQuotation krxFuturesBestQuotation;
+	printf("%d\n",sizeof(krxFuturesBestQuotation));
+	assert(sizeof(KrxFuturesBestQuotation)==218);
 }
 
 #endif /* KRX_FUTURES_INFO_HPP_ */
