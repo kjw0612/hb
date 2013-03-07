@@ -134,7 +134,7 @@ struct KrxFuturesDesc{
 	byte prevdayefpquantity[12];
 	byte prevdayefpamount[22];
 	byte closureyn[1];
-	byte filler[113];
+	byte filler[133];
 	byte eot[1];
 };
 
