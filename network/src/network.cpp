@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <iostream>
 #include "packetheaders/krx_futures_info.hpp"
+#include "packetheaders/krx_futures_factory.hpp"
 using namespace std;
 
 int main() {
