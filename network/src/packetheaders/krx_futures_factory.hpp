@@ -46,42 +46,42 @@ struct MakeKrxFuturesHeader{
 	MakeKrxFuturesHeader(const char* msg, bool deepCopy)
 	: msg(msg), deepCopy(deepCopy), type(t_NoType), size(0), copiedMsg(NULL)
 	{
-		if (strncmp(msg,"A0014",5)){
+		if (!strncmp(msg,"A0014",5)){
 			type = t_KrxFuturesDesc; size = sizeof(KrxFuturesDesc);
 		}
-		else if (strncmp(msg,"B6014",5)){
+		else if (!strncmp(msg,"B6014",5)){
 			type = t_KrxFuturesBestQuotation;  size = sizeof(KrxFuturesBestQuotation);
 		}
-		else if (strncmp(msg,"A3014",5)){
+		else if (!strncmp(msg,"A3014",5)){
 			type = t_KrxFuturesTrade;  size = sizeof(KrxFuturesTrade);
 		}
-		else if (strncmp(msg,"G7014",5)){
+		else if (!strncmp(msg,"G7014",5)){
 			type = t_KrxFuturesTradeBestQuotation;  size = sizeof(KrxFuturesTradeBestQuotation);
 		}
-		else if (strncmp(msg,"A6014",5)){
+		else if (!strncmp(msg,"A6014",5)){
 			type = t_KrxFuturesEnd;  size = sizeof(KrxFuturesEnd);
 		}
-		else if (strncmp(msg,"A7014",5)){
+		else if (!strncmp(msg,"A7014",5)){
 			type = t_KrxFuturesMarketManage;  size = sizeof(KrxFuturesMarketManage);
 		}
-		else if (strncmp(msg,"G9014",5)){
+		else if (!strncmp(msg,"G9014",5)){
 			type = t_KrxFuturesSpace;  size = sizeof(KrxFuturesSpace);
 		}
-		else if (strncmp(msg,"H0014",5)){
+		else if (!strncmp(msg,"H0014",5)){
 		}
-		else if (strncmp(msg,"O6014",5)){
+		else if (!strncmp(msg,"O6014",5)){
 		}
-		else if (strncmp(msg,"H1014",5)){
+		else if (!strncmp(msg,"H1014",5)){
 		}
-		else if (strncmp(msg,"H2014",5)){
+		else if (!strncmp(msg,"H2014",5)){
 		}
-		else if (strncmp(msg,"H3014",5)){
+		else if (!strncmp(msg,"H3014",5)){
 		}
-		else if (strncmp(msg,"B2014",5)){
+		else if (!strncmp(msg,"B2014",5)){
 		}
-		else if (strncmp(msg,"I2014",5)){
+		else if (!strncmp(msg,"I2014",5)){
 		}
-		else if (strncmp(msg,"M4014",5)){
+		else if (!strncmp(msg,"M4014",5)){
 		}
 
 		if (deepCopy){
