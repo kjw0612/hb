@@ -299,6 +299,35 @@ struct KrxFuturesSpace{ // K200선물 SPACE
 typedef KrxFuturesSpace KrxFuturesClose; //datatype = H0 // K200선물 마감
 
 
+struct KrxFuturesDistribute{
+	KrxFuturesHeaderPart hp;
+	byte distribute_startorend[1]; // 1 start 2 end
+	byte distributetype[1]; // 1 bidupperbound 2 bidlowerbound 3 askupperbound 4 asklowerbound
+	byte distributeendtime[8];
+	byte eot[1];
+};
+
+struct KrxFuturesInvestorData{
+	byte datatype[2]; // H1
+	byte infotype[2]; // 01
+	byte markettype[1]; // 4
+	byte createdate[8];
+	byte createtime[6];
+	byte datatype[2];
+	byte stockid[10];
+	byte investortype[4];
+	byte bidsettledquantity[9];
+	byte asksettledquantity[9];
+	byte bidsettledamount[18];
+	byte asksettledamount[18];
+	byte bidspreadedquantity[9];
+	byte askspreadedquantity[9];
+	byte bidspreadedamount[18];
+	byte askspreadedamount[18];
+	byte eot[1];
+};
+
+struct
 
 inline void headers_size_check(){
 	KrxFuturesDesc krxFuturesDesc;
