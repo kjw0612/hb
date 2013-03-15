@@ -244,8 +244,8 @@ struct KrxFuturesBestQuotation{ // K200선물 우선호가 // B6
 	byte marketstatecode[2];
 	KrxFuturesQuotationPart qp;
 	byte timestamp[8];
-	byte expectpricesign[1];
-	byte expectprice[5];
+	byte expectedpricesign[1];
+	byte expectedprice[5];
 	byte eot[1];
 };
 
@@ -327,7 +327,127 @@ struct KrxFuturesInvestorData{
 	byte eot[1];
 };
 
-struct
+struct KrxFuturesUnsettled{
+	KrxFuturesHeaderPart hp; // H2 01
+	byte unsettledtype[2]; // M0, M1, M2
+	byte tradedate[8];
+	byte unsettledamount[9];
+	byte eot[1];
+};
+
+struct KrxFuturesSettled{
+	KrxFuturesHeaderPart hp; // H3 01
+	byte settledprice[16];
+	byte settledpricetype[1];
+	byte finalsettledprice[16];
+	byte finalsettledpricetype[1];
+	byte eot[1];
+};
+
+struct KrxFuturesMarketpriceRecovery{
+	KrxFuturesHeaderPart hp; // B2 01
+	byte currentpricesign[1];
+	byte currentprice[5];
+	byte closesttradeprice[5];
+	byte distanttradeprice[5];
+	byte marketpricesign[1];
+	byte marketprice[5];
+	byte highpricesign[1];
+	byte highprice[5];
+	byte lowpricesign[1];
+	byte lowprice[5];
+
+	byte unsettledamount[9]; // mgjr
+	byte accumtradequantity[7];
+	byte accumtradeamount[12]; // col. 18.
+
+	byte ask1sign[1];
+	byte ask1price[5];
+	byte ask1quantity[6];
+	byte ask1num[4];
+
+	byte bid1sign[1];
+	byte bid1price[5];
+	byte bid1quantity[6];
+	byte bid1num[4];
+
+	byte ask2sign[1];
+	byte ask2price[5];
+	byte ask2quantity[6];
+	byte ask2num[4];
+
+	byte bid2sign[1];
+	byte bid2price[5];
+	byte bid2quantity[6];
+	byte bid2num[4];
+
+	byte ask3sign[1];
+	byte ask3price[5];
+	byte ask3quantity[6];
+	byte ask3num[4];
+
+	byte bid3sign[1];
+	byte bid3price[5];
+	byte bid3quantity[6];
+	byte bid3num[4];
+
+	byte ask4sign[1];
+	byte ask4price[5];
+	byte ask4quantity[6];
+	byte ask4num[4];
+
+	byte bid4sign[1];
+	byte bid4price[5];
+	byte bid4quantity[6];
+	byte bid4num[4];
+
+	byte ask5sign[1];
+	byte ask5price[5];
+	byte ask5quantity[6];
+	byte ask5num[4];
+
+	byte bid5sign[1];
+	byte bid5price[5];
+	byte bid5quantity[6];
+	byte bid5num[4];
+
+	byte asktotalquantity[6];
+	byte asktotalnum[5];
+
+	byte bidtotalquantity[6];
+	byte bidtotalnum[5];
+
+	byte marketstatetype[2];
+	byte marketmanagetype[3];
+
+	byte expectedpricesign[1];
+	byte expectedprice[5];
+
+	byte eot[1];
+};
+
+struct KrxFuturesPolling{
+	byte datatype[2]; // I2
+	byte infotype[2]; // 01
+	byte markettype[1]; // 1
+	byte timestampHHSS[4];
+	byte mainorbackup[2]; // space
+	byte filler[8];
+	byte eot[1];
+};
+
+struct KrxFuturesOpenMarketManage{
+	byte datatype[2]; // M4
+	byte infotype[2]; // 01
+	byte markettype[1]; // 4
+	byte timestamp[8];
+	byte marketmanagecode[3];
+	byte stockid[10];
+	char krcode[12];
+	byte seq[2];
+	byte marketstatecode[2];
+	byte eot[1];
+};
 
 inline void headers_size_check(){
 	KrxFuturesDesc krxFuturesDesc;
