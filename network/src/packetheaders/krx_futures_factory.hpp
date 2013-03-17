@@ -53,10 +53,7 @@ struct MakeKrxFuturesHeader{
 		const char * msg;
 	};
 
-	static std::map<std::string, Type> codeTypeMap_;
-	static int headerTypeSize_[16];
-
-	static std::map<std::string, Type> codeTypeMap(){
+	static std::map<std::string, Type>& codeTypeMap(){
 		if (codeTypeMap_.empty()){
 			codeTypeMap_["A0014"] = t_KrxFuturesDesc;
 			headerTypeSize_[t_KrxFuturesDesc] = sizeof(KrxFuturesDesc);
@@ -88,9 +85,12 @@ struct MakeKrxFuturesHeader{
 			headerTypeSize_[t_KrxFuturesPolling] = sizeof(KrxFuturesPolling);
 			codeTypeMap_["M4014"] = t_KrxFuturesOpenMarketManage;
 			headerTypeSize_[t_KrxFuturesOpenMarketManage] = sizeof(KrxFuturesOpenMarketManage);
-
 		}
+		return codeTypeMap_;
 	}
+
+	static std::map<std::string, Type> codeTypeMap_;
+	static int headerTypeSize_[17];
 
 
 	MakeKrxFuturesHeader(const char* msg, bool deepCopy)
@@ -119,6 +119,9 @@ struct MakeKrxFuturesHeader{
 	Container container;
 	const char* msg;
 };
+
+extern std::map<std::string, MakeKrxFuturesHeader::Type> MakeKrxFuturesHeader::codeTypeMap_;
+extern int MakeKrxFuturesHeader::headerTypeSize_[17];
 
 
 #endif /* KRX_FUTURES_FACTORY_HPP_ */

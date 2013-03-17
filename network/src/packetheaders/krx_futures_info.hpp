@@ -313,7 +313,7 @@ struct KrxFuturesInvestorData{
 	byte markettype[1]; // 4
 	byte createdate[8];
 	byte createtime[6];
-	byte datatype[2];
+	byte investordatatype[2];
 	byte stockid[10];
 	byte investortype[4];
 	byte bidsettledquantity[9];
