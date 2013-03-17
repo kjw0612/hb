@@ -11,17 +11,28 @@
 #include <string.h>
 #include <memory.h>
 #include "krx_futures_info.hpp"
+#include <map>
+#include <string>
+#include <assert.h>
 
 struct MakeKrxFuturesHeader{
 	enum Type{
-		t_KrxFuturesDesc,
-		t_KrxFuturesBestQuotation,
-		t_KrxFuturesTrade,
-		t_KrxFuturesTradeBestQuotation,
-		t_KrxFuturesEnd,
-		t_KrxFuturesMarketManage,
-		t_KrxFuturesSpace,
-		t_NoType
+		t_KrxFuturesDesc = 1,
+		t_KrxFuturesBestQuotation = 2,
+		t_KrxFuturesTrade = 3,
+		t_KrxFuturesTradeBestQuotation = 4,
+		t_KrxFuturesEnd = 5,
+		t_KrxFuturesMarketManage = 6,
+		t_KrxFuturesSpace = 7,
+		t_KrxFuturesClose = 8,
+		t_KrxFuturesDistribute = 9,
+		t_KrxFuturesInvestorData = 10,
+		t_KrxFuturesUnsettled = 11,
+		t_KrxFuturesSettled = 12,
+		t_KrxFuturesMarketpriceRecovery = 13,
+		t_KrxFuturesPolling = 14,
+		t_KrxFuturesOpenMarketManage = 15,
+		t_NoType = 16
 	};
 
 	~MakeKrxFuturesHeader()
@@ -42,47 +53,53 @@ struct MakeKrxFuturesHeader{
 		const char * msg;
 	};
 
+	static std::map<std::string, Type> codeTypeMap_;
+	static int headerTypeSize_[16];
+
+	static std::map<std::string, Type> codeTypeMap(){
+		if (codeTypeMap_.empty()){
+			codeTypeMap_["A0014"] = t_KrxFuturesDesc;
+			headerTypeSize_[t_KrxFuturesDesc] = sizeof(KrxFuturesDesc);
+			codeTypeMap_["B6014"] = t_KrxFuturesBestQuotation;
+			headerTypeSize_[t_KrxFuturesBestQuotation] = sizeof(KrxFuturesBestQuotation);
+			codeTypeMap_["A3014"] = t_KrxFuturesTrade;
+			headerTypeSize_[t_KrxFuturesTrade] = sizeof(KrxFuturesTrade);
+			codeTypeMap_["G7014"] = t_KrxFuturesTradeBestQuotation;
+			headerTypeSize_[t_KrxFuturesTradeBestQuotation] = sizeof(KrxFuturesTradeBestQuotation);
+			codeTypeMap_["A6014"] = t_KrxFuturesEnd;
+			headerTypeSize_[t_KrxFuturesEnd] = sizeof(KrxFuturesEnd);
+			codeTypeMap_["A7014"] = t_KrxFuturesMarketManage;
+			headerTypeSize_[t_KrxFuturesMarketManage] = sizeof(KrxFuturesMarketManage);
+			codeTypeMap_["G9014"] = t_KrxFuturesSpace;
+			headerTypeSize_[t_KrxFuturesSpace] = sizeof(KrxFuturesSpace);
+			codeTypeMap_["H0014"] = t_KrxFuturesClose;
+			headerTypeSize_[t_KrxFuturesClose] = sizeof(KrxFuturesClose);
+			codeTypeMap_["O6014"] = t_KrxFuturesDistribute;
+			headerTypeSize_[t_KrxFuturesDistribute] = sizeof(KrxFuturesDistribute);
+			codeTypeMap_["H1014"] = t_KrxFuturesInvestorData;
+			headerTypeSize_[t_KrxFuturesInvestorData] = sizeof(KrxFuturesInvestorData);
+			codeTypeMap_["H2014"] = t_KrxFuturesUnsettled;
+			headerTypeSize_[t_KrxFuturesUnsettled] = sizeof(KrxFuturesUnsettled);
+			codeTypeMap_["H3014"] = t_KrxFuturesSettled;
+			headerTypeSize_[t_KrxFuturesSettled] = sizeof(KrxFuturesSettled);
+			codeTypeMap_["B2014"] = t_KrxFuturesMarketpriceRecovery;
+			headerTypeSize_[t_KrxFuturesMarketpriceRecovery] = sizeof(KrxFuturesMarketpriceRecovery);
+			codeTypeMap_["I2014"] = t_KrxFuturesPolling;
+			headerTypeSize_[t_KrxFuturesPolling] = sizeof(KrxFuturesPolling);
+			codeTypeMap_["M4014"] = t_KrxFuturesOpenMarketManage;
+			headerTypeSize_[t_KrxFuturesOpenMarketManage] = sizeof(KrxFuturesOpenMarketManage);
+
+		}
+	}
+
 
 	MakeKrxFuturesHeader(const char* msg, bool deepCopy)
 	: msg(msg), deepCopy(deepCopy), type(t_NoType), size(0), copiedMsg(NULL)
 	{
-		if (!strncmp(msg,"A0014",5)){
-			type = t_KrxFuturesDesc; size = sizeof(KrxFuturesDesc);
-		}
-		else if (!strncmp(msg,"B6014",5)){
-			type = t_KrxFuturesBestQuotation;  size = sizeof(KrxFuturesBestQuotation);
-		}
-		else if (!strncmp(msg,"A3014",5)){
-			type = t_KrxFuturesTrade;  size = sizeof(KrxFuturesTrade);
-		}
-		else if (!strncmp(msg,"G7014",5)){
-			type = t_KrxFuturesTradeBestQuotation;  size = sizeof(KrxFuturesTradeBestQuotation);
-		}
-		else if (!strncmp(msg,"A6014",5)){
-			type = t_KrxFuturesEnd;  size = sizeof(KrxFuturesEnd);
-		}
-		else if (!strncmp(msg,"A7014",5)){
-			type = t_KrxFuturesMarketManage;  size = sizeof(KrxFuturesMarketManage);
-		}
-		else if (!strncmp(msg,"G9014",5)){
-			type = t_KrxFuturesSpace;  size = sizeof(KrxFuturesSpace);
-		}
-		else if (!strncmp(msg,"H0014",5)){
-		}
-		else if (!strncmp(msg,"O6014",5)){
-		}
-		else if (!strncmp(msg,"H1014",5)){
-		}
-		else if (!strncmp(msg,"H2014",5)){
-		}
-		else if (!strncmp(msg,"H3014",5)){
-		}
-		else if (!strncmp(msg,"B2014",5)){
-		}
-		else if (!strncmp(msg,"I2014",5)){
-		}
-		else if (!strncmp(msg,"M4014",5)){
-		}
+		assert(msg[0]>='A' && msg[0] <= 'Z');
+		std::string key(msg,msg+5);
+		type = codeTypeMap()[key];
+		size = headerTypeSize_[type];
 
 		if (deepCopy){
 			copiedMsg = new char[size+1];
