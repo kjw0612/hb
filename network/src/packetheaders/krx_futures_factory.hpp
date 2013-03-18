@@ -63,7 +63,7 @@ struct MakeKrxFuturesHeader{
 			headerTypeSize_[t_KrxFuturesTrade] = sizeof(KrxFuturesTrade);
 			codeTypeMap_["G7014"] = t_KrxFuturesTradeBestQuotation;
 			headerTypeSize_[t_KrxFuturesTradeBestQuotation] = sizeof(KrxFuturesTradeBestQuotation);
-			codeTypeMap_["A6014"] = t_KrxFuturesEnd;
+			codeTypeMap_["A6014"] = t_KrxFuturesEnd;lm
 			headerTypeSize_[t_KrxFuturesEnd] = sizeof(KrxFuturesEnd);
 			codeTypeMap_["A7014"] = t_KrxFuturesMarketManage;
 			headerTypeSize_[t_KrxFuturesMarketManage] = sizeof(KrxFuturesMarketManage);
