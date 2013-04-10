@@ -15,7 +15,7 @@
 
 
 
-VPATH = /home/koval/workspace/hb/bin
+
 pkgdatadir = $(datadir)/hb
 pkgincludedir = $(includedir)/hb
 pkglibdir = $(libdir)/hb
@@ -50,10 +50,10 @@ PROGRAMS = $(bin_PROGRAMS)
 am_hb_OBJECTS = hb.$(OBJEXT)
 hb_OBJECTS = $(am_hb_OBJECTS)
 hb_LDADD = $(LDADD)
-am_test_OBJECTS = testmain.$(OBJEXT)
+am_test_OBJECTS = testmain.$(OBJEXT) testinclude.$(OBJEXT)
 test_OBJECTS = $(am_test_OBJECTS)
 test_DEPENDENCIES =
-DEFAULT_INCLUDES = -I. -I$(srcdir)
+DEFAULT_INCLUDES = -I.
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 am__mv = mv -f
@@ -67,11 +67,11 @@ DIST_SOURCES = $(hb_SOURCES) $(test_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
-ACLOCAL = ${SHELL} /home/koval/workspace/hb/missing --run aclocal-1.11
+ACLOCAL = ${SHELL} /home/jaehongkim/git/hb/hb/missing --run aclocal-1.11
 AMTAR = $${TAR-tar}
-AUTOCONF = ${SHELL} /home/koval/workspace/hb/missing --run autoconf
-AUTOHEADER = ${SHELL} /home/koval/workspace/hb/missing --run autoheader
-AUTOMAKE = ${SHELL} /home/koval/workspace/hb/missing --run automake-1.11
+AUTOCONF = ${SHELL} /home/jaehongkim/git/hb/hb/missing --run autoconf
+AUTOHEADER = ${SHELL} /home/jaehongkim/git/hb/hb/missing --run autoheader
+AUTOMAKE = ${SHELL} /home/jaehongkim/git/hb/hb/missing --run automake-1.11
 AWK = gawk
 CPPFLAGS = 
 CXX = g++
@@ -93,7 +93,7 @@ LDFLAGS =
 LIBOBJS = 
 LIBS = 
 LTLIBOBJS = 
-MAKEINFO = ${SHELL} /home/koval/workspace/hb/missing --run makeinfo
+MAKEINFO = ${SHELL} /home/jaehongkim/git/hb/hb/missing --run makeinfo
 MKDIR_P = /bin/mkdir -p
 OBJEXT = o
 PACKAGE = hb
@@ -108,10 +108,10 @@ SET_MAKE =
 SHELL = /bin/bash
 STRIP = 
 VERSION = 1.0
-abs_builddir = /home/koval/workspace/hb//bin
-abs_srcdir = /home/koval/workspace/hb/bin
-abs_top_builddir = /home/koval/workspace/hb/
-abs_top_srcdir = /home/koval/workspace/hb
+abs_builddir = /home/jaehongkim/git/hb/hb/bin
+abs_srcdir = /home/jaehongkim/git/hb/hb/bin
+abs_top_builddir = /home/jaehongkim/git/hb/hb
+abs_top_srcdir = /home/jaehongkim/git/hb/hb
 ac_ct_CXX = g++
 am__include = include
 am__leading_dot = .
@@ -138,7 +138,7 @@ host_vendor = pc
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} /home/koval/workspace/hb/install-sh
+install_sh = ${SHELL} /home/jaehongkim/git/hb/hb/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
@@ -152,7 +152,7 @@ program_transform_name = s,x,x,
 psdir = ${docdir}
 sbindir = ${exec_prefix}/sbin
 sharedstatedir = ${prefix}/com
-srcdir = /home/koval/workspace/hb/bin
+srcdir = .
 sysconfdir = ${prefix}/etc
 target = i686-pc-linux-gnu
 target_alias = 
@@ -161,9 +161,10 @@ target_os = linux-gnu
 target_vendor = pc
 top_build_prefix = ../
 top_builddir = ..
-top_srcdir = /home/koval/workspace/hb
+top_srcdir = ..
+AM_CPPFLAGS = -I../src
 hb_SOURCES = ../src/hb.cpp
-test_SOURCES = ../src/test/testmain.cpp
+test_SOURCES = ../src/test/testmain.cpp ../src/test/testinclude.cpp
 test_LDADD = -lgtest -lpthread
 all: all-am
 
@@ -250,6 +251,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 include ./$(DEPDIR)/hb.Po
+include ./$(DEPDIR)/testinclude.Po
 include ./$(DEPDIR)/testmain.Po
 
 .cpp.o:
@@ -293,6 +295,20 @@ testmain.obj: ../src/test/testmain.cpp
 #	source='../src/test/testmain.cpp' object='testmain.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o testmain.obj `if test -f '../src/test/testmain.cpp'; then $(CYGPATH_W) '../src/test/testmain.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/test/testmain.cpp'; fi`
+
+testinclude.o: ../src/test/testinclude.cpp
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT testinclude.o -MD -MP -MF $(DEPDIR)/testinclude.Tpo -c -o testinclude.o `test -f '../src/test/testinclude.cpp' || echo '$(srcdir)/'`../src/test/testinclude.cpp
+	$(am__mv) $(DEPDIR)/testinclude.Tpo $(DEPDIR)/testinclude.Po
+#	source='../src/test/testinclude.cpp' object='testinclude.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o testinclude.o `test -f '../src/test/testinclude.cpp' || echo '$(srcdir)/'`../src/test/testinclude.cpp
+
+testinclude.obj: ../src/test/testinclude.cpp
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT testinclude.obj -MD -MP -MF $(DEPDIR)/testinclude.Tpo -c -o testinclude.obj `if test -f '../src/test/testinclude.cpp'; then $(CYGPATH_W) '../src/test/testinclude.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/test/testinclude.cpp'; fi`
+	$(am__mv) $(DEPDIR)/testinclude.Tpo $(DEPDIR)/testinclude.Po
+#	source='../src/test/testinclude.cpp' object='testinclude.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o testinclude.obj `if test -f '../src/test/testinclude.cpp'; then $(CYGPATH_W) '../src/test/testinclude.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/test/testinclude.cpp'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \

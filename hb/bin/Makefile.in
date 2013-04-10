@@ -50,7 +50,7 @@ PROGRAMS = $(bin_PROGRAMS)
 am_hb_OBJECTS = hb.$(OBJEXT)
 hb_OBJECTS = $(am_hb_OBJECTS)
 hb_LDADD = $(LDADD)
-am_test_OBJECTS = testmain.$(OBJEXT)
+am_test_OBJECTS = testmain.$(OBJEXT) testinclude.$(OBJEXT)
 test_OBJECTS = $(am_test_OBJECTS)
 test_DEPENDENCIES =
 DEFAULT_INCLUDES = -I.@am__isrc@
@@ -162,8 +162,9 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
+AM_CPPFLAGS = -I../src
 hb_SOURCES = ../src/hb.cpp
-test_SOURCES = ../src/test/testmain.cpp
+test_SOURCES = ../src/test/testmain.cpp ../src/test/testinclude.cpp
 test_LDADD = -lgtest -lpthread
 all: all-am
 
@@ -250,6 +251,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hb.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/testinclude.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/testmain.Po@am__quote@
 
 .cpp.o:
@@ -293,6 +295,20 @@ testmain.obj: ../src/test/testmain.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../src/test/testmain.cpp' object='testmain.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o testmain.obj `if test -f '../src/test/testmain.cpp'; then $(CYGPATH_W) '../src/test/testmain.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/test/testmain.cpp'; fi`
+
+testinclude.o: ../src/test/testinclude.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT testinclude.o -MD -MP -MF $(DEPDIR)/testinclude.Tpo -c -o testinclude.o `test -f '../src/test/testinclude.cpp' || echo '$(srcdir)/'`../src/test/testinclude.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/testinclude.Tpo $(DEPDIR)/testinclude.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../src/test/testinclude.cpp' object='testinclude.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o testinclude.o `test -f '../src/test/testinclude.cpp' || echo '$(srcdir)/'`../src/test/testinclude.cpp
+
+testinclude.obj: ../src/test/testinclude.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT testinclude.obj -MD -MP -MF $(DEPDIR)/testinclude.Tpo -c -o testinclude.obj `if test -f '../src/test/testinclude.cpp'; then $(CYGPATH_W) '../src/test/testinclude.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/test/testinclude.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/testinclude.Tpo $(DEPDIR)/testinclude.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../src/test/testinclude.cpp' object='testinclude.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o testinclude.obj `if test -f '../src/test/testinclude.cpp'; then $(CYGPATH_W) '../src/test/testinclude.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/test/testinclude.cpp'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
