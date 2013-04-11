@@ -148,7 +148,7 @@ testmain.o: ../src/test/testmain.cpp /usr/include/gtest/gtest.h \
  /usr/include/i386-linux-gnu/bits/mathdef.h \
  /usr/include/i386-linux-gnu/bits/mathcalls.h \
  /usr/include/i386-linux-gnu/bits/mathinline.h \
- ../src/test/testinclude.hpp
+ ../src/common/mempool_test.hpp ../src/common/mempool.hpp
 
 /usr/include/gtest/gtest.h:
 
@@ -540,4 +540,6 @@ testmain.o: ../src/test/testmain.cpp /usr/include/gtest/gtest.h \
 
 /usr/include/i386-linux-gnu/bits/mathinline.h:
 
-../src/test/testinclude.hpp:
+../src/common/mempool_test.hpp:
+
+../src/common/mempool.hpp:

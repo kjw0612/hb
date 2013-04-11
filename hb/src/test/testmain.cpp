@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 #include <cmath>
-#include <test/testinclude.hpp>
+//#include <test/testinclude.hpp>
+#include <common/mempool_test.hpp>
 
 double square_root(const double sqx){
 	return sqrt(sqx);
@@ -18,7 +19,7 @@ TEST (SquareRootTest, ZeroAndNegativeNos){
 }
 
 int main(int argc, char ** argv){
-	helloworld();
+	//helloworld();
 	::testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
 	return 0;

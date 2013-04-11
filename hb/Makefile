@@ -14,7 +14,7 @@
 # PARTICULAR PURPOSE.
 
 
-
+VPATH = /home/koval/git/hb/hb
 pkgdatadir = $(datadir)/hb
 pkgincludedir = $(includedir)/hb
 pkglibdir = $(libdir)/hb
@@ -105,11 +105,11 @@ distuninstallcheck_listfiles = find . -type f -print
 am__distuninstallcheck_listfiles = $(distuninstallcheck_listfiles) \
   | sed 's|^\./|$(prefix)/|' | grep -v '$(infodir)/dir$$'
 distcleancheck_listfiles = find . -type f -print
-ACLOCAL = ${SHELL} /home/jaehongkim/git/hb/hb/missing --run aclocal-1.11
+ACLOCAL = ${SHELL} /home/koval/git/hb/hb/missing --run aclocal-1.11
 AMTAR = $${TAR-tar}
-AUTOCONF = ${SHELL} /home/jaehongkim/git/hb/hb/missing --run autoconf
-AUTOHEADER = ${SHELL} /home/jaehongkim/git/hb/hb/missing --run autoheader
-AUTOMAKE = ${SHELL} /home/jaehongkim/git/hb/hb/missing --run automake-1.11
+AUTOCONF = ${SHELL} /home/koval/git/hb/hb/missing --run autoconf
+AUTOHEADER = ${SHELL} /home/koval/git/hb/hb/missing --run autoheader
+AUTOMAKE = ${SHELL} /home/koval/git/hb/hb/missing --run automake-1.11
 AWK = gawk
 CPPFLAGS = 
 CXX = g++
@@ -131,7 +131,7 @@ LDFLAGS =
 LIBOBJS = 
 LIBS = 
 LTLIBOBJS = 
-MAKEINFO = ${SHELL} /home/jaehongkim/git/hb/hb/missing --run makeinfo
+MAKEINFO = ${SHELL} /home/koval/git/hb/hb/missing --run makeinfo
 MKDIR_P = /bin/mkdir -p
 OBJEXT = o
 PACKAGE = hb
@@ -146,10 +146,10 @@ SET_MAKE =
 SHELL = /bin/bash
 STRIP = 
 VERSION = 1.0
-abs_builddir = /home/jaehongkim/git/hb/hb
-abs_srcdir = /home/jaehongkim/git/hb/hb
-abs_top_builddir = /home/jaehongkim/git/hb/hb
-abs_top_srcdir = /home/jaehongkim/git/hb/hb
+abs_builddir = /home/koval/git/hb/hb/
+abs_srcdir = /home/koval/git/hb/hb
+abs_top_builddir = /home/koval/git/hb/hb/
+abs_top_srcdir = /home/koval/git/hb/hb
 ac_ct_CXX = g++
 am__include = include
 am__leading_dot = .
@@ -176,7 +176,7 @@ host_vendor = pc
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} /home/jaehongkim/git/hb/hb/install-sh
+install_sh = ${SHELL} /home/koval/git/hb/hb/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
@@ -190,7 +190,7 @@ program_transform_name = s,x,x,
 psdir = ${docdir}
 sbindir = ${exec_prefix}/sbin
 sharedstatedir = ${prefix}/com
-srcdir = .
+srcdir = /home/koval/git/hb/hb
 sysconfdir = ${prefix}/etc
 target = i686-pc-linux-gnu
 target_alias = 
@@ -199,7 +199,7 @@ target_os = linux-gnu
 target_vendor = pc
 top_build_prefix = 
 top_builddir = .
-top_srcdir = .
+top_srcdir = /home/koval/git/hb/hb
 SUBDIRS = bin
 all: all-recursive
 
