@@ -50,7 +50,8 @@ PROGRAMS = $(bin_PROGRAMS)
 am_hb_OBJECTS = hb.$(OBJEXT)
 hb_OBJECTS = $(am_hb_OBJECTS)
 hb_LDADD = $(LDADD)
-am_test_OBJECTS = testmain.$(OBJEXT) testinclude.$(OBJEXT)
+am_test_OBJECTS = testmain.$(OBJEXT) testinclude.$(OBJEXT) \
+	mempool.$(OBJEXT)
 test_OBJECTS = $(am_test_OBJECTS)
 test_DEPENDENCIES =
 DEFAULT_INCLUDES = -I.@am__isrc@
@@ -73,8 +74,13 @@ AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
+CC = @CC@
+CCDEPMODE = @CCDEPMODE@
+CFLAGS = @CFLAGS@
+CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
+CXXCPP = @CXXCPP@
 CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
@@ -83,7 +89,9 @@ DEPDIR = @DEPDIR@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
+EGREP = @EGREP@
 EXEEXT = @EXEEXT@
+GREP = @GREP@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -112,6 +120,7 @@ abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
+ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
 am__include = @am__include@
 am__leading_dot = @am__leading_dot@
@@ -164,7 +173,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CPPFLAGS = -I../src
 hb_SOURCES = ../src/hb.cpp
-test_SOURCES = ../src/test/testmain.cpp ../src/test/testinclude.cpp
+test_SOURCES = ../src/test/testmain.cpp ../src/test/testinclude.cpp ../src/common/mempool.cpp
 test_LDADD = -lgtest -lpthread
 all: all-am
 
@@ -251,6 +260,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hb.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mempool.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/testinclude.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/testmain.Po@am__quote@
 
@@ -309,6 +319,20 @@ testinclude.obj: ../src/test/testinclude.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../src/test/testinclude.cpp' object='testinclude.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o testinclude.obj `if test -f '../src/test/testinclude.cpp'; then $(CYGPATH_W) '../src/test/testinclude.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/test/testinclude.cpp'; fi`
+
+mempool.o: ../src/common/mempool.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mempool.o -MD -MP -MF $(DEPDIR)/mempool.Tpo -c -o mempool.o `test -f '../src/common/mempool.cpp' || echo '$(srcdir)/'`../src/common/mempool.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/mempool.Tpo $(DEPDIR)/mempool.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../src/common/mempool.cpp' object='mempool.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mempool.o `test -f '../src/common/mempool.cpp' || echo '$(srcdir)/'`../src/common/mempool.cpp
+
+mempool.obj: ../src/common/mempool.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mempool.obj -MD -MP -MF $(DEPDIR)/mempool.Tpo -c -o mempool.obj `if test -f '../src/common/mempool.cpp'; then $(CYGPATH_W) '../src/common/mempool.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/common/mempool.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/mempool.Tpo $(DEPDIR)/mempool.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../src/common/mempool.cpp' object='mempool.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mempool.obj `if test -f '../src/common/mempool.cpp'; then $(CYGPATH_W) '../src/common/mempool.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/common/mempool.cpp'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \

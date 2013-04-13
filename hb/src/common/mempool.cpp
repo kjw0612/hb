@@ -14,17 +14,12 @@ MemPool::MemPool(int szbuf, int szlistener)
 	listener = new int[szListener];
 
 	assert (buf != NULL && listener != NULL) ;
-	nowBuf = nowListener = 0;
+	nowBuf = nextBuf = nowListener = 0;
 }
 
 MemPool::~MemPool() {
 	if (buf != NULL) delete[] buf;
 	if (listener != NULL) delete[] listener;
-}
-
-int MemPool::newListener() {
-	listener[nowListener] = nowBuf;
-	return nowListener ++;
 }
 
 int MemPool::getNext(int lid, char *res, int options) {
@@ -39,20 +34,6 @@ int MemPool::getNext(int lid, char *res, int options) {
 	else res = buf + pos;
 	now = pos + len;
 	if (szBuf - now < sizeof(int)) now = 0;
-	return len;	
+	return len;
 }
 
-char *MemPool::readyBlock(int len) {
-	if (szBuf - nowBuf < sizeof(int)) nowBuf = 0;
-	*(int *)(buf + nowBuf) = len;
-	nextBuf = nowBuf + sizeof(int);
-	if (szBuf - nextBuf < len) nextBuf = 0;
-
-	char *res = buf + nextBuf;
-	nextBuf += len;
-	return res;
-}
-
-void MemPool::doneBlock() {
-	nowBuf = nextBuf;
-}
