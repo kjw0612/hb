@@ -16,47 +16,71 @@ namespace testset{
 	}
 
 	void mem_alloc_same_large(function<char *(int )> allocfnc, function<void(char *)> freefnc,
-			int ntimes, int chunk_size)
+			int ntimes, int chunk_size, int fragmentation)
 	{
 		char* res;
 		Timer timer;
 		printf("function test - evaluating performance\n");
 		printf("over allocation ");		printf("and deletion ");
-		printf("for allocation times %d, (equal) chunk size %d\n", ntimes, chunk_size);
+		printf("for allocation times %d, ", ntimes);
+		if (fragmentation){
+			printf("(incremental) chunk size starts from %d\n", chunk_size);
+		}
+		else{
+			printf("(equal) chunk size %d\n", chunk_size);
+		}
 		int n = 0;
-		for (int i=0;i<ntimes;i+=chunk_size){
-			res = allocfnc(chunk_size);
-			freefnc(res);
+		if (fragmentation){
+			char *front = allocfnc(chunk_size);
+			char *back = allocfnc(chunk_size);
+			for (int i=0;i<ntimes;++i){
+				char *newback = allocfnc(chunk_size+i);
+				freefnc(back);
+				back = newback;
+			}
+			freefnc(front);
+		}
+		else{
+			for (int i=0;i<ntimes;++i){
+				res = allocfnc(chunk_size);
+				freefnc(res);
+			}
 		}
 		timer.report(stdout);
 	}
+
 	auto_ptr<MemPool> mp;
 	MemPool * mp_ptr;
 
-	void mempool_performance_test(){
+	void mempool_performance_test(int fragmentation = 0){
 		Timer timer;
 		mp = auto_ptr<MemPool> (new MemPool(30000000, 5));
 		mp_ptr = mp.get();
 		printf("---------------------MemPoolTime--------------\n");
+		if (fragmentation==1){
+			printf("trying to make a fragmentation");
+		}
 		printf("mempool allocation time - ");
 		timer.report(stdout);
 		//function<char *(int )> mpallocfnc = [](int size) -> char *{ return mp.readyBlock(size); };
 		auto mpallocfnc = [](int size) -> char *{ mp_ptr->doneBlock(); return mp_ptr->readyBlock(size); };
 		auto mpfreefnc = [](char *ptr) -> void { /* do nothing */ };
-		mem_alloc_same_large(mpallocfnc, mpfreefnc, 1000000, 50000);
+		mem_alloc_same_large(mpallocfnc, mpfreefnc, 100000, 50000, fragmentation);
 		printf("---------------------MemPoolTimeEnd-----------\n");
 		printf("---------------------New[]Time----------------\n");
 		timer.reset();
 		auto newfnc = [](int size) -> char *{ return new char[size]; };
 		auto deletefnc = [](char *ptr) -> void { delete ptr; };
-		mem_alloc_same_large(newfnc, deletefnc, 1000000, 50000);
+		mem_alloc_same_large(newfnc, deletefnc, 100000, 50000, fragmentation);
 		printf("---------------------New[]TimeEnd-------------\n");
+		mp.release();
 
 	}
 
 	TEST (MemPoolTest, EmptyTest){
 		mempool_listener_test();
-		mempool_performance_test();
+		mempool_performance_test(0);
+		mempool_performance_test(1);
 		//EXPECT_EQ(4.0, std::sqrt(16.0));
 		//EXPECT_EQ(25.4, std::sqrt(645.16));
 		//EXPECT_EQ(50.332, std::sqrt(2533.310224));
