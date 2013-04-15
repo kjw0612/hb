@@ -7,6 +7,7 @@
 #include <functional>
 #include <vector>
 #include <memory>
+#include <stdlib.h>
 
 namespace testset{
 	using namespace hb;
@@ -18,7 +19,7 @@ namespace testset{
 	void mem_alloc_same_large(function<char *(int )> allocfnc, function<void(char *)> freefnc,
 			int ntimes, int chunk_size, int fragmentation)
 	{
-		char* res;
+		char* res[1024];
 		Timer timer;
 		printf("function test - evaluating performance\n");
 		printf("over allocation ");		printf("and deletion ");
@@ -41,10 +42,14 @@ namespace testset{
 			freefnc(front);
 		}
 		else{
+			srand(600);
+			for (int i=0;i<1024;i++) res[i] = NULL;
 			for (int i=0;i<ntimes;++i){
-				res = allocfnc(chunk_size);
-				freefnc(res);
+				int r = rand()%1024;
+				if (res[r] != NULL) freefnc(res[r]);
+				res[r] = allocfnc(chunk_size);
 			}
+			for (int i=0;i<1024;i++) if (res[i] != NULL) freefnc(res[i]);
 		}
 		timer.report(stdout);
 	}
@@ -54,7 +59,7 @@ namespace testset{
 
 	void mempool_performance_test(int fragmentation = 0){
 		Timer timer;
-		mp = auto_ptr<MemPool> (new MemPool(30000000, 5));
+		mp = auto_ptr<MemPool> (new MemPool(524288, 5));
 		mp_ptr = mp.get();
 		printf("---------------------MemPoolTime--------------\n");
 		if (fragmentation==1){
@@ -65,13 +70,13 @@ namespace testset{
 		//function<char *(int )> mpallocfnc = [](int size) -> char *{ return mp.readyBlock(size); };
 		auto mpallocfnc = [](int size) -> char *{ mp_ptr->doneBlock(); return mp_ptr->readyBlock(size); };
 		auto mpfreefnc = [](char *ptr) -> void { /* do nothing */ };
-		mem_alloc_same_large(mpallocfnc, mpfreefnc, 100000, 50000, fragmentation);
+		mem_alloc_same_large(mpallocfnc, mpfreefnc, 131072, 512, fragmentation);
 		printf("---------------------MemPoolTimeEnd-----------\n");
 		printf("---------------------New[]Time----------------\n");
 		timer.reset();
 		auto newfnc = [](int size) -> char *{ return new char[size]; };
 		auto deletefnc = [](char *ptr) -> void { delete ptr; };
-		mem_alloc_same_large(newfnc, deletefnc, 100000, 50000, fragmentation);
+		mem_alloc_same_large(newfnc, deletefnc, 131072, 512, fragmentation);
 		printf("---------------------New[]TimeEnd-------------\n");
 		mp.release();
 
@@ -80,7 +85,7 @@ namespace testset{
 	TEST (MemPoolTest, EmptyTest){
 		mempool_listener_test();
 		mempool_performance_test(0);
-		mempool_performance_test(1);
+		//mempool_performance_test(1);
 		//EXPECT_EQ(4.0, std::sqrt(16.0));
 		//EXPECT_EQ(25.4, std::sqrt(645.16));
 		//EXPECT_EQ(50.332, std::sqrt(2533.310224));
