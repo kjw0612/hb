@@ -72,13 +72,20 @@ namespace testset{
 		auto mpfreefnc = [](char *ptr) -> void { /* do nothing */ };
 		mem_alloc_same_large(mpallocfnc, mpfreefnc, 131072, 512, fragmentation);
 		printf("---------------------MemPoolTimeEnd-----------\n");
+		mp.release();
 		printf("---------------------New[]Time----------------\n");
 		timer.reset();
 		auto newfnc = [](int size) -> char *{ return new char[size]; };
 		auto deletefnc = [](char *ptr) -> void { delete ptr; };
 		mem_alloc_same_large(newfnc, deletefnc, 131072, 512, fragmentation);
 		printf("---------------------New[]TimeEnd-------------\n");
-		mp.release();
+		printf("---------------------Null[]Time----------------\n");
+		timer.reset();
+		auto nullfnc = [](int size) -> char *{ return NULL; };
+		auto dnullfnc = [](char *ptr) -> void { };
+		mem_alloc_same_large(nullfnc, dnullfnc, 131072, 512, fragmentation);
+		printf("---------------------Null[]TimeEnd-------------\n");
+
 
 	}
 
