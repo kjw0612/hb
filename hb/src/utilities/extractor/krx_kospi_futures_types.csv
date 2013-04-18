@@ -1,0 +1,15 @@
+KrxFuturesDesc,A0014
+KrxFuturesBestQuotation,B6014
+KrxFuturesTrade,A3014
+KrxFuturesTradeBestQuotation,G7014
+KrxFuturesEnd,A6014
+KrxFuturesMarketManage,A7014
+KrxFuturesSpace,G9014
+KrxFuturesDistribute,O6014
+KrxFuturesInvestorData,H1014
+KrxFuturesUnsettled,H2014
+KrxFuturesSettled,H3014
+KrxFuturesMarketpriceRecovery,B2014
+KrxFuturesPolling,I2014
+KrxFuturesOpenMarketManage,M4014
+KrxFuturesClose,H0014
