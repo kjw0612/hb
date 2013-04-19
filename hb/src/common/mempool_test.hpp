@@ -8,6 +8,8 @@
 #include <vector>
 #include <memory>
 #include <stdlib.h>
+#define JEMALLOC_NO_DEMANGLE
+#include "jemalloc/jemalloc.h"
 
 namespace testset{
 	using namespace hb;
@@ -75,8 +77,12 @@ namespace testset{
 		mp.release();
 		printf("---------------------New[]Time----------------\n");
 		timer.reset();
-		auto newfnc = [](int size) -> char *{ return new char[size]; };
-		auto deletefnc = [](char *ptr) -> void { delete ptr; };
+		//auto newfnc = [](int size) -> char *{ return new char[size]; };
+		//auto deletefnc = [](char *ptr) -> void { delete ptr; };
+		auto newfnc = [](int size) -> char *{ return (char *)je_malloc(size); };
+		auto deletefnc = [](char *ptr) -> void { je_free(ptr); };
+
+
 		mem_alloc_same_large(newfnc, deletefnc, 131072, 512, fragmentation);
 		printf("---------------------New[]TimeEnd-------------\n");
 		printf("---------------------Null[]Time----------------\n");
