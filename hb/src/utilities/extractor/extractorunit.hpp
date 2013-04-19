@@ -1,20 +1,16 @@
 #ifndef extractorunit_h__
 #define extractorunit_h__
 
-#include <string>
 #include <set>
 #include <map>
-#include <vector>
-#include <fstream>
-#include <sstream>
-#include <string>
-
+#include "csvparser.hpp"
 
 struct HeaderDesc{
 	std::string classname;
 	std::vector<std::string> colnames;
 	std::vector<std::string> coltypes;
 	std::vector<int> datasizes;
+	std::vector<std::string> comments;
 	bool initialized;
 
 	HeaderDesc() : initialized(false) {}
@@ -25,11 +21,12 @@ struct HeaderDesc{
 	inline void clear(){
 		initialized = false; colnames.clear(); coltypes.clear(); datasizes.clear();
 	}
-	inline void push(const std::string& __colname, const std::string& __coltype, int __datasize){
+	inline void push(const std::string& __colname, const std::string& __coltype, int __datasize, const std::string& __comment = ""){
 		initialized = true;
 		colnames.push_back(__colname);
 		coltypes.push_back(__coltype);
 		datasizes.push_back(__datasize);
+		comments.push_back(__comment);
 	}
 };
 
@@ -50,18 +47,15 @@ public:
 	std::map<std::string, int> hdname2idx;
 
 	inline void parse_srcfile(){
-		hds.clear();
-
-		std::ifstream fp(srcfile.c_str());
-		std::string str;
 		HeaderDesc hd;
+		hds.clear();
 		hdname2idx.clear();
-		while(std::getline(fp,str)){
-			std::replace(str.begin(),str.end(),',',' ');
-			std::istringstream iss(str);
-			int n;
-			std::string colname, coltype; int datasize = 0;
-			iss >> n >> colname >> coltype >> datasize;
+		CsvParser csvin(srcfile);
+		while(csvin.getline()){
+			int n=0; std::string colname, coltype; int datasize = 0;
+			std::string comment;
+			csvin >> n >> colname >> coltype >> datasize;
+			csvin.gets(comment);
 			if (n == 0){
 				if (hd.initialized){
 					hdname2idx[hd.classname] = hds.size();
@@ -71,10 +65,9 @@ public:
 				hd.classname = colname;
 			}
 			else{
-				hd.push(colname, coltype, datasize);
+				hd.push(colname, coltype, datasize, comment);
 			}
 		}
-		fp.close();
 	}
 
 	void output_objectfile(){
@@ -95,6 +88,9 @@ public:
 				}
 				fo << "char ";
 				fo << hd.colnames[j] << "[" << hd.datasizes[j] << "];";
+				if (hd.comments[j].length()>0){
+					fo << "\t// " << hd.comments[j];
+				}
 				fo << std::endl;
 			}
 			fo << "};" << std::endl;
@@ -116,21 +112,17 @@ public:
 	inline void input_datafiles_output_reformatfile(){
 		char msgbuf[2001], buf[2001];
 		{
-			std::ifstream fi(typesfile.c_str());
-			std::string str;
+			CsvParser csvin(typesfile);
 			type2code.clear();
 			code2type.clear();
-			while(std::getline(fi,str)){
-				std::replace(str.begin(),str.end(),',',' ');
-				std::istringstream iss(str);
+			while(csvin.getline()){
 				std::string headertype = "", code = "";
-				iss >> headertype >> code;
+				csvin >> headertype >> code;
 				if (code.length()==0){
 					break; }
 				type2code[headertype] = code;
 				code2type[code] = headertype;
 			}
-			fi.close();
 		}
 		long long rt;
 		int sz;

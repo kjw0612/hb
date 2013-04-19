@@ -8,6 +8,8 @@ src = krx_kospi_options.csv
 object = krx_kospi_options.hpp
 do
 
+end
+
 mode = reformat
 src = krx_kospi_futures.csv
 types = krx_kospi_futures_types.csv
