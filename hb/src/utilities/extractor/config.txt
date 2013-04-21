@@ -1,11 +1,13 @@
 mode = headergenerate
 src = krx_kospi_futures.csv
 object = krx_kospi_futures.hpp
+name = KrxFuturesHeader
 do
 
 mode = headergenerate
 src = krx_kospi_options.csv
 object = krx_kospi_options.hpp
+name = KrxOptionsHeader
 do
 
 end

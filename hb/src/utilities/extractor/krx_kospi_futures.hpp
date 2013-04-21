@@ -1,6 +1,30 @@
 #ifndef KRX_KOSPI_FUTURES_HPP
 #define KRX_KOSPI_FUTURES_HPP
 
+#include "jshash.hpp"
+
+enum eKrxFuturesHeader{
+    t_KrxFuturesDesc = 1611725625,// JSHash(A0014,5) 
+    t_KrxFuturesBestQuotation = 1629858603,// JSHash(B6014,5) 
+    t_KrxFuturesTrade = 1611360085,// JSHash(A3014,5) 
+    t_KrxFuturesTradeBestQuotation = 1618537064,// JSHash(G7014,5) 
+    t_KrxFuturesEnd = 1612413018,// JSHash(A6014,5) 
+    t_KrxFuturesMarketManage = 1611938007,// JSHash(A7014,5) 
+    t_KrxFuturesSpace = 1618602382,// JSHash(G9014,5) 
+    t_KrxFuturesDistribute = 1696058501,// JSHash(O6014,5) 
+    t_KrxFuturesInvestorData = 1701176490,// JSHash(H1014,5) 
+    t_KrxFuturesUnsettled = 1701400705,// JSHash(H2014,5) 
+    t_KrxFuturesSettled = 1702451835,// JSHash(H3014,5) 
+    t_KrxFuturesMarketpriceRecovery = 1612007977,// JSHash(B2014,5) 
+    t_KrxFuturesPolling = 1637815554,// JSHash(I2014,5) 
+    t_KrxFuturesOpenMarketManage = 1623649709,// JSHash(M4014,5) 
+    t_KrxFuturesClose = 1701492423,// JSHash(H0014,5) 
+};
+inline eKrxFuturesHeader getTypeKrxFuturesHeader(const char *str){
+    return (eKrxFuturesHeader) JSHash(str,5);
+}
+
+
 struct KrxFuturesDesc{
 	unsigned char datatype[2];	// A0
 	unsigned char infotype[2];	// 01:KOSPI200지수선물
@@ -104,16 +128,16 @@ struct KrxFuturesDesc{
 	unsigned char maxunsettledcontractsnum[8];
 	unsigned char affiliatedcommoditygroup[4];
 	unsigned char limitorderconditioncode[1];
-	unsigned char marketorderconditioncode[1];	// 예) 999.999
-	unsigned char conditionallimitorderconditioncode[1];	// *적용일에 적용되는 상품의 계좌별 미결제 한도 계약수. 미결제 한도가 적용되지 않은 상품은 0 *주식선물에만 해당
-	unsigned char bestlimitorderconditioncode[1];	// *주식선물/옵션에만 해당
-	unsigned char subjectedtoefpyn[1];	// *백분율로 표시 *주식선물/옵션에만 해당예) 999.99
-	unsigned char subjectedtoflexyn[1];	// 0:불가 1:가능(FAS;FOK;FAK가능) 2:가능(FAS만가능)
+	unsigned char marketorderconditioncode[1];
+	unsigned char conditionallimitorderconditioncode[1];
+	unsigned char bestlimitorderconditioncode[1];
+	unsigned char subjectedtoefpyn[1];
+	unsigned char subjectedtoflexyn[1];
 	unsigned char prevdayefpquantity[12];
 	unsigned char prevdayefpamount[22];
 	unsigned char closureyn[1];
-	unsigned char filler[133];	// Y; N; 상품선물만 해당
-	unsigned char eot[1];	// Y; N; 상품선물만 해당
+	unsigned char filler[133];
+	unsigned char eot[1];
 };
 
 struct KrxFuturesBestQuotation{

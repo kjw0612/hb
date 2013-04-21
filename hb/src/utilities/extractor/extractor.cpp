@@ -4,6 +4,7 @@
 #include <memory.h>
 #include <algorithm>
 #include "extractorunit.hpp"
+#include "krx_kospi_futures.hpp"
 
 ExtractorUnit unit;
 
@@ -55,6 +56,9 @@ int main(){
 			}
 			else if (word.compare("wanteddesc")==0){
 				unit.wanteddescfile = wordr;
+			}
+			else if (word.compare("name")==0){
+				unit.name = wordr;
 			}
 		}
 	}

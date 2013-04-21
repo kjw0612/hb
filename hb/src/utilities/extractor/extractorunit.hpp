@@ -4,6 +4,7 @@
 #include <set>
 #include <map>
 #include "csvparser.hpp"
+#include "hashergenerator.hpp"
 
 struct HeaderDesc{
 	std::string classname;
@@ -45,8 +46,12 @@ public:
 
 	std::vector<HeaderDesc> hds;
 	std::map<std::string, int> hdname2idx;
+	std::vector<std::string> headercodes;
+	std::vector<std::string> headernames;
 
 	inline void parse_srcfile(){
+		headercodes.clear();
+		headernames.clear();
 		HeaderDesc hd;
 		hds.clear();
 		hdname2idx.clear();
@@ -57,6 +62,8 @@ public:
 			csvin >> n >> colname >> coltype >> datasize;
 			csvin.gets(comment);
 			if (n == 0){
+				headernames.push_back(colname);
+				headercodes.push_back(comment);
 				if (hd.initialized){
 					hdname2idx[hd.classname] = hds.size();
 					hds.push_back(hd);
@@ -77,6 +84,11 @@ public:
 		std::transform(ofdef.begin(),ofdef.end(),ofdef.begin(),::toupper);
 		fo << "#ifndef " << ofdef << std::endl;
 		fo << "#define " << ofdef << std::endl;
+		fo << std::endl;
+		fo << "#include \"jshash.hpp\"" << std::endl << std::endl;
+
+		fo << hashergenerator(headercodes,headernames,name) << std::endl;
+
 		for (int i=0;i<(int)hds.size();++i){
 			HeaderDesc& hd = hds[i];
 			fo << std::endl;
@@ -100,6 +112,12 @@ public:
 	}
 
 	inline void generate_header(){
+		std::ofstream fo("jshash.hpp");
+		fo << "#ifndef jshash_hpp" << std::endl
+			<< "#define jshash_hpp" << std::endl;
+		fo << hashfunc::jshash_str() << std::endl;
+		fo << "#endif";
+		fo.close();
 		parse_srcfile();
 		output_objectfile();
 	}
@@ -230,6 +248,7 @@ public:
 	std::vector<std::string> datafiles;
 	std::string outputfile;
 	std::string wanteddescfile;
+	std::string name;
 };
 
 #endif // extractorunit_h__

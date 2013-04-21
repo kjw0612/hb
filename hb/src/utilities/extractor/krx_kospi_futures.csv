@@ -1,4 +1,4 @@
-0,KrxFuturesDesc,,,
+0,KrxFuturesDesc,,,A0014
 1,datatype,9,2,A0
 2,infotype,9,2,01:KOSPI200지수선물
 3,markettype,9,1,4
@@ -101,21 +101,21 @@
 100,maxunsettledcontractsnum,9,8,
 101,affiliatedcommoditygroup,9,4,
 102,limitorderconditioncode,9,1,
-103,marketorderconditioncode,9,1,예) 999.999
-104,conditionallimitorderconditioncode,9,1,*적용일에 적용되는 상품의 계좌별 미결제 한도 계약수. 미결제 한도가 적용되지 않은 상품은 0 *주식선물에만 해당
-105,bestlimitorderconditioncode,9,1,*주식선물/옵션에만 해당
-106,subjectedtoefpyn,9,1,*백분율로 표시 *주식선물/옵션에만 해당예) 999.99
-107,subjectedtoflexyn,9,1,0:불가 1:가능(FAS;FOK;FAK가능) 2:가능(FAS만가능)
+103,marketorderconditioncode,9,1,
+104,conditionallimitorderconditioncode,9,1,
+105,bestlimitorderconditioncode,9,1,
+106,subjectedtoefpyn,9,1,
+107,subjectedtoflexyn,9,1,
 108,prevdayefpquantity,9,12,
 109,prevdayefpamount,9,22,
 110,closureyn,9,1,
-111,filler,9,133,Y; N; 상품선물만 해당
-112,eot,9,1,Y; N; 상품선물만 해당
-0,KrxFuturesBestQuotation,,,상품선물만 해당
-1,datatype,9,2,상품선물만 해당
-2,infotype,9,2,휴장여부 (Y;N); 20121217
-3,markettype,9,1,170 => 134; 20090831 134 => 133; 20121217
-4,krcode,X,12,%Hff
+111,filler,9,133,
+112,eot,9,1,
+0,KrxFuturesBestQuotation,,,B6014
+1,datatype,9,2,B6
+2,infotype,9,2,01
+3,markettype,9,1,4
+4,krcode,X,12,
 5,seq,9,2,
 6,marketstatecode,9,2,*호가가 처리된 장상태 00 : 초기(장개시전) 10 : 시가단일가 11 : 시가단일가연장 20 : 장중단일가 21 : 장중단일가연장 30 : 종가단일가 40 : 접속 80 : 단위매매체결(주식관련상품) 90 : 거래정지 99 : 장종료
 7,bidtotalquantity,9,6,
@@ -166,7 +166,7 @@
 52,expectedpricesign,9,1,단일가매매시만 제공 (장상태구분코드:10;20;30;80)
 53,expectedprice,9,5,예) 999.99 단일가매매시만 제공 (장상태구분코드:10;20;30;80)
 54,eot,9,1,%Hff
-0,KrxFuturesTrade,,,
+0,KrxFuturesTrade,,,A3014
 1,datatype,9,2,A3
 2,infotype,9,2,01:KOSPI200지수선물
 3,markettype,9,1,4
@@ -190,7 +190,7 @@
 21,accumtradequantity,9,7,
 22,accumtradeamount,9,12,단위:천원; 자릿수 변경(11->12) - 2011.05.23
 23,eot,9,1,%Hff
-0,KrxFuturesTradeBestQuotation,,,
+0,KrxFuturesTradeBestQuotation,,,G7014
 1,datatype,9,2,G7
 2,infotype,9,2,01:KOSPI200지수선물
 3,markettype,9,1,4
@@ -259,7 +259,7 @@
 66,ask4totalvalidnum,9,4,
 67,ask5totalvalidnum,9,4,
 68,eot,9,1,%Hff
-0,KrxFuturesEnd,,,
+0,KrxFuturesEnd,,,A6014
 1,datatype,9,2,A6
 2,infotype,9,2,01:KOSPI200지수선물
 3,markettype,9,1,4
@@ -315,7 +315,7 @@
 53,ask4totalvalidnum,9,4,
 54,ask5totalvalidnum,9,4,
 55,eot,9,1,%Hff
-0,KrxFuturesMarketManage,,,
+0,KrxFuturesMarketManage,,,A7014
 1,datatype,9,2,A7
 2,infotype,9,2,01:KOSPI200지수선물
 3,markettype,9,1,4
@@ -371,12 +371,12 @@
 53,ask4totalvalidnum,9,4,
 54,ask5totalvalidnum,9,4,
 55,eot,9,1,%Hff
-0,KrxFuturesSpace,,,
+0,KrxFuturesSpace,,,G9014
 1,datatype,9,2,G9
 2,infotype,9,2,01:KOSPI200지수선물
 3,markettype,9,1,4
 4,eot,9,1,%Hff
-0,KrxFuturesDistribute,,,
+0,KrxFuturesDistribute,,,O6014
 1,datatype,9,2,O6
 2,infotype,9,2,01:KOSPI200지수선물
 3,markettype,9,1,4
@@ -386,7 +386,7 @@
 7,distributetype,9,1,1:매수상한; 2:매수하한; 3:매도상한; 4:매도하한
 8,distributeendtime,9,8,
 9,eot,9,1,%Hff
-0,KrxFuturesInvestorData,,,
+0,KrxFuturesInvestorData,,,H1014
 1,datatype,9,2,H1
 2,infotype,9,2,01:KOSPI200지수선물
 3,markettype,9,1,4
@@ -404,7 +404,7 @@
 15,bidspreadedamount,9,18,
 16,askspreadedamount,9,18,
 17,eot,9,1,%Hff
-0,KrxFuturesUnsettled,,,
+0,KrxFuturesUnsettled,,,H2014
 1,datatype,9,2,H2
 2,infotype,9,2,01:KOSPI200지수선물
 3,markettype,9,1,4
@@ -414,7 +414,7 @@
 7,tradedate,9,8,
 8,unsettledamount,9,9,단위:계약
 9,eot,9,1,%Hff
-0,KrxFuturesSettled,,,
+0,KrxFuturesSettled,,,H3014
 1,datatype,9,2,H3
 2,infotype,9,2,01:KOSPI200지수선물
 3,markettype,9,1,4
@@ -425,7 +425,7 @@
 8,finalsettledprice,9,16,예) 99999999.99999999 
 9,finalsettledpricetype,9,1,
 10,eot,9,1,%Hff
-0,KrxFuturesMarketpriceRecovery,,,
+0,KrxFuturesMarketpriceRecovery,,,B2014
 1,datatype,9,2,B2
 2,infotype,9,2,01:KOSPI200지수선물
 3,markettype,9,1,4
@@ -493,7 +493,7 @@
 65,expectedpricesign,9,1,단일가매매시만 제공 (장상태구분코드:10;20;30;80)
 66,expectedprice,9,5,예) 999.99 단일가매매시만 제공 (장상태구분코드:10;20;30;80)
 67,eot,9,1,%Hff
-0,KrxFuturesPolling,,,
+0,KrxFuturesPolling,,,I2014
 1,datatype,9,2,I2
 2,infotype,9,2,01:KOSPI200지수선물
 3,markettype,9,1,4
@@ -501,7 +501,7 @@
 5,mainorbackup,9,2,space
 6,filler,9,8,
 7,eot,9,1,%Hff
-0,KrxFuturesOpenMarketManage,,,
+0,KrxFuturesOpenMarketManage,,,M4014
 1,datatype,9,2,M4
 2,infotype,9,2,01:KOSPI200지수선물
 3,markettype,9,1,4
@@ -512,7 +512,7 @@
 8,seq,9,3,*개별종목 장운영 조치시 등록
 9,marketstatecode,9,2,*호가가 처리된 장상태 00 : 초기(장개시전) 10 : 시가단일가 11 : 시가단일가연장 20 : 장중단일가 21 : 장중단일가연장 30 : 종가단일가 40 : 접속 80 : 단위매매체결(주식관련상품) 90 : 거래정지 99 : 장종료
 10,eot,9,1,%Hff
-0,KrxFuturesClose,,,
+0,KrxFuturesClose,,,H0014
 1,datatype,9,2,
 2,infotype,9,2,
 3,markettype,9,1,
