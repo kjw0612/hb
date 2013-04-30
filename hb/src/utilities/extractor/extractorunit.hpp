@@ -8,26 +8,42 @@
 
 struct HeaderDesc{
 	std::string classname;
+	std::map<std::string, int> colnameindmap;
 	std::vector<std::string> colnames;
 	std::vector<std::string> coltypes;
 	std::vector<int> datasizes;
+	std::vector<int> dsdiffidx;
 	std::vector<std::string> comments;
 	bool initialized;
 
 	HeaderDesc() : initialized(false) {}
+
 	inline unsigned int size(){
 		return datasizes.size();
 	}
+
+	inline int name2ind(const std::string& colname) const {
+		if (colnameindmap.find(colname) == colnameindmap.end())
+			return -1;
+		else
+			return colnameindmap.find(colname)->second;
+	}
 	
 	inline void clear(){
-		initialized = false; colnames.clear(); coltypes.clear(); datasizes.clear();
+		initialized = false; colnames.clear(); coltypes.clear(); datasizes.clear(); colnameindmap.clear();
+		dsdiffidx.clear();
 	}
 	inline void push(const std::string& __colname, const std::string& __coltype, int __datasize, const std::string& __comment = ""){
 		initialized = true;
 		colnames.push_back(__colname);
 		coltypes.push_back(__coltype);
+		if (datasizes.size()==0){
+			dsdiffidx.push_back(0); }
+		else{
+			dsdiffidx.push_back(dsdiffidx.back() + datasizes.back()); }
 		datasizes.push_back(__datasize);
 		comments.push_back(__comment);
+		colnameindmap[colnames.back()] = colnames.size()-1;
 	}
 };
 
@@ -48,8 +64,10 @@ public:
 	std::map<std::string, int> hdname2idx;
 	std::vector<std::string> headercodes;
 	std::vector<std::string> headernames;
+	std::map<std::string, std::string> code2header;
 
 	inline void parse_srcfile(){
+		code2header.clear();
 		headercodes.clear();
 		headernames.clear();
 		HeaderDesc hd;
@@ -57,13 +75,15 @@ public:
 		hdname2idx.clear();
 		CsvParser csvin(srcfile);
 		while(csvin.getline()){
-			int n=0; std::string colname, coltype; int datasize = 0;
+			int n = -1; std::string colname, coltype; int datasize = 0;
 			std::string comment;
 			csvin >> n >> colname >> coltype >> datasize;
 			csvin.gets(comment);
+			if (n == -1) continue;
 			if (n == 0){
 				headernames.push_back(colname);
 				headercodes.push_back(comment);
+				code2header[headercodes.back()] = headernames.back();
 				if (hd.initialized){
 					hdname2idx[hd.classname] = hds.size();
 					hds.push_back(hd);
@@ -122,52 +142,40 @@ public:
 		output_objectfile();
 	}
 
-	std::map<std::string, std::string> type2code;
-	std::map<std::string, std::string> code2type;
-	std::set<std::string> showntypes;
-	std::map<std::string,std::vector<std::string> > type2showncols;
+	std::vector<std::vector<std::string> > ref_cols;
+	std::map <std::string, int> ref_header2ind;
 
 	inline void input_datafiles_output_reformatfile(){
-		char msgbuf[2001], buf[2001];
-		{
-			CsvParser csvin(typesfile);
-			type2code.clear();
-			code2type.clear();
-			while(csvin.getline()){
-				std::string headertype = "", code = "";
-				csvin >> headertype >> code;
-				if (code.length()==0){
-					break; }
-				type2code[headertype] = code;
-				code2type[code] = headertype;
-			}
-		}
+		ref_cols.clear();
+		ref_header2ind.clear();
+		char msgbuf[2001];
 		long long rt;
 		int sz;
 		{
-			FILE *fp;
-			fopen_s(&fp,wanteddescfile.c_str(),"rt");
-			int n=0,m=0;
-			fscanf_s(fp,"%d",&n);
-			for (int i=0;i<n;++i){
-				fscanf_s(fp,"%s",buf, sizeof(buf));
-				showntypes.insert(buf);
-				fscanf_s(fp,"%d",&m);
-				std::vector<std::string> showncols(m);
-				for (int j=0;j<m;++j){
-					fscanf_s(fp,"%s",buf, sizeof(buf));
-					showncols[j] = buf;
+			CsvParser descin(wanteddescfile);
+			while(descin.getline()){
+				std::vector<std::string> col;
+				while(!descin.empty()){
+					col.push_back(descin.getstr());
 				}
-				type2showncols[buf] = showncols;
+				ref_header2ind[col[0]] = ref_cols.size();
+				ref_cols.push_back(col);
 			}
-			fclose(fp);
 		}
 
 		FILE *fo;
 		fopen_s(&fo,outputfile.c_str(),"wt");
-		for (int i=0;i<(int)datafiles.size();++i){
+		for (int i=1;i<(int)ref_cols[0].size();++i){
+			if (i>1)
+				fprintf(fo,",");
+			fprintf(fo,"%s",ref_cols[0][i].c_str());
+		}
+		fprintf(fo,"\n");
+
+		int counter=0;
+		for (int dfi=0;dfi<(int)datafiles.size();++dfi){
 			FILE *fp;
-			fopen_s(&fp,datafiles[i].c_str(),"rb");
+			fopen_s(&fp,datafiles[dfi].c_str(),"rb");
 			if (!fp)
 				continue;
 
@@ -177,52 +185,45 @@ public:
 				memset(msgbuf,0,sizeof(msgbuf));
 				fGetData(msgbuf, sz, fp);
 				std::string key(msgbuf,msgbuf+5);
-				if(code2type.find(key)==code2type.end()){
+				if(code2header.find(key)==code2header.end()){
 					printf("%d %s %s\n",sz,key.c_str(),msgbuf);
 				}
-				std::string name=code2type[key];
-				if(showntypes.find(name)==showntypes.end()) continue;
+				std::string headername=code2header[key];
+				if(ref_header2ind.find(headername)==ref_header2ind.end()) continue;
+				if (hdname2idx.find(headername)==hdname2idx.end()) continue;
+				int refidx = ref_header2ind.find(headername)->second;
+				int realidx = hdname2idx.find(headername)->second;
 
-				if (hdname2idx.find(name)!=hdname2idx.end()){
-					fprintf(fo,"%lld,%s",rt,name.c_str());
-					int idx = hdname2idx.find(name)->second;
-					int sti = 0, leni = 0;
-					for (int j=0;j<(int)hds[idx].size();++j){
-						leni = hds[idx].datasizes[j];
-						memcpy(buf,msgbuf+sti,leni);
-						buf[leni] = 0;
-						fprintf(fo,",%s",buf);
-						sti += leni;
-					}
-					fprintf(fo,"\n");
-				}
-				/*
-				vector<int> vct=structtolen[name];
-				vector<string> vcts=structtoname[name];
-				const char *namestr = name.c_str();
-				fprintf(fo,"%lld,%s",rt,namestr);
-				int cnt;
-				for(l=0;l<wantcol.size();l++){
-					cnt=0;
-					for(j=0;j<vct.size();j++){
-						if(wantcol[l] == vcts[j]){
-							for(k=cnt;k<cnt+vct[j];k++){
-								buf[k-cnt]=msgbuf[k];
-							}
-							buf[vct[j]]=0;
-							fprintf(fo,",%s",buf);
-							break;
+				for (int i=1;i<(int)ref_cols[refidx].size();++i){
+					std::string fmt = ref_cols[refidx][i];
+					if (fmt.length()==0); // shown as empty column.
+					else if (fmt[0]=='$'){ // special input.
+						if (fmt[1]=='+'){
+							fprintf(fo,"%d",++counter);
 						}
-						cnt+=vct[j];
+						else if (fmt[1]=='_'){
+							fprintf(fo,"%s",fmt.substr(2).c_str());
+						}
+						else if ((fmt.substr(1).compare("TIME"))==0){
+							fprintf(fo,"notime..sorry");
+						}
 					}
-				}*/
-				/*			if(cnt!=sz){
-				cnttt++;
-				printf("%s %d %d\n",name.c_str(),cnt,sz);
-				}*/
+					else{
+						const HeaderDesc& hdsc = hds[realidx];
+						int idx = hdsc.name2ind(fmt);
+						int stj = hdsc.dsdiffidx[idx];
+						int lenj = hdsc.datasizes[idx];
+						for (int j=stj; j<stj+lenj ;++j){
+							fprintf(fo,"%c",msgbuf[j]);
+						}
+					}
+					fprintf(fo,",");
+				}
+				fprintf(fo,"\n");
 			}
 			fclose(fp);
 		}
+		fclose(fo);
 	}
 
 	inline void reformat_datafiles(){
