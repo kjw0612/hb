@@ -5,6 +5,7 @@
 #include <map>
 #include "csvparser.hpp"
 #include "hashergenerator.hpp"
+#include "rawdatareader.hpp"
 
 struct HeaderDesc{
 	std::string classname;
@@ -148,9 +149,6 @@ public:
 	inline void input_datafiles_output_reformatfile(){
 		ref_cols.clear();
 		ref_header2ind.clear();
-		char msgbuf[2001];
-		long long rt;
-		int sz;
 		{
 			CsvParser descin(wanteddescfile);
 			while(descin.getline()){
@@ -174,19 +172,14 @@ public:
 
 		int counter=0;
 		for (int dfi=0;dfi<(int)datafiles.size();++dfi){
-			FILE *fp;
-			fopen_s(&fp,datafiles[dfi].c_str(),"rb");
-			if (!fp)
-				continue;
+			RawDataReader rd(datafiles[dfi]);
 
-			while(!feof(fp)){
-				fGetData((char *)&rt, 8, fp);
-				fGetData((char *)&sz, 4, fp);
-				memset(msgbuf,0,sizeof(msgbuf));
-				fGetData(msgbuf, sz, fp);
+			while(rd.next()){
+				char* msgbuf = rd.msgbuf;
 				std::string key(msgbuf,msgbuf+5);
+
 				if(code2header.find(key)==code2header.end()){
-					printf("%d %s %s\n",sz,key.c_str(),msgbuf);
+					printf("%d %s %s\n",rd.sz,key.c_str(),msgbuf);
 				}
 				std::string headername=code2header[key];
 				if(ref_header2ind.find(headername)==ref_header2ind.end()) continue;
@@ -221,7 +214,6 @@ public:
 				}
 				fprintf(fo,"\n");
 			}
-			fclose(fp);
 		}
 		fclose(fo);
 	}
