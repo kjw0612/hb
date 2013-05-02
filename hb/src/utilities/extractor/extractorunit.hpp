@@ -48,12 +48,6 @@ struct HeaderDesc{
 	}
 };
 
-inline void fGetData(char *p, int len, FILE *fp ){
-	while (len -->0 && !feof(fp) ){
-		*p++ = fgetc(fp);
-	}
-}
-
 class ExtractorUnit{
 public:
 	enum ExecutionType{
