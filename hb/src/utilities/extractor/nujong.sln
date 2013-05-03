@@ -1,0 +1,26 @@
+
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "nujong", "nujong.vcproj", "{D7C41D66-9678-4B17-B4F3-83B8A1A68FB8}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "synthetic_indicator", "synthetic_indicator.vcproj", "{AE74BEB7-4871-407F-B5B9-3AD7BF17D309}"
+EndProject
+Global
+  GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D7C41D66-9678-4B17-B4F3-83B8A1A68FB8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D7C41D66-9678-4B17-B4F3-83B8A1A68FB8}.Debug|Win32.Build.0 = Debug|Win32
+		{D7C41D66-9678-4B17-B4F3-83B8A1A68FB8}.Release|Win32.ActiveCfg = Release|Win32
+		{D7C41D66-9678-4B17-B4F3-83B8A1A68FB8}.Release|Win32.Build.0 = Release|Win32
+		{AE74BEB7-4871-407F-B5B9-3AD7BF17D309}.Debug|Win32.ActiveCfg = Debug|Win32
+		{AE74BEB7-4871-407F-B5B9-3AD7BF17D309}.Debug|Win32.Build.0 = Debug|Win32
+		{AE74BEB7-4871-407F-B5B9-3AD7BF17D309}.Release|Win32.ActiveCfg = Release|Win32
+		{AE74BEB7-4871-407F-B5B9-3AD7BF17D309}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
