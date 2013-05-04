@@ -8,8 +8,8 @@ MemPool::MemPool() {
 	listener = NULL;
 }
 
-MemPool::MemPool(int szbuf, int szlistener)
-	: szBuf(szbuf),szListener(szlistener) {
+MemPool::MemPool(int szbuf, int szmaxalloc, int szlistener)
+	: szBuf(szbuf), szMaxAlloc(szmaxalloc),szListener(szlistener) {
 	buf = new char[szBuf];
 	listener = new int[szListener];
 
