@@ -4,24 +4,25 @@
 #include "jshash.hpp"
 
 enum eKrxFuturesHeader{
-    t_KrxFuturesDesc = 1611725625,// JSHash(A0014,5) 
-    t_KrxFuturesBestQuotation = 1629858603,// JSHash(B6014,5) 
-    t_KrxFuturesTrade = 1611360085,// JSHash(A3014,5) 
-    t_KrxFuturesTradeBestQuotation = 1618537064,// JSHash(G7014,5) 
-    t_KrxFuturesEnd = 1612413018,// JSHash(A6014,5) 
-    t_KrxFuturesMarketManage = 1611938007,// JSHash(A7014,5) 
-    t_KrxFuturesSpace = 1618602382,// JSHash(G9014,5) 
-    t_KrxFuturesDistribute = 1696058501,// JSHash(O6014,5) 
-    t_KrxFuturesInvestorData = 1701176490,// JSHash(H1014,5) 
-    t_KrxFuturesUnsettled = 1701400705,// JSHash(H2014,5) 
-    t_KrxFuturesSettled = 1702451835,// JSHash(H3014,5) 
-    t_KrxFuturesMarketpriceRecovery = 1612007977,// JSHash(B2014,5) 
-    t_KrxFuturesPolling = 1637815554,// JSHash(I2014,5) 
-    t_KrxFuturesOpenMarketManage = 1623649709,// JSHash(M4014,5) 
-    t_KrxFuturesClose = 1701492423,// JSHash(H0014,5) 
+    t_KrxFuturesDesc = 211261866292ll,// A0014
+    t_KrxFuturesBestQuotation = 211262259764ll,// B6014
+    t_KrxFuturesTrade = 211262062900ll,// A3014
+    t_KrxFuturesTradeBestQuotation = 211262326580ll,// G7014
+    t_KrxFuturesEnd = 211262259508ll,// A6014
+    t_KrxFuturesMarketManage = 211262325044ll,// A7014
+    t_KrxFuturesSpace = 211262457652ll,// G9014
+    t_KrxFuturesDistribute = 211262263092ll,// O6014
+    t_KrxFuturesInvestorData = 211261933620ll,// H1014
+    t_KrxFuturesUnsettled = 211261999156ll,// H2014
+    t_KrxFuturesSettled = 211262064692ll,// H3014
+    t_KrxFuturesMarketpriceRecovery = 211261997620ll,// B2014
+    t_KrxFuturesPolling = 211261999412ll,// I2014
+    t_KrxFuturesOpenMarketManage = 211262131508ll,// M4014
+    t_KrxFuturesClose = 211261868084ll,// H0014
+
 };
 inline eKrxFuturesHeader getTypeKrxFuturesHeader(const char *str){
-    return (eKrxFuturesHeader) JSHash(str,5);
+    return (eKrxFuturesHeader) ((((long long)*(int*)str) << 8) + str[4]);
 }
 
 
