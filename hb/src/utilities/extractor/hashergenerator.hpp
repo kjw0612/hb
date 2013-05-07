@@ -59,7 +59,7 @@ inline std::string hashergenerator(const std::vector<std::string>& hasher, const
 
 	std::string enumName = "e" + targetname;
 
-	{ // enum block
+	{	// enum block
 		ostr << "enum " << enumName << "{" << std::endl;
 		for (int i=0;i<(int)hasher.size();++i){
 			hashkeys.push_back(hashfunc::JSHashStr(hasher[i], nhash));
@@ -67,6 +67,24 @@ inline std::string hashergenerator(const std::vector<std::string>& hasher, const
 				<< "// JSHash(" << hasher[i] << "," << nhash << ") " << std::endl;
 		}
 		ostr << "};" << std::endl;
+	}
+
+	{
+		ostr << std::endl;
+		// struct forward declaration
+		for (int i=0;i<(int)hasher.size();++i){
+			ostr << "struct " << hashee[i] << ";" << std::endl;
+		}
+
+		ostr << std::endl;
+		// union block
+		ostr << "union " << targetname << "{" << std::endl;
+		ostr << tb << "char * m_rawmsg;" << std::endl;
+		for (int i=0;i<(int)hasher.size();++i){
+			ostr << tb << hashee[i] << " * " << "m_" << hashee[i] << ";" << std::endl;
+		}
+		ostr << "};" << std::endl;
+		ostr << std::endl;
 	}
 
 	ostr << "inline " << enumName << " getType" << targetname << "(const char *str){" << std::endl;
