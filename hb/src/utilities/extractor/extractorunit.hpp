@@ -90,6 +90,10 @@ public:
 				hd.push(colname, coltype, datasize, comment);
 			}
 		}
+		if (hd.initialized){
+			hdname2idx[hd.classname] = hds.size();
+			hds.push_back(hd);
+		}
 	}
 
 	void output_objectfile(){
@@ -169,7 +173,7 @@ public:
 			RawDataReader rd(datafiles[dfi]);
 
 			while(rd.next()){
-				char* msgbuf = rd.msgbuf;
+				char* msgbuf = rd.msg;
 				std::string key(msgbuf,msgbuf+5);
 
 				if(code2header.find(key)==code2header.end()){
