@@ -5,9 +5,9 @@
 class RawDataReader{
 public:
 
-  ~RawDataReader()
+	~RawDataReader()
 	{
-		delete[] msgbuf;
+		delete[] msg;
 		fclose(fp);
 	}
 
@@ -15,7 +15,7 @@ public:
 	{
 		fp = 0; rt = 0; sz = 0; len = 0;
 		fopen_s(&fp,filename.c_str(),"rb");
-		msgbuf = new char[3001];
+		msg = new char[3001];
 	}
 
 	inline void fGetData(char *p, int len, FILE *fp ){
@@ -35,8 +35,8 @@ public:
 		else{
 			fGetData((char *)&rt, 8, fp);
 			fGetData((char *)&sz, 4, fp);
-			memset(msgbuf,0,sizeof(msgbuf));
-			fGetData(msgbuf, sz, fp);
+			memset(msg,0,sizeof(msg));
+			fGetData(msg, sz, fp);
 			return true;
 		}
 	}
@@ -44,7 +44,7 @@ public:
 	FILE *fp;
 	long long rt;
 	int sz, len;
-	char *msgbuf;
+	char *msg;
 
 };
 
