@@ -8,13 +8,19 @@
 #include <deque>
 #include <map>
 
-int atoi_len(void *from, int len){
+long long atoll_len(const void *from, int len){
+	char buf[30] = "";
+	memcpy(buf, from, len);
+	return _atoi64(buf);
+}
+
+int atoi_len(const void *from, int len){
 	char buf[20] = "";
 	memcpy(buf, from, len);
 	return atoi(buf);
 }
 
-double atof_len(void *from, int len){
+double atof_len(const void *from, int len){
 	char buf[20] = "";
 	memcpy(buf, from, len);
 	return atof(buf);
@@ -58,10 +64,70 @@ struct DataWindow{
 #define COPY_STR(dest, src) memcpy(dest, src, sizeof(src))
 #define ATOI_LEN(src) atoi_len(src, sizeof(src))
 #define ATOF_LEN(src) atof_len(src, sizeof(src))
+#define ATOLL_LEN(src) atoll_len(src, sizeof(src))
+
+struct DescSet{
+	struct Desc{
+		double strike;
+		std::string expirydate;
+		char monthtype;
+		char callputfut;
+	};
+	// KrxFuturesDesc = KrxOptionsDesc
+	void push(const KrxFuturesDesc *desc)
+	{
+		char krcode[30] = "";
+		COPY_STR(krcode,desc->krcode);
+		std::string krcodestr = krcode;
+		std::transform(krcodestr.begin(),krcodestr.end(),krcodestr.begin(),::toupper);
+		if (descmap.find(krcodestr) == descmap.end()){
+			Desc dsc;
+			dsc.strike = ATOLL_LEN(desc->strikeprice) / 100000000.; // 999999999.99999999
+			char buf[30] = "";
+			COPY_STR(buf,desc->expirydate);
+			dsc.expirydate = buf;
+			dsc.monthtype = desc->monthtype[0];
+			switch(krcode[3]){
+				case '1':
+					dsc.callputfut = 'f';
+					break;
+				case '2':
+					dsc.callputfut = 'c';
+					break;
+				case '3':
+					dsc.callputfut = 'p';
+					break;
+			}
+			descmap[krcodestr] = dsc;
+		}
+	}
+	std::map<std::string, Desc> descmap;
+};
 
 DataWindow dw;
+DescSet ds;
+
+void makedesc(){
+	KospiOptionsReader optrdr("data/C195_15511");
+	KospiFuturesReader futrdr("data/F191_15571");
+	while(optrdr.next()){
+		KrxOptionsHeader optheader;
+		optheader.m_rawmsg = optrdr.content;
+		if (optrdr.optionsType==t_KrxOptionsDesc){
+			ds.push((KrxFuturesDesc *)optheader.m_KrxOptionsDesc);
+		}
+	}
+	while(futrdr.next()){
+		KrxFuturesHeader futheader;
+		futheader.m_rawmsg = futrdr.content;
+		if (futrdr.futuresType==t_KrxFuturesDesc){
+			ds.push(futheader.m_KrxFuturesDesc);
+		}
+	}
+}
 
 void sample(int fromtime = 9000000, int totime = 15000000){
+
 	KospiOptionsReader crdr("data/C161_15515");
 	KospiOptionsReader prdr("data/P162_15516");
 	KospiFuturesReader frdr("data/F171_15572");
@@ -89,6 +155,7 @@ void sample(int fromtime = 9000000, int totime = 15000000){
 		int optionFutureType = 0;
 		KrxOptionsHeader optheader;
 		KrxFuturesHeader futheader;
+		enum OnlyForWatch { CallOption, PutOption, Future } cpfType;
 		int *tti;
 
 		if (mintime==crdr.timestamp){
@@ -96,18 +163,21 @@ void sample(int fromtime = 9000000, int totime = 15000000){
 			optionFutureType = crdr.optionsType;
 			optheader.m_rawmsg = crdr.content;
 			tti = &crdr.timestamp;
+			cpfType = CallOption;
 		}
 		else if (mintime==prdr.timestamp){
 			prdr.next();
 			optionFutureType = prdr.optionsType;
 			optheader.m_rawmsg = prdr.content;
 			tti = &prdr.timestamp;
+			cpfType = PutOption;
 		}
 		else{
 			frdr.next();
 			optionFutureType = frdr.futuresType;
 			futheader.m_rawmsg = frdr.content;
 			tti = &frdr.timestamp;
+			cpfType = Future;
 		}
 
 		char timestamp[20] = "", krcode[20] = "";
@@ -165,6 +235,7 @@ void sample(int fromtime = 9000000, int totime = 15000000){
 }
 
 int main(){
+	makedesc();
 	sample();
 	return 0;
 }
