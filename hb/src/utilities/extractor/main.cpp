@@ -4,8 +4,67 @@
 #include <string>
 #include "readers.h"
 
-void sample(){
-  KospiOptionsReader rdr("data/C161_15515");
+#include <algorithm>
+#include <deque>
+#include <map>
+
+int atoi_len(void *from, int len){
+	char buf[20] = "";
+	memcpy(buf, from, len);
+	return atoi(buf);
+}
+
+double atof_len(void *from, int len){
+	char buf[20] = "";
+	memcpy(buf, from, len);
+	return atof(buf);
+}
+
+struct DataWindow{
+	struct Book{
+		Book(int maxSize = 50000) : maxSize(maxSize), lastprice(0.) {}
+		void push(double val, int timestamp, int isTraded = 0){
+			if (isTraded){
+				lastprice = val;
+			}
+			vals.push_back(val);
+			timestamps.push_back(timestamp);
+			lastprices.push_back(lastprice);
+			if ((int)vals.size() > maxSize){
+				vals.pop_front();
+				timestamps.pop_front();
+				lastprices.pop_front();
+			}
+		}
+		int maxSize;
+		double lastprice; // technically this member name is untrue. Rather, naming like "last traded price" would be correct.
+		std::deque<double> vals, lastprices;	
+		std::deque<int> timestamps;
+	};
+	void clear(){
+		bookmap.clear();
+	}
+	void push(const std::string& code, double val, int timestamp, int isTraded = 0){
+		std::string d_code = code;
+		std::transform(d_code.begin(),d_code.end(),d_code.begin(),::toupper);
+		if (bookmap.find(d_code) == bookmap.end()){
+			bookmap[d_code] = Book();
+		}
+		bookmap[d_code].push(val, timestamp, isTraded);
+	}
+	std::map<std::string, Book> bookmap;
+};
+
+#define COPY_STR(dest, src) memcpy(dest, src, sizeof(src))
+#define ATOI_LEN(src) atoi_len(src, sizeof(src))
+#define ATOF_LEN(src) atof_len(src, sizeof(src))
+
+DataWindow dw;
+
+void sample(int fromtime = 9000000, int totime = 15000000){
+	KospiOptionsReader crdr("data/C161_15515");
+	KospiOptionsReader prdr("data/P162_15516");
+	KospiFuturesReader frdr("data/F171_15572");
 	//t_KrxOptionsBestQuotation = 1629858793,// JSHash(B6034,5) 
 	//t_KrxOptionsTrade = 1611359895,// JSHash(A3034,5) 
 	//t_KrxOptionsTradeBestQuotation = 1618535850,// JSHash(G7034,5) 
@@ -22,24 +81,86 @@ void sample(){
 	//t_KrxOptionsOpenMarketManage = 1623649775,// JSHash(M4034,5) 
 	//t_KrxOptionsGreek = 1625671968,// JSHash(N7034,5) 
 	//t_KrxOptionsImpvol = 1045394243,// JSHash(,5) 
-	while(rdr.next()){
+	int cnt = 0;
+	int timestampi = 0;
+	double ask1price = 0, currentprice = 0;
+	while(1){
+		int mintime = std::min(std::min(crdr.timestamp, prdr.timestamp), frdr.timestamp);
+		int optionFutureType = 0;
 		KrxOptionsHeader optheader;
-		unsigned char * timestamp;
-		optheader.m_rawmsg = rdr.content;
-		switch(rdr.optionsType){
+		KrxFuturesHeader futheader;
+		int *tti;
+
+		if (mintime==crdr.timestamp){
+			crdr.next();
+			optionFutureType = crdr.optionsType;
+			optheader.m_rawmsg = crdr.content;
+			tti = &crdr.timestamp;
+		}
+		else if (mintime==prdr.timestamp){
+			prdr.next();
+			optionFutureType = prdr.optionsType;
+			optheader.m_rawmsg = prdr.content;
+			tti = &prdr.timestamp;
+		}
+		else{
+			frdr.next();
+			optionFutureType = frdr.futuresType;
+			futheader.m_rawmsg = frdr.content;
+			tti = &frdr.timestamp;
+		}
+
+		char timestamp[20] = "", krcode[20] = "";
+		switch(optionFutureType){
+			case t_KrxFuturesTradeBestQuotation:
+				timestampi = ATOI_LEN(futheader.m_KrxFuturesTradeBestQuotation->timestamp);
+				ask1price = ATOI_LEN(futheader.m_KrxFuturesTradeBestQuotation->ask1price) / 100.0;
+				COPY_STR(krcode, futheader.m_KrxFuturesTradeBestQuotation->krcode);
+				break;
 			case t_KrxOptionsTradeBestQuotation:
-				timestamp = optheader.m_KrxOptionsTradeBestQuotation->timestamp;
+				timestampi = ATOI_LEN(optheader.m_KrxOptionsTradeBestQuotation->timestamp);
+				ask1price = ATOI_LEN(optheader.m_KrxOptionsTradeBestQuotation->ask1price) / 100.0;
+				COPY_STR(krcode, optheader.m_KrxOptionsTradeBestQuotation->krcode);
+				break;
+			case t_KrxFuturesTrade:
+				timestampi = ATOI_LEN(futheader.m_KrxFuturesTrade->timestamp);
+				currentprice = ATOI_LEN(futheader.m_KrxFuturesTrade->currentprice) / 100.0;
+				COPY_STR(krcode, futheader.m_KrxFuturesTrade->krcode);
 				break;
 			case t_KrxOptionsTrade:
-				timestamp = optheader.m_KrxOptionsTrade->timestamp;
+				timestampi = ATOI_LEN(optheader.m_KrxOptionsTrade->timestamp);
+				currentprice = ATOI_LEN(optheader.m_KrxOptionsTrade->currentprice) / 100.0;
+				COPY_STR(krcode, optheader.m_KrxOptionsTrade->krcode);
+				break;
+			case t_KrxFuturesBestQuotation:
+				timestampi = ATOI_LEN(futheader.m_KrxFuturesBestQuotation->timestamp);
+				ask1price = ATOI_LEN(futheader.m_KrxFuturesBestQuotation->ask1price) / 100.0;
+				COPY_STR(krcode, futheader.m_KrxFuturesBestQuotation->krcode);
 				break;
 			case t_KrxOptionsBestQuotation:
-				timestamp = optheader.m_KrxOptionsBestQuotation->timestamp;
+				timestampi = ATOI_LEN(optheader.m_KrxOptionsBestQuotation->timestamp);
+				ask1price = ATOI_LEN(optheader.m_KrxOptionsBestQuotation->ask1price) / 100.0;
+				COPY_STR(krcode, optheader.m_KrxOptionsBestQuotation->krcode);
 				break;
 			default:
 				continue;
 		}
-		std::cout << timestamp << std::endl;
+		if (fromtime <= timestampi && timestampi <= totime){
+			if (optionFutureType==t_KrxOptionsTrade || optionFutureType==t_KrxFuturesTrade){
+				dw.push(krcode, currentprice, timestampi, 1);
+			}
+			else{
+				dw.push(krcode, ask1price, timestampi, 0);
+			}
+			*tti = timestampi;
+			
+			if ((++cnt % 10000) == 0){
+				printf("%s   %d    %.2lf    %.2lf\n",krcode, timestampi, ask1price, currentprice );
+			}
+		}
+		else if (totime < timestampi){
+			return;
+		}
 	}
 }
 
