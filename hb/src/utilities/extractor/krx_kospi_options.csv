@@ -174,7 +174,7 @@
 15,accumtradeamount,9,11,????:o??; ????? ????(11->12) - 2011.05.23
 16,eot,9,1,%Hff
 ,,,,
-0,KrxFuturesTradeBestQuotation,,268,G7034
+0,KrxOptionsTradeBestQuotation,,268,G7034
 1,datatype,9,2,G7
 2,infotype,9,2,03:KOSPI200????????
 3,markettype,9,1,4
@@ -227,7 +227,7 @@
 50,ask5totalvalidnum,9,4,
 51,eot,9,1,%Hff
 ,,,,
-0,KrxFuturesEnd,,230,A6034
+0,KrxOptionsEnd,,230,A6034
 1,datatype,9,2,A6
 2,infotype,9,2,03:KOSPI200????????
 3,markettype,9,1,4
@@ -273,7 +273,7 @@
 43,ask5totalvalidnum,9,4,
 44,eot,9,1,%Hff
 ,,,,
-0,KrxFuturesMarketManage,,229,A7034
+0,KrxOptionsMarketManage,,229,A7034
 1,datatype,9,2,A7
 2,infotype,9,2,03:KOSPI200????????
 3,markettype,9,1,4
