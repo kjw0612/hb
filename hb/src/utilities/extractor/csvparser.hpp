@@ -35,10 +35,22 @@ public:
 		}
 		return (*this);
 	}
+
+	bool empty(){
+		return !(c < (int)line.size());
+	}
+
 	void gets(std::string& rhs){
 		if (c < (int)line.size()){
 			rhs = line[c++];
 		}
+	}
+	
+	std::string getstr(){
+		if (c < (int)line.size()){
+			return line[c++];
+		}
+		return "";
 	}
 
 	int c;
