@@ -4,12 +4,12 @@
 
 class DataReader{
 public:
-  DataReader(const std::string& filename) : rd(filename){}
+	DataReader(const std::string& filename) : rd(filename), timestamp(0){}
 	virtual void setType() = 0;
 	bool next(){
 		bool ret = rd.next();
 		len = rd.sz;
-		content = rd.msgbuf;
+		content = rd.msg;
 		setType();
 		return ret;
 	}
@@ -18,7 +18,7 @@ public:
 	}
 	RawDataReader rd;
 	char* content;
-	int len;
+	int len, timestamp;
 };
 
 class KospiOptionsReader : public DataReader{
