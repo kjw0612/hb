@@ -482,7 +482,8 @@
 18,rho,X,1,
 19,eot,9,18,9(12)V9(6)
 ,,X,1,%Hff
-0,KrxOptionsImpvol,,,
+,,,,
+0,KrxOptionsImpvol,,,P1034
 1,datatype,X,2,P1
 2,infotype,X,2,03:KOSPI200지수옵션
 3,markettype,X,1,4

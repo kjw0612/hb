@@ -1,3 +1,6 @@
+#ifndef readers_h__
+#define readers_h__
+
 #include "krx_kospi_futures.hpp"
 #include "krx_kospi_options.hpp"
 #include "rawdatareader.hpp"
@@ -51,6 +54,7 @@ class PacketHandler{
 public:
 	class Impl{
 	public:
+		Impl() : timestampi(0){}
 		template <class some_packet_type>
 		void setCodeTime(const some_packet_type *header){
 			COPY_STR(krcode, header->krcode);
@@ -89,13 +93,14 @@ public:
 		int timestampi;
 	};
 	PacketHandler() : impl(new Impl()) {}
-	~PacketHandler(){
-		delete impl;
-	}
+	~PacketHandler(){ delete impl; }
 	void update(long long capturedType, char *msg){
 		impl->update(capturedType, msg);
 	}
 	Impl * impl;
+private:
+	PacketHandler(Impl * a_impl) : impl(a_impl) {}
+	template<class U> friend class MakeHandlerImpl;
 };
 
 class PriceCaptureImpl : public PacketHandler::Impl{
@@ -143,22 +148,38 @@ public:
 	}
 };
 
+template<class IMPL_TYPE>
+class MakeHandlerImpl{
+public:
+	operator PacketHandler(){
+		return PacketHandler(new IMPL_TYPE());
+	}
+};
+
 class PacketSubject{
 public:
-	PacketSubject(const std::string& filename, char type)
+	PacketSubject(const std::string& filepath, char type)
 	{
 		switch(tolower(type))
 		{
 		case 'f':
-			{ frdr = KospiFuturesReader(filename);
-			rdr = &frdr; break; }
+			{
+				frdr = new KospiFuturesReader(filepath);
+				rdr = frdr; break;
+			}
 		case 'p': case 'c': case 'o':
-			{ ordr = KospiOptionsReader(filename);
-			rdr = &ordr; break; }
+			{
+				ordr = new KospiOptionsReader(filepath);
+				rdr = ordr; break;
+			}
 		}
 	}
 
-	void push(const PacketHandler& hdlr){
+	~PacketSubject(){
+		delete rdr;
+	}
+
+	void push(PacketHandler* hdlr){
 		handler.push_back(hdlr);
 	}
 
@@ -167,14 +188,15 @@ public:
 			return false;
 		rdr->next();
 		for (int i=0;i<(int)handler.size();++i){
-			handler[i].update(rdr->castedRawType, rdr->content);
+			handler[i]->update(rdr->castedRawType, rdr->content);
 		}
 		return true;
 	}
 
-	KospiOptionsReader ordr;
-	KospiFuturesReader frdr;
+	KospiOptionsReader *ordr;
+	KospiFuturesReader *frdr;
 	DataReader *rdr;
-	std::vector<PacketHandler> handler;
+	std::vector<PacketHandler *> handler;
 };
 
+#endif // readers_h__

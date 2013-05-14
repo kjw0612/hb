@@ -2,27 +2,44 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
+#include <fstream>
 #include "datawindow.h"
 #include "descset.h"
+#include "indexer.h"
 
 DataWindow dw;
 DescSet ds;
+std::string basepath = "";
 
 void makedesc(){
 	//KospiFuturesReader futrdr("data/F191_15571");
 	//KospiOptionsReader optrdr("data/C195_15511");
-	MakeDesc fmd("data/F191_15571",'f');
-	MakeDesc omd("data/C195_15511",'o');
+	MakeDesc fmd(basepath+"data\\F191_15571",'f');
+	MakeDesc omd(basepath+"data\\C195_15511",'o');
 	ds.append(fmd.getDS());
 	ds.append(omd.getDS());
 }
 
+void setup(){
+	std::ifstream fi("synconfig.txt");
+	std::string a,b;
+	while(!fi.eof()){
+		fi >> a >> b;
+		if (!_strcmpi(a.c_str(),"basepath")){
+			basepath = b;
+		}
+	}
+}
+
+void indexing(){
+	Indexer indexer(basepath+"data\\C161_15515",'c');
+	indexer.run();
+}
 
 void sample(int fromtime = 9000000, int totime = 15000000){
-
-	KospiOptionsReader crdr("data/C161_15515");
-	KospiOptionsReader prdr("data/P162_15516");
-	KospiFuturesReader frdr("data/F171_15572");
+	KospiOptionsReader crdr(basepath+"data\\C161_15515");
+	KospiOptionsReader prdr(basepath+"data\\P162_15516");
+	KospiFuturesReader frdr(basepath+"data\\F171_15572");
 	//t_KrxOptionsBestQuotation = 1629858793,// JSHash(B6034,5) 
 	//t_KrxOptionsTrade = 1611359895,// JSHash(A3034,5) 
 	//t_KrxOptionsTradeBestQuotation = 1618535850,// JSHash(G7034,5) 
@@ -127,7 +144,9 @@ void sample(int fromtime = 9000000, int totime = 15000000){
 }
 
 int main(){
+	setup();
 	makedesc();
-	sample();
+	indexing();
+	//sample();
 	return 0;
 }

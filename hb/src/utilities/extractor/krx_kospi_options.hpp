@@ -20,7 +20,7 @@ enum eKrxOptionsHeader : long long {
     t_KrxOptionsSettleBeforeOpen = 3761403127857676288ll,// JHHash(M7034,5) 
     t_KrxOptionsOpenMarketManage = 3761403114972774400ll,// JHHash(M4034,5) 
     t_KrxOptionsGreek = 3761403127874453504ll,// JHHash(N7034,5) 
-    t_KrxOptionsImpvol = -3617008645356650496ll,// JHHash(,5) 
+    t_KrxOptionsImpvol = 3761403102138204160ll,// JHHash(P1034,5) 
 };
 
 struct KrxOptionsDesc;
