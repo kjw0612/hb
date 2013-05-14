@@ -1,3 +1,5 @@
+
+
 mode = headergenerate
 src = krx_kospi_futures.csv
 object = krx_kospi_futures.hpp
@@ -14,15 +16,14 @@ end
 
 mode = reformat
 src = krx_kospi_futures.csv
-types = krx_kospi_futures_types.csv
-wanteddesc = krx_kospi_futures_extractdesc.txt
-datafile = F20130318_22 F20130314_15
+wanteddesc = krx_kospi_futures_extractdesc.csv
+datafile = data\F20130318_22 data\F20130314_15
 outputfile = output_futures.csv
 do
 
 end
 
+
 mode = reformat
 src = krx_kospi_options.csv
-types = krx_kospi_options_types.csv
 do

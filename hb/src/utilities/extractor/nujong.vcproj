@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ks_c_5601-1987"?>
 <VisualStudioProject
-  ProjectType="Visual C++"
+	ProjectType="Visual C++"
 	Version="9.00"
 	Name="nujong"
 	ProjectGUID="{D7C41D66-9678-4B17-B4F3-83B8A1A68FB8}"
@@ -166,7 +166,7 @@
 	</References>
 	<Files>
 		<Filter
-			Name="ì†ŒìŠ¤ íŒŒì¼"
+			Name="¼Ò½º ÆÄÀÏ"
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
@@ -183,18 +183,30 @@
 				>
 			</File>
 			<File
+				RelativePath=".\hashergenerator.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\rawdatareader.hpp"
 				>
 			</File>
 		</Filter>
 		<Filter
-			Name="í—¤ë” íŒŒì¼"
+			Name="Çì´õ ÆÄÀÏ"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\krx_kospi_futures.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\krx_kospi_options.hpp"
+				>
+			</File>
 		</Filter>
 		<Filter
-			Name="ë¦¬ì†ŒìŠ¤ íŒŒì¼"
+			Name="¸®¼Ò½º ÆÄÀÏ"
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>

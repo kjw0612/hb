@@ -11,6 +11,8 @@ public:
 		fclose(fp);
 	}
 
+	RawDataReader() : fp(0), rt(0), sz(0), len(0), msg(0) {}
+
 	RawDataReader(const std::string& filename)
 	{
 		fp = 0; rt = 0; sz = 0; len = 0;

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ks_c_5601-1987"?>
 <VisualStudioProject
-  ProjectType="Visual C++"
+	ProjectType="Visual C++"
 	Version="9.00"
 	Name="synthetic_indicator"
 	ProjectGUID="{AE74BEB7-4871-407F-B5B9-3AD7BF17D309}"
@@ -21,7 +21,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			CharacterSet="1"
+			CharacterSet="2"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -92,7 +92,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			CharacterSet="1"
+			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -166,7 +166,7 @@
 	</References>
 	<Files>
 		<Filter
-			Name="ì†ŒìŠ¤ íŒŒì¼"
+			Name="¼Ò½º ÆÄÀÏ"
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
@@ -176,20 +176,40 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="í—¤ë” íŒŒì¼"
+			Name="Çì´õ ÆÄÀÏ"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\datawindow.h"
+				>
+			</File>
+			<File
+				RelativePath=".\descset.h"
+				>
+			</File>
+			<File
+				RelativePath=".\indexer.h"
+				>
+			</File>
+			<File
+				RelativePath=".\macros.h"
+				>
+			</File>
 			<File
 				RelativePath=".\readers.h"
 				>
 			</File>
 		</Filter>
 		<Filter
-			Name="ë¦¬ì†ŒìŠ¤ íŒŒì¼"
+			Name="¸®¼Ò½º ÆÄÀÏ"
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+			<File
+				RelativePath=".\synconfig.txt"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

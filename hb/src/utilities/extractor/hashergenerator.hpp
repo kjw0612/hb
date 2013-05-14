@@ -5,8 +5,7 @@
 #include <vector>
 #include <iostream>
 #include <sstream>
-#include "jshash.hpp"
-
+//#include "jshash.hpp"
 
 std::string tb = "    ";
 
@@ -37,12 +36,27 @@ namespace hashfunc{
 		return ostr.str();
 	}
 
+	inline long long JHHash(const char *str, int n)
+	{
+		return (((long long)*(long long*)str) << (8-n)*8);
+	}
+
+	std::string jhhash_str(){
+		std::ostringstream ostr;
+			ostr << "inline long long JHHash(const char * str, int n)" << std::endl
+			<<"{" << std::endl
+			<< tb << "return (((long long)*(long long *)str) << (8-n)*8);" << std::endl
+			<<"}";
+		return ostr.str();
+	}
+
+	/*
 	inline unsigned int JSHashStr(const std::string& str, int n = -1)
 	{
 		if (n==-1)
 			n = str.length();
 		return JSHash(str.c_str(), n);
-	}
+	}*/
 }
 
 inline std::string hashergenerator(const std::vector<std::string>& hasher, const std::vector<std::string> hashee,
@@ -50,7 +64,7 @@ inline std::string hashergenerator(const std::vector<std::string>& hasher, const
 {
 	std::ostringstream ostr;
 	int nhash = 0;
-	std::vector<unsigned int> hashkeys;
+	std::vector<long long> hashkeys;
 	for (int i=0;i<(int)hasher.size();++i){
 		if (nhash < (int)hasher[i].length())
 			nhash = hasher[i].length();
@@ -60,11 +74,11 @@ inline std::string hashergenerator(const std::vector<std::string>& hasher, const
 	std::string enumName = "e" + targetname;
 
 	{	// enum block
-		ostr << "enum " << enumName << "{" << std::endl;
+		ostr << "enum " << enumName << " : long long {" << std::endl;
 		for (int i=0;i<(int)hasher.size();++i){
-			hashkeys.push_back(hashfunc::JSHashStr(hasher[i], nhash));
-			ostr << tb << "t_" << hashee[i] << " = " << hashkeys[i] << "," 
-				<< "// JSHash(" << hasher[i] << "," << nhash << ") " << std::endl;
+			hashkeys.push_back(hashfunc::JHHash(hasher[i].c_str(), nhash));
+			ostr << tb << "t_" << hashee[i] << " = " << hashkeys[i] << "ll," 
+				<< "// JHHash(" << hasher[i] << "," << nhash << ") " << std::endl;
 		}
 		ostr << "};" << std::endl;
 	}
@@ -88,7 +102,8 @@ inline std::string hashergenerator(const std::vector<std::string>& hasher, const
 	}
 
 	ostr << "inline " << enumName << " getType" << targetname << "(const char *str){" << std::endl;
-	ostr << tb << "return " << "(" << enumName << ")" << " JSHash(str," << nhash << ");" << std::endl;
+	//ostr << tb << "return " << "(" << enumName << ")" << " JSHash(str," << nhash << ");" << std::endl;
+	ostr << tb << "return " << "(" << enumName << ")" << " JHHash(str," << nhash << ");" << std::endl;
 	ostr << "}" << std::endl;
 	
 	/*

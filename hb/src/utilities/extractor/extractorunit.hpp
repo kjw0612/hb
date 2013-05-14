@@ -104,7 +104,7 @@ public:
 		fo << "#ifndef " << ofdef << std::endl;
 		fo << "#define " << ofdef << std::endl;
 		fo << std::endl;
-		fo << "#include \"jshash.hpp\"" << std::endl << std::endl;
+		fo << "#include \"jhhash.hpp\"" << std::endl << std::endl;
 
 		fo << hashergenerator(headercodes,headernames,name) << std::endl;
 
@@ -131,10 +131,10 @@ public:
 	}
 
 	inline void generate_header(){
-		std::ofstream fo("jshash.hpp");
-		fo << "#ifndef jshash_hpp" << std::endl
-			<< "#define jshash_hpp" << std::endl;
-		fo << hashfunc::jshash_str() << std::endl;
+		std::ofstream fo("jhhash.hpp");
+		fo << "#ifndef jhhash_hpp" << std::endl
+			<< "#define jhhash_hpp" << std::endl;
+		fo << hashfunc::jhhash_str() << std::endl;
 		fo << "#endif";
 		fo.close();
 		parse_srcfile();

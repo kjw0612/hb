@@ -2,129 +2,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
-#include "readers.h"
-
-#include <algorithm>
-#include <deque>
-#include <map>
-
-long long atoll_len(const void *from, int len){
-	char buf[30] = "";
-	memcpy(buf, from, len);
-	return _atoi64(buf);
-}
-
-int atoi_len(const void *from, int len){
-	char buf[20] = "";
-	memcpy(buf, from, len);
-	return atoi(buf);
-}
-
-double atof_len(const void *from, int len){
-	char buf[20] = "";
-	memcpy(buf, from, len);
-	return atof(buf);
-}
-
-struct DataWindow{
-	struct Book{
-		Book(int maxSize = 50000) : maxSize(maxSize), lastprice(0.) {}
-		void push(double val, int timestamp, int isTraded = 0){
-			if (isTraded){
-				lastprice = val;
-			}
-			vals.push_back(val);
-			timestamps.push_back(timestamp);
-			lastprices.push_back(lastprice);
-			if ((int)vals.size() > maxSize){
-				vals.pop_front();
-				timestamps.pop_front();
-				lastprices.pop_front();
-			}
-		}
-		int maxSize;
-		double lastprice; // technically this member name is untrue. Rather, naming like "last traded price" would be correct.
-		std::deque<double> vals, lastprices;	
-		std::deque<int> timestamps;
-	};
-	void clear(){
-		bookmap.clear();
-	}
-	void push(const std::string& code, double val, int timestamp, int isTraded = 0){
-		std::string d_code = code;
-		std::transform(d_code.begin(),d_code.end(),d_code.begin(),::toupper);
-		if (bookmap.find(d_code) == bookmap.end()){
-			bookmap[d_code] = Book();
-		}
-		bookmap[d_code].push(val, timestamp, isTraded);
-	}
-	std::map<std::string, Book> bookmap;
-};
-
-#define COPY_STR(dest, src) memcpy(dest, src, sizeof(src))
-#define ATOI_LEN(src) atoi_len(src, sizeof(src))
-#define ATOF_LEN(src) atof_len(src, sizeof(src))
-#define ATOLL_LEN(src) atoll_len(src, sizeof(src))
-
-struct DescSet{
-	struct Desc{
-		double strike;
-		std::string expirydate;
-		char monthtype;
-		char callputfut;
-	};
-	// KrxFuturesDesc = KrxOptionsDesc
-	void push(const KrxFuturesDesc *desc)
-	{
-		char krcode[30] = "";
-		COPY_STR(krcode,desc->krcode);
-		std::string krcodestr = krcode;
-		std::transform(krcodestr.begin(),krcodestr.end(),krcodestr.begin(),::toupper);
-		if (descmap.find(krcodestr) == descmap.end()){
-			Desc dsc;
-			dsc.strike = ATOLL_LEN(desc->strikeprice) / 100000000.; // 999999999.99999999
-			char buf[30] = "";
-			COPY_STR(buf,desc->expirydate);
-			dsc.expirydate = buf;
-			dsc.monthtype = desc->monthtype[0];
-			switch(krcode[3]){
-				case '1':
-					dsc.callputfut = 'f';
-					break;
-				case '2':
-					dsc.callputfut = 'c';
-					break;
-				case '3':
-					dsc.callputfut = 'p';
-					break;
-			}
-			descmap[krcodestr] = dsc;
-		}
-	}
-	std::map<std::string, Desc> descmap;
-};
+#include "datawindow.h"
+#include "descset.h"
 
 DataWindow dw;
 DescSet ds;
 
 void makedesc(){
-	KospiOptionsReader optrdr("data/C195_15511");
-	KospiFuturesReader futrdr("data/F191_15571");
-	while(optrdr.next()){
-		KrxOptionsHeader optheader;
-		optheader.m_rawmsg = optrdr.content;
-		if (optrdr.optionsType==t_KrxOptionsDesc){
-			ds.push((KrxFuturesDesc *)optheader.m_KrxOptionsDesc);
-		}
-	}
-	while(futrdr.next()){
-		KrxFuturesHeader futheader;
-		futheader.m_rawmsg = futrdr.content;
-		if (futrdr.futuresType==t_KrxFuturesDesc){
-			ds.push(futheader.m_KrxFuturesDesc);
-		}
-	}
+	//KospiFuturesReader futrdr("data/F191_15571");
+	//KospiOptionsReader optrdr("data/C195_15511");
+	MakeDesc fmd("data/F191_15571",'f');
+	MakeDesc omd("data/C195_15511",'o');
+	ds.append(fmd.getDS());
+	ds.append(omd.getDS());
 }
+
 
 void sample(int fromtime = 9000000, int totime = 15000000){
 
@@ -152,7 +44,7 @@ void sample(int fromtime = 9000000, int totime = 15000000){
 	double ask1price = 0, currentprice = 0;
 	while(1){
 		int mintime = std::min(std::min(crdr.timestamp, prdr.timestamp), frdr.timestamp);
-		int optionFutureType = 0;
+		long long optionFutureType = 0;
 		KrxOptionsHeader optheader;
 		KrxFuturesHeader futheader;
 		enum OnlyForWatch { CallOption, PutOption, Future } cpfType;

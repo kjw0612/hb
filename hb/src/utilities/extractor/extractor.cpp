@@ -4,7 +4,7 @@
 #include <memory.h>
 #include <algorithm>
 #include "extractorunit.hpp"
-#include "krx_kospi_futures.hpp"
+//#include "krx_kospi_futures.hpp"
 
 ExtractorUnit unit;
 
