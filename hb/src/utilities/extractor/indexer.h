@@ -23,19 +23,23 @@ struct Indexer{
 
 	void run()
 	{
-		std::vector<int> timestamps;
-		std::vector<long long> offsets;
-		timestamps.reserve(10000000);
-		offsets.reserve(10000000);
+		std::vector<long long> minTimeOffset(25000000,-1), maxTimeOffset(25000000,-1);
 		PacketSubject psb(filepath, type);
 		PacketHandler hdlr;
+
 		psb.push(&hdlr);
-		timestamps.push_back(0); offsets.push_back(0);
 		int c = 0;
 		while(psb.next() && ++c < 1000000){
 			if (hdlr.impl->timestampi != 0){
-				timestamps.push_back(hdlr.impl->timestampi);
-				offsets.push_back(psb.rdr->rd.prevoffset);
+				long long poffset = psb.rdr->rd.prevoffset;
+				if (minTimeOffset[hdlr.impl->timestampi]==-1){
+					minTimeOffset[hdlr.impl->timestampi] = poffset;
+					maxTimeOffset[hdlr.impl->timestampi] = poffset;
+				}
+				else{
+					minTimeOffset[hdlr.impl->timestampi] = std::min(minTimeOffset[hdlr.impl->timestampi],poffset);
+					maxTimeOffset[hdlr.impl->timestampi] = std::min(maxTimeOffset[hdlr.impl->timestampi],poffset);
+				}
 			}
 			/*
 			if (timestamps.back() < hdlr.impl->timestampi){
@@ -44,6 +48,15 @@ struct Indexer{
 				break;
 				*/
 		}
+
+		FILE *fo = fopen((filepath + ".index").c_str(),"wt");
+
+		for (int i=0;i<(int)minTimeOffset.size();++i){
+			if (minTimeOffset[i] != -1){
+				fprintf(fo,"%d %lld %lld\n",i,minTimeOffset[i],maxTimeOffset[i]);
+			}
+		}
+		fclose(fo);
 	}
 	std::string filepath;
 	char type;
