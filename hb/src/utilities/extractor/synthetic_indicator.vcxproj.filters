@@ -41,6 +41,15 @@
     <ClInclude Include="rawdatareader.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="singleton.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="singletons.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="basereaders.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="synconfig.txt">

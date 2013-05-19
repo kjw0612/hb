@@ -1,5 +1,7 @@
 #ifndef descset_h__
 #define descset_h__
+#include "macros.h"
+#include "basereaders.h"
 
 struct DescSet{
 	struct Desc{

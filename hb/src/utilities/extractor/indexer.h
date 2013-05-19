@@ -1,8 +1,9 @@
 #ifndef indexer_h__
 #define indexer_h__
 
-#include "readers.h"
-#include "rawdatareader.hpp"
+#include "datawindow.h"
+#include "descset.h"
+#include "basereaders.h"
 #include "range_query_tree.h"
 
 /*
@@ -46,7 +47,8 @@ struct Indexer{
 	}
 
 	inline std::pair<long long, long long> get_interval_within(int a_time, int b_time){
-		long long l = rtllmin.read(a_time), r = rtllmax.read(b_time);
+		long long l = rtllmin.read(a_time, b_time);
+		long long r = rtllmax.read(a_time, b_time);
 		return std::make_pair(l,r);
 	}
 

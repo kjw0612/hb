@@ -28,6 +28,15 @@ public:
 		}
 	}
 
+	void seek(long long pos){
+#ifdef _POSIX_
+		fseek64(fp, pos, SEEK_SET);
+#else
+		_fseeki64(fp, pos, SEEK_SET);
+#endif
+		offset = prevoffset = pos;
+	}
+
 	inline bool empty(){
 		return (fp==NULL) || (feof(fp));
 	}

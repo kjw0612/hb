@@ -90,6 +90,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="basereaders.h" />
     <ClInclude Include="datawindow.h" />
     <ClInclude Include="descset.h" />
     <ClInclude Include="indexer.h" />
@@ -97,6 +98,8 @@
     <ClInclude Include="range_query_tree.h" />
     <ClInclude Include="rawdatareader.hpp" />
     <ClInclude Include="readers.h" />
+    <ClInclude Include="singleton.h" />
+    <ClInclude Include="singletons.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="synconfig.txt" />

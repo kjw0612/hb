@@ -3,104 +3,72 @@
 
 #include "krx_kospi_futures.hpp"
 #include "krx_kospi_options.hpp"
-#include "rawdatareader.hpp"
+#include "indexer.h"
 #include "macros.h"
+#include "singleton.h"
+#include "basereaders.h"
 #include <vector>
 
-class DataReader{
-public:
-	DataReader(){}
-	DataReader(const std::string& filename) : rd(filename), timestamp(0) {}
-	virtual void setType() = 0;
-	bool next(){
-		bool ret = rd.next();
-		len = rd.sz;
-		content = rd.msg;
-		setType();
-		return ret;
-	}
-	bool empty(){
-		return rd.empty();
-	}
-	RawDataReader rd;
-	char* content;
-	int len, timestamp;
+struct Brick : private Uncopyable{
+	char * content;
+	int size, timestamp;
 	long long castedRawType;
-};
 
-class KospiOptionsReader : public DataReader{
-public:
-	KospiOptionsReader() : DataReader() {} // NULL READER
-	KospiOptionsReader(const std::string& filename) : DataReader(filename) {}
-	void setType(){
-		optionsType = getTypeKrxOptionsHeader(content);
-		castedRawType = (long long)optionsType;
+	Brick(const char *src, int size, long long castedRawType, int timestamp = -1){
+		this->size = size; this->timestamp = timestamp; this->castedRawType = castedRawType;
+		content = new char[size+1];
+		memcpy(content, src, size);
+		content[size] = 0;
 	}
-	eKrxOptionsHeader optionsType;
-};
 
-class KospiFuturesReader : public DataReader{
-public:
-	KospiFuturesReader() : DataReader() {} // NULL READER
-	KospiFuturesReader(const std::string& filename) : DataReader(filename) {}
-	void setType(){
-		futuresType = getTypeKrxFuturesHeader(content);
-		castedRawType = (long long)futuresType;
+	~Brick(){
+		delete [] content;
 	}
-	eKrxFuturesHeader futuresType;
 };
 
-class PacketHandler{
+template <class T>
+class BlockReader{
 public:
-	class Impl{
-	public:
-		Impl() : timestampi(0){}
-		template <class some_packet_type>
-		void setCodeTime(const some_packet_type *header){
-			COPY_STR(krcode, header->krcode);
-			timestampi = ATOI_LEN(header->timestamp);
+	BlockReader(const std::string& filename, Indexer* indexer) : reader(filename), indexer(indexer) {}
+
+	void clearbricks(){
+		for (int i=0;i<(int)bricks.size();++i){
+			delete bricks[i];
 		}
-		virtual void update(long long capturedType, char *msg)
+		bricks.clear();
+	}
+
+	const std::vector<Brick *>& readBlockTime(int a_time, int b_time){
+		std::pair<long long, long long> l_r = indexer->get_interval_within(a_time,b_time);
+		RawDataReader& rrd = reader.rd;
+		rrd.seek(l_r.first);
+		while(reader.next() && rrd.prevoffset <= l_r.second)
 		{
-			futheader.m_rawmsg = msg;
-			optheader.m_rawmsg = msg;
-			switch(capturedType)
-			{
-			case t_KrxFuturesTradeBestQuotation:
-				setCodeTime(futheader.m_KrxFuturesTradeBestQuotation);
-				break;
-			case t_KrxOptionsTradeBestQuotation:
-				setCodeTime(optheader.m_KrxOptionsTradeBestQuotation);
-				break;
-			case t_KrxFuturesTrade:
-				setCodeTime(futheader.m_KrxFuturesTrade);
-				break;
-			case t_KrxOptionsTrade:
-				setCodeTime(optheader.m_KrxOptionsTrade);
-				break;
-			case t_KrxFuturesBestQuotation:
-				setCodeTime(futheader.m_KrxFuturesBestQuotation);
-				break;
-			case t_KrxOptionsBestQuotation:
-				setCodeTime(optheader.m_KrxOptionsBestQuotation);
-				break;
-			default:;
+			if (isQuotationType(reader.castedRawType)){
+				bricks.push_back(new Brick(rrd.msg, rrd.sz, reader.castedRawType, reader.timestamp));
 			}
 		}
-		KrxOptionsHeader optheader;
-		KrxFuturesHeader futheader;
-		char krcode[20];
-		int timestampi;
-	};
-	PacketHandler() : impl(new Impl()) {}
-	~PacketHandler(){ delete impl; }
-	void update(long long capturedType, char *msg){
-		impl->update(capturedType, msg);
+		return bricks;
 	}
-	Impl * impl;
-private:
-	PacketHandler(Impl * a_impl) : impl(a_impl) {}
-	template<class U> friend class MakeHandlerImpl;
+
+	std::vector<Brick *> bricks;
+	T reader;
+	Indexer* indexer;
+};
+
+
+template <class T>
+class ReaderSet{
+public:
+	ReaderSet(const std::string& filename, char type)
+		: indexer(filename, type), blrd(filename, &indexer)
+	{	
+		indexer.run();
+		indexer.setIndexTree();
+	}
+
+	Indexer indexer;
+	BlockReader<T> blrd;
 };
 
 class PriceCaptureImpl : public PacketHandler::Impl{
@@ -156,47 +124,5 @@ public:
 	}
 };
 
-class PacketSubject{
-public:
-	PacketSubject(const std::string& filepath, char type)
-	{
-		switch(tolower(type))
-		{
-		case 'f':
-			{
-				frdr = new KospiFuturesReader(filepath);
-				rdr = frdr; break;
-			}
-		case 'p': case 'c': case 'o':
-			{
-				ordr = new KospiOptionsReader(filepath);
-				rdr = ordr; break;
-			}
-		}
-	}
-
-	~PacketSubject(){
-		delete rdr;
-	}
-
-	void push(PacketHandler* hdlr){
-		handler.push_back(hdlr);
-	}
-
-	bool next(){
-		if (rdr->empty())
-			return false;
-		rdr->next();
-		for (int i=0;i<(int)handler.size();++i){
-			handler[i]->update(rdr->castedRawType, rdr->content);
-		}
-		return true;
-	}
-
-	KospiOptionsReader *ordr;
-	KospiFuturesReader *frdr;
-	DataReader *rdr;
-	std::vector<PacketHandler *> handler;
-};
 
 #endif // readers_h__

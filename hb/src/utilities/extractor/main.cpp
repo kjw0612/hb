@@ -3,9 +3,9 @@
 #include <stdlib.h>
 #include <string>
 #include <fstream>
-#include "datawindow.h"
-#include "descset.h"
+#include "readers.h"
 #include "indexer.h"
+
 
 DataWindow dw;
 DescSet ds;
@@ -36,10 +36,18 @@ void setup(){
 }
 
 void indexing(){
+	/*
 	Indexer indexer(basepath+"data\\C161_15515",'c');
 	indexer.run();
 	indexer.setIndexTree();
-	indexer.getQuestionTest();
+	//indexer.getQuestionTest();
+	BlockReader<KospiOptionsReader> kobr(basepath+"data\\C161_15515",&indexer);
+	std::vector<Brick *> bricks = kobr.readBlockTime(9000000,9200000);
+	*/
+	ReaderSet<KospiOptionsReader> crdst(basepath+"data\\C161_15515",'c');
+	ReaderSet<KospiOptionsReader> prdst(basepath+"data\\P162_15516",'p');
+	ReaderSet<KospiOptionsReader> frdst(basepath+"data\\F171_15572",'f');
+	
 }
 
 void sample(int fromtime = 9000000, int totime = 15000000){
