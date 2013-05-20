@@ -67,7 +67,11 @@ class PacketHandler{
 public:
 	class Impl{
 	public:
-		Impl() : timestampi(0){}
+		Impl() : timestampi(0)
+		{
+			optheader.m_rawmsg = NULL;
+			futheader.m_rawmsg = NULL;
+		}
 		template <class some_packet_type>
 		void setCodeTime(const some_packet_type *header){
 			COPY_STR(krcode, header->krcode);
@@ -106,13 +110,13 @@ public:
 		int timestampi;
 	};
 	PacketHandler() : impl(new Impl()) {}
+	PacketHandler(Impl * a_impl) : impl(a_impl) {}
 	~PacketHandler(){ delete impl; }
 	void update(long long capturedType, char *msg){
 		impl->update(capturedType, msg);
 	}
 	Impl * impl;
 private:
-	PacketHandler(Impl * a_impl) : impl(a_impl) {}
 	template<class U> friend class MakeHandlerImpl;
 };
 

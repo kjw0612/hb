@@ -25,30 +25,30 @@ struct Indexer{
 	{}
 
 	enum {
-		MINTIME = 8000000, MAXTIME = 16000000
+		MINTIME = 8000000, MAXTIME = 16000000, BUCKET_UNIT = 10
 	};
 	
 	range_query_tree<long long> rtllmin, rtllmax;
 
 	void setIndexTree()
 	{
-		rtllmin = range_query_tree<long long> (MINTIME,MAXTIME,std::min<long long>, 50000000000LL);
-		rtllmax = range_query_tree<long long> (MINTIME,MAXTIME,std::max<long long>, -1LL);
+		rtllmin = range_query_tree<long long> (0,(MAXTIME-MINTIME)/BUCKET_UNIT,std::min<long long>, 50000000000LL);
+		rtllmax = range_query_tree<long long> (0,(MAXTIME-MINTIME)/BUCKET_UNIT,std::max<long long>, -1LL);
 		FILE *fpidx;
 		fopen_s(&fpidx,(filepath + ".index").c_str(),"rt");
 		while(!feof(fpidx)){
 			int ts;
 			long long minOffset, maxOffset;
 			fscanf_s(fpidx,"%d %lld %lld",&ts,&minOffset,&maxOffset);
-			rtllmin.update(ts,minOffset);
-			rtllmax.update(ts,maxOffset);
+			rtllmin.update((ts-MINTIME)/BUCKET_UNIT,minOffset);
+			rtllmax.update((ts-MINTIME)/BUCKET_UNIT,maxOffset);
 		}
 		fclose(fpidx);
 	}
 
 	inline std::pair<long long, long long> get_interval_within(int a_time, int b_time){
-		long long l = rtllmin.read(a_time, b_time);
-		long long r = rtllmax.read(a_time, b_time);
+		long long l = rtllmin.read((a_time-MINTIME)/BUCKET_UNIT, (b_time-MINTIME)/BUCKET_UNIT);
+		long long r = rtllmax.read((a_time-MINTIME)/BUCKET_UNIT, (b_time-MINTIME)/BUCKET_UNIT);
 		return std::make_pair(l,r);
 	}
 
@@ -72,7 +72,7 @@ struct Indexer{
 			fclose(fotest);
 			return;
 		}
-		std::vector<long long> minTimeOffset(25000000,-1), maxTimeOffset(25000000,-1);
+		std::vector<long long> minTimeOffset((MAXTIME-MINTIME+100)/BUCKET_UNIT,-1), maxTimeOffset((MAXTIME-MINTIME+100)/BUCKET_UNIT,-1);
 		PacketSubject psb(filepath, type);
 		PacketHandler hdlr;
 
@@ -81,49 +81,29 @@ struct Indexer{
 		int lastTimeStamp = 0;
 		while(psb.next()){
 			if (hdlr.impl->timestampi != 0){
-				if (lastTimeStamp - hdlr.impl->timestampi > 6000000){
-					break;
-				}
+				if (lastTimeStamp - hdlr.impl->timestampi > 6000000)
+				{	break; }
 				lastTimeStamp = std::max(lastTimeStamp, hdlr.impl->timestampi);
+
+				int tstmpbuck = (hdlr.impl->timestampi-MINTIME)/BUCKET_UNIT;
 				long long poffset = psb.rdr->rd.prevoffset;
-				if (minTimeOffset[hdlr.impl->timestampi]==-1){
-					minTimeOffset[hdlr.impl->timestampi] = poffset;
-					maxTimeOffset[hdlr.impl->timestampi] = poffset;
+				if (minTimeOffset[tstmpbuck]==-1){
+					minTimeOffset[tstmpbuck] = poffset;
+					maxTimeOffset[tstmpbuck] = poffset;
 				}
 				else{
-					minTimeOffset[hdlr.impl->timestampi] = std::min(minTimeOffset[hdlr.impl->timestampi],poffset);
-					maxTimeOffset[hdlr.impl->timestampi] = std::min(maxTimeOffset[hdlr.impl->timestampi],poffset);
+					minTimeOffset[tstmpbuck] = std::min(minTimeOffset[tstmpbuck],poffset);
+					maxTimeOffset[tstmpbuck] = std::min(maxTimeOffset[tstmpbuck],poffset);
 				}
 			}
-			/*
-			if (timestamps.back() < hdlr.impl->timestampi){
-			}
-			else if (timestamps.back() > hdlr.impl->timestampi)
-				break;
-				*/
 		}
-
-		/*
-		std::vector<long long> minminOffset(25000000,-1);
-		long long curMin = -1;
-		
-		for (int i=(int)minTimeOffset.size()-1;i>=0;--i){
-			minminOffset[i] = minTimeOffset[i];
-			if (curMin != -1 && minminOffset[i] != -1){
-				minminOffset[i] = std::min(minminOffset[i],curMin);
-				curMin = minminOffset[i];
-			}
-			if (curMin == -1){
-				curMin = minminOffset[i];
-			}
-		}*/
 
 		FILE *fo;
 		fopen_s(&fo,(filepath + ".index").c_str(),"wt");
 
 		for (int i=0;i<(int)minTimeOffset.size();++i){
 			if (minTimeOffset[i] != -1){
-				fprintf(fo,"%d %lld %lld\n",i,minTimeOffset[i],maxTimeOffset[i]);
+				fprintf(fo,"%d %lld %lld\n",(i*BUCKET_UNIT+MINTIME),minTimeOffset[i],maxTimeOffset[i]);
 			}
 		}
 		fclose(fo);

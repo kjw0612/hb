@@ -13,9 +13,21 @@ struct Brick : private Uncopyable{
 	char * content;
 	int size, timestamp;
 	long long castedRawType;
+	double askprices[5], bidprices[5];
+	double currentprice;
 
 	Brick(const char *src, int size, long long castedRawType, int timestamp = -1){
 		this->size = size; this->timestamp = timestamp; this->castedRawType = castedRawType;
+		content = new char[size+1];
+		memcpy(content, src, size);
+		content[size] = 0;
+	}
+
+	Brick(const char *src, int size, long long castedRawType, double askprices[5], double bidprices[5], double currentprice, int timestamp = -1){
+		this->size = size; this->timestamp = timestamp; this->castedRawType = castedRawType;
+		memcpy(this->askprices,askprices,sizeof(this->askprices));
+		memcpy(this->bidprices,bidprices,sizeof(this->bidprices));
+		this->currentprice = currentprice;
 		content = new char[size+1];
 		memcpy(content, src, size);
 		content[size] = 0;
@@ -26,53 +38,16 @@ struct Brick : private Uncopyable{
 	}
 };
 
-template <class T>
-class BlockReader{
-public:
-	BlockReader(const std::string& filename, Indexer* indexer) : reader(filename), indexer(indexer) {}
-
-	void clearbricks(){
-		for (int i=0;i<(int)bricks.size();++i){
-			delete bricks[i];
-		}
-		bricks.clear();
-	}
-
-	const std::vector<Brick *>& readBlockTime(int a_time, int b_time){
-		std::pair<long long, long long> l_r = indexer->get_interval_within(a_time,b_time);
-		RawDataReader& rrd = reader.rd;
-		rrd.seek(l_r.first);
-		while(reader.next() && rrd.prevoffset <= l_r.second)
-		{
-			if (isQuotationType(reader.castedRawType)){
-				bricks.push_back(new Brick(rrd.msg, rrd.sz, reader.castedRawType, reader.timestamp));
-			}
-		}
-		return bricks;
-	}
-
-	std::vector<Brick *> bricks;
-	T reader;
-	Indexer* indexer;
-};
-
-
-template <class T>
-class ReaderSet{
-public:
-	ReaderSet(const std::string& filename, char type)
-		: indexer(filename, type), blrd(filename, &indexer)
-	{	
-		indexer.run();
-		indexer.setIndexTree();
-	}
-
-	Indexer indexer;
-	BlockReader<T> blrd;
-};
 
 class PriceCaptureImpl : public PacketHandler::Impl{
 public:
+	PriceCaptureImpl() : PacketHandler::Impl()
+	{
+		memset(askprices,0,sizeof(askprices));
+		memset(bidprices,0,sizeof(bidprices));
+		currentprice = 0;
+	}
+
 	double askprices[5], bidprices[5];
 	double currentprice;
 
@@ -116,12 +91,53 @@ public:
 	}
 };
 
-template<class IMPL_TYPE>
-class MakeHandlerImpl{
+
+class BlockReader{
 public:
-	operator PacketHandler(){
-		return PacketHandler(new IMPL_TYPE());
+	BlockReader(const std::string& filename, char type, Indexer* indexer) : psbj(filename, type), indexer(indexer) {}
+
+	void clearbricks(){
+		for (int i=0;i<(int)bricks.size();++i){
+			delete bricks[i];
+		}
+		bricks.clear();
 	}
+
+	const std::vector<Brick *>& readBlockTime(int a_time, int b_time){
+		std::pair<long long, long long> l_r = indexer->get_interval_within(a_time,b_time);
+		DataReader* rd = psbj.rdr;
+		RawDataReader& rrd = psbj.rdr->rd;
+		PriceCaptureImpl* pcapimpl = new PriceCaptureImpl();
+		PacketHandler pcaphd(pcapimpl);
+		psbj.push(&pcaphd);
+		rrd.seek(l_r.first);
+		while(psbj.next() && rrd.prevoffset <= l_r.second)
+		{
+			if (isQuotationType(rd->castedRawType)){
+				bricks.push_back(new Brick(rrd.msg, rrd.sz, rd->castedRawType,
+					pcapimpl->askprices, pcapimpl->bidprices, pcapimpl->currentprice, pcapimpl->timestampi));
+			}
+		}
+		return bricks;
+	}
+
+	std::vector<Brick *> bricks;
+	PacketSubject psbj;
+	Indexer* indexer;
+};
+
+
+class ReaderSet{
+public:
+	ReaderSet(const std::string& filename, char type)
+		: indexer(filename, type), blrd(filename, type, &indexer)
+	{	
+		indexer.run();
+		indexer.setIndexTree();
+	}
+
+	Indexer indexer;
+	BlockReader blrd;
 };
 
 

@@ -44,10 +44,12 @@ void indexing(){
 	BlockReader<KospiOptionsReader> kobr(basepath+"data\\C161_15515",&indexer);
 	std::vector<Brick *> bricks = kobr.readBlockTime(9000000,9200000);
 	*/
-	ReaderSet<KospiOptionsReader> crdst(basepath+"data\\C161_15515",'c');
-	ReaderSet<KospiOptionsReader> prdst(basepath+"data\\P162_15516",'p');
-	ReaderSet<KospiOptionsReader> frdst(basepath+"data\\F171_15572",'f');
-	
+	ReaderSet crdst(basepath+"data\\C161_15515",'c');
+	std::vector<Brick *> cbricks = crdst.blrd.readBlockTime(9000000,9200000);
+	ReaderSet prdst(basepath+"data\\P162_15516",'p');
+	std::vector<Brick *> pbricks = prdst.blrd.readBlockTime(9000000,9200000);
+	ReaderSet frdst(basepath+"data\\F171_15572",'f');
+	std::vector<Brick *> fbricks = frdst.blrd.readBlockTime(9000000,9200000);
 }
 
 void sample(int fromtime = 9000000, int totime = 15000000){
