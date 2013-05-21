@@ -41,32 +41,40 @@ struct Brick : private Uncopyable{
 
 class PriceCaptureImpl : public PacketHandler::Impl{
 public:
-	PriceCaptureImpl() : PacketHandler::Impl()
-	{
-		memset(askprices,0,sizeof(askprices));
-		memset(bidprices,0,sizeof(bidprices));
-		currentprice = 0;
-	}
+	PriceCaptureImpl() : PacketHandler::Impl(){}
 
-	double askprices[5], bidprices[5];
-	double currentprice;
+	struct orderbook{
+		double askprices[5], bidprices[5];
+		double currentprice;
+	};
+
+	std::map<std::string, orderbook> obmap;
+	orderbook* ob;
 
 	template <class some_packet_type>
 	void setLimitOrderQuotes(const some_packet_type *header){
-		askprices[0] = ATOI_LEN(header->ask1price) / 100.0;
-		askprices[1] = ATOI_LEN(header->ask2price) / 100.0;
-		askprices[2] = ATOI_LEN(header->ask3price) / 100.0;
-		askprices[3] = ATOI_LEN(header->ask4price) / 100.0;
-		askprices[4] = ATOI_LEN(header->ask5price) / 100.0;
-		bidprices[0] = ATOI_LEN(header->bid1price) / 100.0;
-		bidprices[1] = ATOI_LEN(header->bid2price) / 100.0;
-		bidprices[2] = ATOI_LEN(header->bid3price) / 100.0;
-		bidprices[3] = ATOI_LEN(header->bid4price) / 100.0;
-		bidprices[4] = ATOI_LEN(header->bid5price) / 100.0;
+		ob->askprices[0] = ATOI_LEN(header->ask1price) / 100.0;
+		ob->askprices[1] = ATOI_LEN(header->ask2price) / 100.0;
+		ob->askprices[2] = ATOI_LEN(header->ask3price) / 100.0;
+		ob->askprices[3] = ATOI_LEN(header->ask4price) / 100.0;
+		ob->askprices[4] = ATOI_LEN(header->ask5price) / 100.0;
+		ob->bidprices[0] = ATOI_LEN(header->bid1price) / 100.0;
+		ob->bidprices[1] = ATOI_LEN(header->bid2price) / 100.0;
+		ob->bidprices[2] = ATOI_LEN(header->bid3price) / 100.0;
+		ob->bidprices[3] = ATOI_LEN(header->bid4price) / 100.0;
+		ob->bidprices[4] = ATOI_LEN(header->bid5price) / 100.0;
 	}
 
 	void update(long long capturedType, char *msg){
 		PacketHandler::Impl::update(capturedType,msg);
+		if (obmap.find(this->krcodestr)==obmap.end()){
+			obmap[this->krcodestr] = orderbook();
+			ob = &(obmap.find(this->krcodestr)->second);
+			memset(ob->askprices,0,sizeof(ob->askprices)); memset(ob->bidprices,0,sizeof(ob->bidprices));
+			ob->currentprice = 0;
+		}
+		ob = &(obmap.find(this->krcodestr)->second);
+
 		switch(capturedType){
 			case t_KrxFuturesTradeBestQuotation:
 				setLimitOrderQuotes(futheader.m_KrxFuturesTradeBestQuotation);
@@ -75,10 +83,10 @@ public:
 				setLimitOrderQuotes(optheader.m_KrxOptionsTradeBestQuotation);
 				break;
 			case t_KrxFuturesTrade:
-				currentprice = ATOI_LEN(futheader.m_KrxFuturesTrade->currentprice) / 100.0;
+				ob->currentprice = ATOI_LEN(futheader.m_KrxFuturesTrade->currentprice) / 100.0;
 				break;
 			case t_KrxOptionsTrade:
-				currentprice = ATOI_LEN(optheader.m_KrxOptionsTrade->currentprice) / 100.0;
+				ob->currentprice = ATOI_LEN(optheader.m_KrxOptionsTrade->currentprice) / 100.0;
 				break;
 			case t_KrxFuturesBestQuotation:
 				setLimitOrderQuotes(futheader.m_KrxFuturesBestQuotation);
@@ -115,7 +123,7 @@ public:
 		{
 			if (isQuotationType(rd->castedRawType)){
 				bricks.push_back(new Brick(rrd.msg, rrd.sz, rd->castedRawType,
-					pcapimpl->askprices, pcapimpl->bidprices, pcapimpl->currentprice, pcapimpl->timestampi));
+					pcapimpl->ob->askprices, pcapimpl->ob->bidprices, pcapimpl->ob->currentprice, pcapimpl->timestampi));
 			}
 		}
 		return bricks;

@@ -74,7 +74,10 @@ public:
 		}
 		template <class some_packet_type>
 		void setCodeTime(const some_packet_type *header){
+			memset(krcode,0,sizeof(krcode));
 			COPY_STR(krcode, header->krcode);
+			_strupr_s(krcode);
+			krcodestr = krcode;
 			timestampi = ATOI_LEN(header->timestamp);
 		}
 		virtual void update(long long capturedType, char *msg)
@@ -107,6 +110,7 @@ public:
 		KrxOptionsHeader optheader;
 		KrxFuturesHeader futheader;
 		char krcode[20];
+		std::string krcodestr;
 		int timestampi;
 	};
 	PacketHandler() : impl(new Impl()) {}
