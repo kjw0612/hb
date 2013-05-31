@@ -50,6 +50,36 @@ void indexing(){
 	std::vector<Brick *> pbricks = prdst.blrd.readBlockTime(9000000,9200000);
 	ReaderSet frdst(basepath+"data\\F171_15572",'f');
 	std::vector<Brick *> fbricks = frdst.blrd.readBlockTime(9000000,9200000);
+
+	// target ATM = 250.5. month 2013-06.......
+	BrickBase cbbase(cbricks);
+	BrickBase pbbase(pbricks);
+	BrickBase fbbase(fbricks);
+	//cbbase.report_amounts();
+	//pbbase.report_amounts();
+	//fbbase.report_amounts();
+
+	// 거래량 많은 종목
+	//5월만기종목 set로..
+	//KR4201H52550	11080		KR4301H52558	5042
+	//KR4201H52527	9474		KR4301H52525	10984
+
+	//6월만기종목 set로는..
+	//KR4201H62526	3321		KR4301H62524	1078
+	//KR4201H62559	4166		KR4301H62557	755
+
+	//그러나 거래량을 감안하면 당연히 5월만기를 써야할듯.
+	//5월만기로 작업 ^ㅡ^
+
+	const std::vector<Brick *>& cbrick2550 = cbbase.get("KR4201H52550");
+	const std::vector<Brick *>& pbrick2558 = pbbase.get("KR4301H52558");
+
+	std::pair<std::vector<int>, std::vector<double> >
+		c2550series = Functional::bricks2MidPriceGrid(cbrick2550, 9000000, 9200000, 5000);
+
+	std::pair<std::vector<int>, std::vector<double> >
+		p2558series = Functional::bricks2MidPriceGrid(pbrick2558, 9000000, 9200000, 5000);
+	//for (int i=0;i<(int))
 }
 
 void sample(int fromtime = 9000000, int totime = 15000000){
