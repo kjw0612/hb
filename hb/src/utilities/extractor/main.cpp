@@ -44,10 +44,10 @@ void indexing(){
 	BlockReader<KospiOptionsReader> kobr(basepath+"data\\C161_15515",&indexer);
 	std::vector<Brick *> bricks = kobr.readBlockTime(9000000,9200000);
 	*/
-	ReaderSet crdst(basepath+"data\\C161_15515",'c');
-	std::vector<Brick *> cbricks = crdst.blrd.readBlockTime(9000000,9200000);
 	ReaderSet prdst(basepath+"data\\P162_15516",'p');
 	std::vector<Brick *> pbricks = prdst.blrd.readBlockTime(9000000,9200000);
+	ReaderSet crdst(basepath+"data\\C161_15515",'c');
+	std::vector<Brick *> cbricks = crdst.blrd.readBlockTime(9000000,9200000);
 	ReaderSet frdst(basepath+"data\\F171_15572",'f');
 	std::vector<Brick *> fbricks = frdst.blrd.readBlockTime(9000000,9200000);
 
@@ -75,10 +75,10 @@ void indexing(){
 	const std::vector<Brick *>& pbrick2558 = pbbase.get("KR4301H52558");
 
 	std::pair<std::vector<int>, std::vector<double> >
-		c2550series = Functional::bricks2MidPriceGrid(cbrick2550, 9000000, 9200000, 5000);
+		c2550series = bricks2MidPriceGrid(cbrick2550, 9000000, 9200000, 5000);
 
 	std::pair<std::vector<int>, std::vector<double> >
-		p2558series = Functional::bricks2MidPriceGrid(pbrick2558, 9000000, 9200000, 5000);
+		p2558series = bricks2MidPriceGrid(pbrick2558, 9000000, 9200000, 5000);
 	//for (int i=0;i<(int))
 }
 

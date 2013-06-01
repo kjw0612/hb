@@ -9,75 +9,8 @@
 #include "basereaders.h"
 #include <vector>
 
-struct Brick : private Uncopyable{
-	std::string krcodestr;
-	char * content;
-	int size, timestamp;
-	long long castedRawType;
-	double askprices[5], bidprices[5];
-	double currentprice, expectedprice;
-
-	Brick(const char *src, int size, long long castedRawType, int timestamp = -1){
-		this->size = size; this->timestamp = timestamp; this->castedRawType = castedRawType;
-		content = new char[size+1];
-		memcpy(content, src, size);
-		content[size] = 0;
-	}
-
-	Brick(const char *src, int size, long long castedRawType, double askprices[5], double bidprices[5],
-		double currentprice, double expectedprice, const std::string& krcodestr, int timestamp = -1)
-	{
-		this->size = size; this->timestamp = timestamp; this->castedRawType = castedRawType;
-		memcpy(this->askprices,askprices,sizeof(this->askprices));
-		memcpy(this->bidprices,bidprices,sizeof(this->bidprices));
-		this->currentprice = currentprice;
-		this->expectedprice = expectedprice;
-		this->krcodestr = krcodestr;
-		content = new char[size+1];
-		memcpy(content, src, size);
-		content[size] = 0;
-	}
-
-	~Brick(){
-		delete [] content;
-	}
-
-	bool operator<(const Brick& rhs) const {
-		return this->timestamp < rhs.timestamp;
-	}
-
-	double midPriceSimpleAvg() const {
-		return (askprices[0] + bidprices[0]) / 2;
-	}
-};
-
-template<class x_type, class y_type>
-class Interpolation{
-	static int locate(const std::vector<x_type>& xs, x_type x)
-	{
-		if (x < xs.front())
-			return 0;
-		else if (x > xs.end())
-			return xs.end()-xs.begin()-2;
-		else
-			return std::upper_bound(xs.begin(),xs.end()-1,x)-xs.begin()-1;
-	}
-	// xs are sorted in ascending order
-	static y_type linear(const std::vector<x_type>& xs, const std::vector<y_type>& ys, x_type x)
-	{
-		int i = Interpolation::locate(xs, x);
-		if (i==0 || i+1==xs.size() || xs[i] == x){
-			return ys[i];
-		}
-		else{
-			return (ys[i] * (x-xs[i]) + ys[i+1] * (xs[i+1] - x)) / (xs[i+1] - xs[i]);
-		}
-	}
-};
-
 class Functional{
 public:
-
 	static void timestampfunctest(){
 		for (int i=9000000;i<12000000;i+=1221212){
 			int x = Functional::timestamp2seq(i);
@@ -103,6 +36,7 @@ public:
 		seq += timestamp * HH_MM * MM_ss * ss_xx;
 		return seq;
 	}
+
 	inline static int seq2timestamp(int seq){
 		const int ss_xx = 100, MM_ss = 60, HH_MM = 60;
 		int HH = seq / (ss_xx * MM_ss * HH_MM);
@@ -112,33 +46,134 @@ public:
 		return ((HH * 100 + mm) * 100 + ss) * 100 + xx;
 	}
 
+	inline static int tsdiff(int timestampa, int timestampb){
+		int sqa = timestamp2seq(timestampa), sqb = timestamp2seq(timestampb);
+		return sqa - sqb;
+	}
+
 	inline static std::vector<int> makegrid(int timestamp_st, int timestamp_end, int nTimes){
 		std::vector<int> grid(nTimes);
 		int seq_st = Functional::timestamp2seq(timestamp_st), seq_end = Functional::timestamp2seq(timestamp_end);
 		for (int i=0;i<nTimes-1;++i){
-			int seq_i = (seq_st * (nTimes-1-i) + seq_end * (i)) / (nTimes-1);
+			int seq_i = ((long long)seq_st * (nTimes-1-i) + (long long)seq_end * (i)) / (nTimes-1);
 			int timestamp_i = Functional::seq2timestamp(seq_i);
 			grid[i] = timestamp_i;
 		}
 		return grid;
 	}
-
-	static std::pair<std::vector<int>, std::vector<double> > bricks2MidPriceGrid
-		(const std::vector<Brick *>& bricks, int mintime, int maxtime, int nTimes)
+	template<class T>
+	inline static bool ptr_comp(const T * const & a, const T * const & b)
 	{
-		std::vector<int> grids = Functional::makegrid(mintime, maxtime, nTimes);
-		std::vector<double> midprices(nTimes);
-		for (int i=0;i<(int)grids.size();++i){
-			//midprices[i] = bricks[i].midPriceSimpleAvg();
-		}
-		return std::make_pair(grids, midprices);
+		return *a < *b;
 	}
 };
 
-template<class T>
-inline bool ptr_comp(const T * const & a, const T * const & b)
+struct Brick : private Uncopyable{
+	std::string krcodestr;
+	char * content;
+	int size, timestamp, timestampseq;
+	long long castedRawType;
+	double askprices[5], bidprices[5];
+	double currentprice, expectedprice;
+
+	Brick() : content(NULL) {}
+
+	Brick(const char *src, int size, long long castedRawType, int timestamp = -1) {
+		this->size = size; this->timestamp = timestamp; this->castedRawType = castedRawType;
+		content = new char[size+1];
+		memcpy(content, src, size);
+		content[size] = 0;
+	}
+
+	Brick(const char *src, int size, long long castedRawType, double askprices[5], double bidprices[5],
+		double currentprice, double expectedprice, const std::string& krcodestr, int timestamp = -1){
+		this->size = size; this->timestamp = timestamp; this->castedRawType = castedRawType;
+		this->timestampseq = Functional::timestamp2seq(timestamp);
+		memcpy(this->askprices,askprices,sizeof(this->askprices));
+		memcpy(this->bidprices,bidprices,sizeof(this->bidprices));
+		this->currentprice = currentprice;
+		this->expectedprice = expectedprice;
+		this->krcodestr = krcodestr;
+		content = new char[size+1];
+		memcpy(content, src, size);
+		content[size] = 0;
+	}
+
+	~Brick(){
+		if (content!=NULL) delete [] content;
+	}
+
+	bool operator<(const Brick& rhs) const {
+		return this->timestamp < rhs.timestamp;
+	}
+
+	double midPriceSimpleAvg() const {
+		return (askprices[0] + bidprices[0]) / 2;
+	}
+};
+
+
+class Interpolation{
+public:
+	template<class x_type>
+	static int locate(const std::vector<x_type>& xs, x_type x)
+	{
+		if (x < xs.front())
+			return 0;
+		else if (x > xs.back())
+			return xs.end()-xs.begin()-2;
+		else
+			return std::upper_bound(xs.begin(),xs.end()-1,x)-xs.begin()-1;
+	}
+
+	template<class x_type>
+	static int locate_ptr(const std::vector<x_type *>& xs, x_type * x)
+	{
+		if (*(x) < *(xs.front()))
+			return 0;
+		else if (*(xs.back()) < *(x))
+			return xs.end()-xs.begin()-2;
+		else
+			return std::upper_bound(xs.begin(),xs.end()-1,x,Functional::ptr_comp<x_type>)-xs.begin()-1;
+	}
+
+	// xs are sorted in ascending order
+	template<class x_type, class y_type>
+	static y_type linear(const std::vector<x_type>& xs, const std::vector<y_type>& ys, x_type x)
+	{
+		int i = Interpolation::locate(xs, x);
+		if (i==0 || i+1==xs.size() || xs[i] == x){
+			return ys[i];
+		}
+		else{
+			return (ys[i] * (x-xs[i]) + ys[i+1] * (xs[i+1] - x)) / (xs[i+1] - xs[i]);
+		}
+	}
+
+	static double linear_bricks(const std::vector<Brick *>& bricks, int x)
+	{
+		Brick brick; brick.timestamp = x;
+		int i = Interpolation::locate_ptr(bricks, &brick);
+		if (i==0 || i+1==bricks.size() || bricks[i]->timestamp == x){
+			return bricks[i]->midPriceSimpleAvg();
+		}
+		else{
+			return (bricks[i]->midPriceSimpleAvg() * Functional::tsdiff(x,bricks[i]->timestamp) +
+				bricks[i+1]->midPriceSimpleAvg() * Functional::tsdiff(bricks[i+1]->timestamp,x))
+				/ Functional::tsdiff(bricks[i+1]->timestamp,bricks[i]->timestamp);
+		}
+	}
+};
+
+inline std::pair<std::vector<int>, std::vector<double> > bricks2MidPriceGrid
+	(const std::vector<Brick *>& bricks, int mintime, int maxtime, int nTimes)
 {
-	return *a < *b;
+	std::vector<int> grids = Functional::makegrid(mintime, maxtime, nTimes);
+	std::vector<double> midprices(nTimes);
+	for (int i=0;i<(int)grids.size();++i){
+		midprices[i] = Interpolation::linear_bricks(bricks, grids[i]);
+	}
+	return std::make_pair(grids, midprices);
 }
 
 class PriceCaptureImpl : public PacketHandler::Impl{
@@ -216,7 +251,7 @@ public:
 		
 		std::map<std::string, std::vector<Brick *> >::iterator it = codeVectorMap.begin();
 		for (;it != codeVectorMap.end(); ++it){
-			std::sort(it->second.begin(),it->second.end(),ptr_comp<Brick>);
+			std::sort(it->second.begin(),it->second.end(),Functional::ptr_comp<Brick>);
 			codes.push_back(it->first);
 		}
 	}
