@@ -88,6 +88,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="pplot\PPlot.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="basereaders.h" />
@@ -95,6 +96,7 @@
     <ClInclude Include="descset.h" />
     <ClInclude Include="indexer.h" />
     <ClInclude Include="macros.h" />
+    <ClInclude Include="pplot\PPlot.h" />
     <ClInclude Include="range_query_tree.h" />
     <ClInclude Include="rawdatareader.hpp" />
     <ClInclude Include="readers.h" />

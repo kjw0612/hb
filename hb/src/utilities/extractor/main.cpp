@@ -5,6 +5,7 @@
 #include <fstream>
 #include "readers.h"
 #include "indexer.h"
+#include "pplot/PPlot.h"
 
 
 DataWindow dw;
@@ -35,7 +36,76 @@ void setup(){
 	}
 }
 
+#include <windows.h>
+
+class Plotter //: public NativeWidget, 	public Painter
+{
+public:
+	Plotter() {
+		const char g_szClassName[] = "myWindowClass";
+		WNDCLASSEX wc;
+		HWND hwnd;
+		HINSTANCE hInstance = GetModuleHandle(NULL);
+		MSG Msg;
+
+		//Step 1: Registering the Window Class
+		wc.cbSize        = sizeof(WNDCLASSEX);
+		wc.style         = 0;
+		//wc.lpfnWndProc   = WndProc;
+		wc.cbClsExtra    = 0;
+		wc.cbWndExtra    = 0;
+		wc.hInstance     = hInstance;
+		wc.hIcon         = LoadIcon(NULL, IDI_APPLICATION);
+		wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
+		wc.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
+		wc.lpszMenuName  = NULL;
+		wc.lpszClassName = g_szClassName;
+		wc.hIconSm       = LoadIcon(NULL, IDI_APPLICATION);
+
+		if(!RegisterClassEx(&wc))
+		{
+			MessageBox(NULL, "Window Registration Failed!", "Error!",
+			MB_ICONEXCLAMATION | MB_OK);
+			throw "";
+		}
+
+		// Step 2: Creating the Window
+		hwnd = CreateWindowEx(
+			WS_EX_CLIENTEDGE,
+			g_szClassName,
+			"The title of my window",
+			WS_OVERLAPPEDWINDOW,
+			CW_USEDEFAULT, CW_USEDEFAULT, 240, 120,
+			NULL, NULL, hInstance, NULL);
+
+		ShowWindow(FindWindowA("ConsoleWindowClass", NULL), false);
+	    /* Calling GetDC with argument 0 retrieves the desktop's DC */
+		HDC hDC_Desktop = GetDC(0);
+
+		/* Draw a simple blue rectangle on the desktop */
+		RECT rect = { 20, 20, 200, 200 };
+		HBRUSH blueBrush=CreateSolidBrush(RGB(0,0,255));
+		FillRect(hDC_Desktop, &rect, blueBrush);
+	}
+	void addPlot(const std::pair<std::vector<int>, std::vector<double> >& data){
+		PlotData *xdata = new PlotData ();
+		PlotData *ydata = new PlotData ();
+		// fill them as any stl container (with floats)
+		for (int i=0;i<(int)data.first.size();++i) {
+		   xdata->push_back ((float)data.first[i]);
+		   ydata->push_back ((float)data.second[i]);
+		}  
+		// add item to the plot
+		mPPlot.mPlotDataContainer.AddXYPlot (xdata, ydata);// takes ownership
+	}
+	PPlot mPPlot;
+};
+
+#undef min
+
 void indexing(){
+	
+	Plotter plotter;
 	/*
 	Indexer indexer(basepath+"data\\C161_15515",'c');
 	indexer.run();
@@ -79,7 +149,11 @@ void indexing(){
 
 	std::pair<std::vector<int>, std::vector<double> >
 		p2558series = bricks2MidPriceGrid(pbrick2558, 9000000, 9200000, 5000);
+
+	plotter.addPlot(c2550series);
+	plotter.addPlot(p2558series);
 	//for (int i=0;i<(int))
+
 }
 
 void sample(int fromtime = 9000000, int totime = 15000000){
