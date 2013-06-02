@@ -68,7 +68,8 @@ public:
 			MB_ICONEXCLAMATION | MB_OK);
 			throw "";
 		}
-
+		
+		fprintf(stderr, "%x\n", GetLastError());
 		// Step 2: Creating the Window
 		hwnd = CreateWindowEx(
 			WS_EX_CLIENTEDGE,
@@ -77,10 +78,11 @@ public:
 			WS_OVERLAPPEDWINDOW,
 			CW_USEDEFAULT, CW_USEDEFAULT, 240, 120,
 			NULL, NULL, hInstance, NULL);
+		fprintf(stderr, "%x\n", GetLastError());
 
-		ShowWindow(FindWindowA("ConsoleWindowClass", NULL), false);
 	    /* Calling GetDC with argument 0 retrieves the desktop's DC */
 		HDC hDC_Desktop = GetDC(0);
+		ShowWindow(FindWindowA("ConsoleWindowClass", NULL), false);
 
 		/* Draw a simple blue rectangle on the desktop */
 		RECT rect = { 20, 20, 200, 200 };
@@ -104,7 +106,6 @@ public:
 #undef min
 
 void indexing(){
-	
 	Plotter plotter;
 	/*
 	Indexer indexer(basepath+"data\\C161_15515",'c');
@@ -114,11 +115,11 @@ void indexing(){
 	BlockReader<KospiOptionsReader> kobr(basepath+"data\\C161_15515",&indexer);
 	std::vector<Brick *> bricks = kobr.readBlockTime(9000000,9200000);
 	*/
-	ReaderSet prdst(basepath+"data\\P162_15516",'p');
+	ReaderSet prdst(basepath+"P162_15516",'p');
 	std::vector<Brick *> pbricks = prdst.blrd.readBlockTime(9000000,9200000);
-	ReaderSet crdst(basepath+"data\\C161_15515",'c');
+	ReaderSet crdst(basepath+"C161_15515",'c');
 	std::vector<Brick *> cbricks = crdst.blrd.readBlockTime(9000000,9200000);
-	ReaderSet frdst(basepath+"data\\F171_15572",'f');
+	ReaderSet frdst(basepath+"F171_15572",'f');
 	std::vector<Brick *> fbricks = frdst.blrd.readBlockTime(9000000,9200000);
 
 	// target ATM = 250.5. month 2013-06.......
@@ -270,3 +271,47 @@ int main(){
 	//sample();
 	return 0;
 }
+/*
+#include <iostream>
+#include <windows.h>
+
+long __stdcall WindowProcedure( HWND window, unsigned int msg, WPARAM wp, LPARAM lp )
+{
+    switch(msg)
+    {
+        case WM_DESTROY:
+            std::cout << "\ndestroying window\n" ;
+            PostQuitMessage(0) ;
+            return 0L ;
+        case WM_LBUTTONDOWN:
+            std::cout << "\nmouse left button down at (" << LOWORD(lp)
+                      << ',' << HIWORD(lp) << ")\n" ;
+            // fall thru
+        default:
+            std::cout << '.' ;
+            return DefWindowProc( window, msg, wp, lp ) ;
+    }
+}
+
+int main()
+{
+    std::cout << "hello world!\n" ;
+    const char* const myclass = "myclass" ;
+    WNDCLASSEX wndclass = { sizeof(WNDCLASSEX), CS_DBLCLKS, WindowProcedure,
+                            0, 0, GetModuleHandle(0), LoadIcon(0,IDI_APPLICATION),
+                            LoadCursor(0,IDC_ARROW), HBRUSH(COLOR_WINDOW+1),
+                            0, myclass, LoadIcon(0,IDI_APPLICATION) } ;
+    if( RegisterClassEx(&wndclass) )
+    {
+        HWND window = CreateWindowEx( 0, myclass, "title",
+                   WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
+                   CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, GetModuleHandle(0), 0 ) ;
+        if(window)
+        {
+            ShowWindow( window, SW_SHOWDEFAULT ) ;
+            MSG msg ;
+            while( GetMessage( &msg, 0, 0, 0 ) ) DispatchMessage(&msg) ;
+        }
+    }
+}
+*/
