@@ -96,6 +96,7 @@
     <ClInclude Include="descset.h" />
     <ClInclude Include="indexer.h" />
     <ClInclude Include="macros.h" />
+    <ClInclude Include="plotter.h" />
     <ClInclude Include="pplot\PPlot.h" />
     <ClInclude Include="range_query_tree.h" />
     <ClInclude Include="rawdatareader.hpp" />
