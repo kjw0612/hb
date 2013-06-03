@@ -553,7 +553,7 @@ struct KrxOptionsGreek{
 	char krcode[12];
 	char seq[7];
 	char createddate[8];	// ???? record '999999999999' set
-	char createdtime[8];
+	char timestamp[8];
 	char createdwhencode[1];	// ??) KRSPIFUK2I:?????200???? KRSPIOPK2I:?????200??? KREQUOPS46:KRX??ии?? KB????
 	char deltasign[3];	// ??) KR4101C90009 ?? K101C9000
 	char delta[1];

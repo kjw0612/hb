@@ -107,10 +107,13 @@ struct GreekBrick : private Uncopyable{
 struct Brick : private Uncopyable{
 	PacketInfo pi;
 	Orderbook ob;
+	Greeks grk;
 
 	Brick() {}
 	Brick(const PacketInfo& pi) : pi(pi) {}
 	Brick(const PacketInfo& pi, const Orderbook& ob) : pi(pi), ob(ob) {}
+	Brick(const PacketInfo& pi, const Orderbook& ob, const Greeks& grk) : pi(pi), ob(ob), grk(grk) {}
+	Brick(const PacketInfo& pi, const Greeks& grk) : pi(pi), grk(grk) {}
 
 	bool operator<(const Brick& rhs) const {
 		return this->pi.timestamp < rhs.pi.timestamp;
@@ -329,6 +332,12 @@ public:
 
 class BlockReader{
 public:
+
+	enum DataType{
+		ORDERBOOK,
+		GREEK
+	};
+
 	BlockReader(const std::string& filename, char type, Indexer* indexer) : psbj(filename, type), indexer(indexer) {}
 
 	void clearbricks(){
@@ -338,10 +347,7 @@ public:
 		bricks.clear();
 	}
 
-	const std::vector<Brick *>& readBlockTimeGreeks(int a_time, int b_time){
-	}
-
-	const std::vector<Brick *>& readBlockTime(int a_time, int b_time){
+	const std::vector<Brick *>& readBlockTime(int a_time, int b_time, DataType datatype){
 		std::pair<long long, long long> l_r = indexer->get_interval_within(a_time,b_time);
 		DataReader* rd = psbj.rdr;
 		RawDataReader& rrd = psbj.rdr->rd;
@@ -353,8 +359,14 @@ public:
 		while(psbj.next() && rrd.prevoffset <= l_r.second)
 		{
 			if (isQuotationType(rd->castedRawType)){
-				bricks.push_back
-					(new Brick(PacketInfo(pcapimpl->krcodestr, rrd.msg, rrd.sz, rd->castedRawType, pcapimpl->timestampi),*pcapimpl->ob));
+				if (datatype == ORDERBOOK){
+					bricks.push_back
+						(new Brick(PacketInfo(pcapimpl->krcodestr, rrd.msg, rrd.sz, rd->castedRawType, pcapimpl->timestampi),*pcapimpl->ob));
+				}
+				else{
+					bricks.push_back
+						(new Brick(PacketInfo(pcapimpl->krcodestr, rrd.msg, rrd.sz, rd->castedRawType, pcapimpl->timestampi),*pcapimpl->grk));
+				}
 			}
 		}
 		printf("-");

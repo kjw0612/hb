@@ -104,6 +104,9 @@ public:
 			case t_KrxOptionsBestQuotation:
 				setCodeTime(optheader.m_KrxOptionsBestQuotation);
 				break;
+			case t_KrxOptionsGreek:
+				setCodeTime(optheader.m_KrxOptionsGreek);
+				break;
 			default:;
 			}
 		}

@@ -11,7 +11,7 @@
 DataWindow dw;
 DescSet ds;
 std::string basepath = "";
-std::string futPath = "", callPath = "", putPath = "";
+std::string futPath = "", callPath = "", putPath = "", greekPath = "";
 std::string futDescPath = "", optDescPath = "";
 
 void makedesc(){
@@ -50,10 +50,15 @@ void setup(){
 		if (!_strcmpi(a.c_str(),"optDesc")){
 			optDescPath = b;
 		}
+		if (!_strcmpi(a.c_str(),"greek")){
+			greekPath = b;
+		}
 	}
 }
 
+#ifdef BOOST
 #include <boost/timer.hpp>
+#endif
 
 void indexing(){
 	int start_time = 9000000;
@@ -69,17 +74,26 @@ void indexing(){
 	BlockReader<KospiOptionsReader> kobr(basepath+"data\\C161_15515",&indexer);
 	std::vector<Brick *> bricks = kobr.readBlockTime(9000000,9200000);
 	*/
+	ReaderSet grkrdst(basepath+greekPath,'o');
+	std::vector<Brick *> greeks = grkrdst.blrd.readBlockTime(start_time,end_time,BlockReader::GREEK);
+
+#ifdef BOOST
 	boost::timer timer;
+#endif
 	ReaderSet prdst(basepath+putPath,'p');
 	ReaderSet crdst(basepath+callPath,'c');
 	ReaderSet frdst(basepath+futPath,'f');
+#ifdef BOOST
 	std::cout << "elapsed time index cost : " << timer.elapsed() << std::endl;
 	timer.restart();
-	std::vector<Brick *> pbricks = prdst.blrd.readBlockTime(start_time,end_time);
-	std::vector<Brick *> cbricks = crdst.blrd.readBlockTime(start_time,end_time);
-	std::vector<Brick *> fbricks = frdst.blrd.readBlockTime(start_time,end_time);
+#endif
+	std::vector<Brick *> pbricks = prdst.blrd.readBlockTime(start_time,end_time,BlockReader::ORDERBOOK);
+	std::vector<Brick *> cbricks = crdst.blrd.readBlockTime(start_time,end_time,BlockReader::ORDERBOOK);
+	std::vector<Brick *> fbricks = frdst.blrd.readBlockTime(start_time,end_time,BlockReader::ORDERBOOK);
+#ifdef BOOST
 	std::cout << "elapsed time bricks cost : " << timer.elapsed() << std::endl;
 	timer.restart();
+#endif
 
 	// target ATM = 250.5. month 2013-06.......
 	BrickBase cbbase(cbricks);
@@ -101,8 +115,10 @@ void indexing(){
 	const std::vector<Brick *>& futbrick = fbbase.get("KR4101H60001");
 	const std::vector<Brick *>& cbrick2550 = cbbase.get("KR4201H52550");
 	const std::vector<Brick *>& pbrick2550 = pbbase.get("KR4301H52558");
+#ifdef BOOST
 	std::cout << "get bricks cost : " << timer.elapsed() << std::endl;
 	timer.restart();
+#endif
 
 	std::pair<std::vector<int>, std::vector<double> >
 		c2550series = bricks2MidPriceGrid(cbrick2550, start_time, end_time, 5000);
@@ -116,8 +132,10 @@ void indexing(){
 		futShift = aXpb(1, futSeries ,-250);
 	std::pair<std::vector<int>, std::vector<double> >
 		futMcall = aXpbY(1, futShift, -1, cMinusPseries);
+#ifdef BOOST
 	std::cout << "bricks 2 midprice cost : " << timer.elapsed() << std::endl;
 	timer.restart();
+#endif
 	/*
 	FILE *fo = fopen("output.csv","wt");
 	for (int i=0;i<(int)c2550series.first.size();++i){
