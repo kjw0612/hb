@@ -57,7 +57,8 @@ void setup(){
 
 void indexing(){
 	int start_time = 9000000;
-	int end_time = 9200000;
+	int end_time = 9590000;
+	//int end_time = 9200000;
 	Plotter plotter("A research for synthetic Indicator");
 	//plotter.testplot();
 	/*
