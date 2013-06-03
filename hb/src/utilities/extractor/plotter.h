@@ -24,14 +24,43 @@ long __stdcall WindowProcedure( HWND window, unsigned int msg, WPARAM wp, LPARAM
     }
 }
 
+std::wstring 
+mbs_to_wcs(std::string const& str, std::locale const& loc = std::locale())
+{
+	typedef std::codecvt<wchar_t, char, std::mbstate_t> codecvt_t;
+	codecvt_t const& codecvt = std::use_facet<codecvt_t>(loc);
+	std::mbstate_t state = 0;
+	std::vector<wchar_t> buf(str.size() + 1);
+	char const* in_next = str.c_str();
+	wchar_t* out_next = &buf[0];
+	codecvt_t::result r = codecvt.in(state, 
+		str.c_str(), str.c_str() + str.size(), in_next, 
+		&buf[0], &buf[0] + buf.size(), out_next);
+	return std::wstring(&buf[0]);
+}
 
-class MFCWidget 
-	//: public Painter
-	: public DummyPainter
+std::string 
+wcs_to_mbs(std::wstring const& str, std::locale const& loc = std::locale())
+{
+	typedef std::codecvt<wchar_t, char, std::mbstate_t> codecvt_t;
+	codecvt_t const& codecvt = std::use_facet<codecvt_t>(loc);
+	std::mbstate_t state = 0;
+	std::vector<char> buf((str.size() + 1) * codecvt.max_length());
+	wchar_t const* in_next = str.c_str();
+	char* out_next = &buf[0];
+	codecvt_t::result r = codecvt.out(state, 
+		str.c_str(), str.c_str() + str.size(), in_next, 
+		&buf[0], &buf[0] + buf.size(), out_next);
+	return std::string(&buf[0]);
+}
+
+using namespace Gdiplus;
+
+class MFCWidget : public Painter
+	//: public DummyPainter
 {
 public:
-	MFCWidget() : width(800), height(600) {
-		using namespace Gdiplus;
+	MFCWidget(const std::string& windowname = "Default Window") : width(800), height(600) {
 		GdiplusStartupInput gdiplusStartupInput;
 		ULONG_PTR           gdiplusToken;
 		// Initialize GDI+.
@@ -52,20 +81,21 @@ public:
 		hwnd = CreateWindowEx(
 			WS_EX_CLIENTEDGE,
 			g_szClassName,
-			"The title of my window",
+			windowname.c_str(),
 			WS_OVERLAPPEDWINDOW,
 			CW_USEDEFAULT, CW_USEDEFAULT, width, height,
 			NULL, NULL, hInstance, NULL);
 		ShowWindow( hwnd, SW_SHOWDEFAULT );
 		hDC = GetDC(hwnd);
 		graphics = new Graphics(hDC);
-		blackpen = new Gdiplus::Pen(Gdiplus::Color(255, 0, 0, 255));
-		blackbrush = new Gdiplus::SolidBrush(Gdiplus::Color(255, 0, 0, 255));
+		current_pen = new Gdiplus::Pen(Gdiplus::Color(255, 0, 0, 255));
+		current_brush = new Gdiplus::SolidBrush(Gdiplus::Color(255, 0, 0, 255));
+		font = new Font(L"Consolas", 12, FontStyleRegular, UnitPixel);
 	}
 	~MFCWidget(){
 		delete graphics;
-		delete blackpen;
-		delete blackbrush;
+		delete current_pen;
+		delete current_brush;
 	}
 
 	/*
@@ -95,10 +125,10 @@ public:
 	hDC = GetDC(hwnd);
 	}*/
 	void DrawLine (float inX1, float inY1, float inX2, float inY2){
-		graphics->DrawLine (blackpen,inX1, inY1, inX2, inY2);
+		graphics->DrawLine (current_pen, inX1, inY1, inX2, inY2);
 	}
 	void FillRect (int inX, int inY, int inW, int inH){
-		graphics->FillRectangle(blackbrush, inX, inY, inW, inH);
+		graphics->FillRectangle(current_brush, inX, inY, inW, inH);
 	}
 	void InvertRect (int inX, int inY, int inW, int inH){
 		// sleepy..
@@ -113,9 +143,15 @@ public:
 		return height;
 	}
 	void SetLineColor (int inR, int inG, int inB){
+		delete current_pen;
+		current_pen = new Pen(Color(inR, inG, inB));
+		current_brush = new SolidBrush(Color(inR, inG, inB));
 		// sleepy..
 	}
 	void SetFillColor (int inR, int inG, int inB){
+		delete current_brush;
+		//printf("[%d,%d,%d]",inR,inG,inB);
+		current_brush = new SolidBrush(Color(inR, inG, inB));
 		// sleepy..
 	}
 	long CalculateTextDrawSize (const char *inString){
@@ -124,8 +160,10 @@ public:
 	long GetFontHeight () const {
 		return 12; // sleepy..
 	}
-
+#undef DrawText
 	void DrawText (int inX, int inY, const char *inString){
+		std::wstring wInString = mbs_to_wcs(inString);
+		graphics->DrawString(wInString.c_str(), wInString.length(), font, PointF((float)inX, (float)inY), current_brush);
 	}
 
 	void DrawRotatedText (int inX, int inY, float inDegrees, const char *inString){
@@ -136,27 +174,43 @@ public:
 	}
 	int width, height;
 	Gdiplus::Graphics *graphics;
-	Gdiplus::Pen *blackpen;
-	Gdiplus::SolidBrush *blackbrush;
+	Gdiplus::Pen *current_pen;
+	Gdiplus::SolidBrush *current_brush;
+	Gdiplus::Font *font;
 	HWND hwnd;
 	HDC hDC;
 };
 
-
 class Plotter : public MFCWidget
 {
 public:
-	Plotter() {}
-	void addPlot(const std::pair<std::vector<int>, std::vector<double> >& data){
+	Plotter(const std::string& windowname = "Default Window") : colorSeed(42), MFCWidget(windowname) {}
+	int colorSeed;
+
+	PColor genColor() {
+		srand(colorSeed);
+		colorSeed = rand();
+		return PColor(rand()%220,rand()%220,rand()%220);
+		//return PColor(rand()%256,rand()%256,rand()%256);
+	}
+
+	void addPlot(const std::pair<std::vector<int>, std::vector<double> >& data, const std::string& legend){
 		PlotData *xdata = new PlotData ();
 		PlotData *ydata = new PlotData ();
 		// fill them as any stl container (with floats)
 		for (int i=0;i<(int)data.first.size();++i) {
+			//xdata->push_back (i);
+			//ydata->push_back (i*2);
 			xdata->push_back ((float)data.first[i]);
 			ydata->push_back ((float)data.second[i]);
 		}
 		// add item to the plot
-		mPPlot.mPlotDataContainer.AddXYPlot (xdata, ydata);// takes ownership
+		LegendData *legend_data = new LegendData();
+		legend_data->mName = legend;
+		legend_data->mColor = genColor();
+		legend_data->mStyle.mFont = "Consolas";
+		
+		mPPlot.mPlotDataContainer.AddXYPlot (xdata, ydata, legend_data);// takes ownership
 	}
 
 	void draw(){
@@ -173,6 +227,15 @@ public:
 		// add item to the plot
 		mPPlot.mPlotDataContainer.AddXYPlot (xdata, ydata);// takes ownership
 		mPPlot.Draw(*this);
+	}
+
+	void refreshForever(){
+		
+		MSG msg;
+		while( GetMessage( &msg, 0, 0, 0 ) ){
+			draw();
+			DispatchMessage(&msg) ;
+		}
 	}
 
 	PPlot mPPlot;

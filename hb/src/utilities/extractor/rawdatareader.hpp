@@ -23,9 +23,12 @@ public:
 
 	inline void fGetData(char *p, int len, FILE *fp ){
 		offset += len;
+
+		fread(p,sizeof(char),len,fp);
+			/*
 		while (len -->0 && !feof(fp) ){
 			*p++ = fgetc(fp);
-		}
+		}*/
 	}
 
 	void seek(long long pos){

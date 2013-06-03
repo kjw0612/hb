@@ -241,7 +241,7 @@ float TickInfo::RoundSpan (float inSpan) {
     return (float)-1.234567;
     break;
   }
-  float theRes = thePreferredFirstDigit*pow (10, thePow);
+  float theRes = thePreferredFirstDigit*pow ((double)10, (double)thePow);
   return theRes;
 }
 

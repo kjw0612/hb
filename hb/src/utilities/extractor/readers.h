@@ -54,7 +54,7 @@ public:
 	inline static std::vector<int> makegrid(int timestamp_st, int timestamp_end, int nTimes){
 		std::vector<int> grid(nTimes);
 		int seq_st = Functional::timestamp2seq(timestamp_st), seq_end = Functional::timestamp2seq(timestamp_end);
-		for (int i=0;i<nTimes-1;++i){
+		for (int i=0;i<nTimes;++i){
 			int seq_i = ((long long)seq_st * (nTimes-1-i) + (long long)seq_end * (i)) / (nTimes-1);
 			int timestamp_i = Functional::seq2timestamp(seq_i);
 			grid[i] = timestamp_i;
@@ -150,7 +150,7 @@ public:
 		}
 	}
 
-	static double linear_bricks(const std::vector<Brick *>& bricks, int x)
+	static double linear_bricks(const std::vector<Brick *>& bricks, int x, bool prev)
 	{
 		Brick brick; brick.timestamp = x;
 		int i = Interpolation::locate_ptr(bricks, &brick);
@@ -158,9 +158,14 @@ public:
 			return bricks[i]->midPriceSimpleAvg();
 		}
 		else{
-			return (bricks[i]->midPriceSimpleAvg() * Functional::tsdiff(x,bricks[i]->timestamp) +
-				bricks[i+1]->midPriceSimpleAvg() * Functional::tsdiff(bricks[i+1]->timestamp,x))
-				/ Functional::tsdiff(bricks[i+1]->timestamp,bricks[i]->timestamp);
+			if (prev){
+				return bricks[i]->midPriceSimpleAvg();
+			}
+			else{
+				return (bricks[i]->midPriceSimpleAvg() * Functional::tsdiff(x,bricks[i]->timestamp) +
+					bricks[i+1]->midPriceSimpleAvg() * Functional::tsdiff(bricks[i+1]->timestamp,x))
+					/ Functional::tsdiff(bricks[i+1]->timestamp,bricks[i]->timestamp);
+			}
 		}
 	}
 };
@@ -171,9 +176,37 @@ inline std::pair<std::vector<int>, std::vector<double> > bricks2MidPriceGrid
 	std::vector<int> grids = Functional::makegrid(mintime, maxtime, nTimes);
 	std::vector<double> midprices(nTimes);
 	for (int i=0;i<(int)grids.size();++i){
-		midprices[i] = Interpolation::linear_bricks(bricks, grids[i]);
+		midprices[i] = Interpolation::linear_bricks(bricks, grids[i], true);
 	}
 	return std::make_pair(grids, midprices);
+}
+
+inline std::pair<std::vector<int>, std::vector<double> > aXpbY
+	(double a, const std::pair<std::vector<int>, std::vector<double> >& X,
+	double b, const std::pair<std::vector<int>, std::vector<double> >& Y)
+{
+	std::pair<std::vector<int>, std::vector<double> > ret;
+	if (X.first.size()==Y.first.size() && X.second.size()==Y.second.size()){
+		ret.first = X.first;
+		ret.second = std::vector<double>(X.second.size());
+		for (int i=0;i<(int)ret.second.size();++i){
+			ret.second[i] = a*X.second[i] + b*Y.second[i];
+		}
+	}
+	return ret;
+}
+
+inline std::pair<std::vector<int>, std::vector<double> > aXpb
+(double a, const std::pair<std::vector<int>, std::vector<double> >& X,
+ double b)
+{
+	std::pair<std::vector<int>, std::vector<double> > ret;
+	ret.first = X.first;
+	ret.second = std::vector<double>(X.second.size());
+	for (int i=0;i<(int)ret.second.size();++i){
+		ret.second[i] = a*X.second[i] + b;
+	}
+	return ret;
 }
 
 class PriceCaptureImpl : public PacketHandler::Impl{
@@ -293,6 +326,7 @@ public:
 		PacketHandler pcaphd(pcapimpl);
 		psbj.push(&pcaphd);
 		rrd.seek(l_r.first);
+		printf("-");
 		while(psbj.next() && rrd.prevoffset <= l_r.second)
 		{
 			if (isQuotationType(rd->castedRawType)){
@@ -300,6 +334,7 @@ public:
 					pcapimpl->ob->askprices, pcapimpl->ob->bidprices, pcapimpl->ob->currentprice, pcapimpl->ob->expectedprice, pcapimpl->krcodestr, pcapimpl->timestampi));
 			}
 		}
+		printf("-");
 		return bricks;
 	}
 
