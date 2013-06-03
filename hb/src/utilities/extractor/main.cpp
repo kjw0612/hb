@@ -129,7 +129,7 @@ void indexing(){
 	plotter.addPlot(p2550series,"Put 255.0");
 	plotter.addPlot(cMinusPseries,"Call 255.0 - Put 255.0");
 	plotter.addPlot(futShift,"Future - 250");
-	plotter.addPlot(futMcall,"Future - Synthtic Future");
+	plotter.addPlot(futMcall,"Future - Synthetic Future");
 	plotter.refreshForever();
 	return;
 	//for (int i=0;i<(int))

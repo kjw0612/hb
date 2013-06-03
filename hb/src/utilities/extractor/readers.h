@@ -229,6 +229,7 @@ public:
 
 	std::map<std::string, obinfo> obmap;
 	Orderbook* ob;
+	Greeks* grk;
 
 	template <class some_packet_type>
 	void setLimitOrderQuotes(const some_packet_type *header){
@@ -242,6 +243,14 @@ public:
 		ob->bidprices[2] = ATOI_LEN(header->bid3price) / 100.0;
 		ob->bidprices[3] = ATOI_LEN(header->bid4price) / 100.0;
 		ob->bidprices[4] = ATOI_LEN(header->bid5price) / 100.0;
+	}
+
+	void setGreeks(const KrxOptionsGreek *optgreek){
+		grk->delta = ATOLL_LEN_SIGN(optgreek->deltasign[0],optgreek->delta) / 1000000.0;
+		grk->gamma = ATOLL_LEN_SIGN(optgreek->gammasign[0],optgreek->gamma) / 1000000.0;
+		grk->theta = ATOLL_LEN_SIGN(optgreek->thetasign[0],optgreek->theta) / 1000000.0;
+		grk->vega = ATOLL_LEN_SIGN(optgreek->vegasign[0],optgreek->vega) / 1000000.0;
+		grk->rho = ATOLL_LEN_SIGN(optgreek->rhosign[0],optgreek->rho) / 1000000.0;
 	}
 
 	void update(long long capturedType, char *msg){
@@ -277,7 +286,8 @@ public:
 				ob->expectedprice = ATOI_LEN(optheader.m_KrxOptionsBestQuotation->expectedprice) / 100.0;
 				break;
 			case t_KrxOptionsGreek:
-
+				setGreeks(optheader.m_KrxOptionsGreek);
+				break;
 			default:;
 		}
 	}
