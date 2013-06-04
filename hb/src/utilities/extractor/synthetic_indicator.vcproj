@@ -186,6 +186,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\brickbase.h"
+				>
+			</File>
+			<File
 				RelativePath=".\datawindow.h"
 				>
 			</File>
@@ -202,11 +206,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\packethandler.h"
+				>
+			</File>
+			<File
 				RelativePath=".\plotter.h"
 				>
 			</File>
 			<File
-				RelativePath=".\readers.h"
+				RelativePath=".\readerset.h"
 				>
 			</File>
 		</Filter>

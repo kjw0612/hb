@@ -13,6 +13,7 @@ bool isQuotationType(long long castedRawType){
 	case t_KrxOptionsTrade:
 	case t_KrxFuturesBestQuotation:
 	case t_KrxOptionsBestQuotation:
+	case t_KrxOptionsGreek:
 		return true;
 	default:;
 		return false;
@@ -63,113 +64,70 @@ public:
 	eKrxFuturesHeader futuresType;
 };
 
-class PacketHandler{
-public:
-	class Impl{
-	public:
-		Impl() : timestampi(0)
-		{
-			optheader.m_rawmsg = NULL;
-			futheader.m_rawmsg = NULL;
-		}
-		template <class some_packet_type>
-		void setCodeTime(const some_packet_type *header){
-			memset(krcode,0,sizeof(krcode));
-			COPY_STR(krcode, header->krcode);
-			_strupr_s(krcode);
-			krcodestr = krcode;
-			timestampi = ATOI_LEN(header->timestamp);
-		}
-		virtual void update(long long capturedType, char *msg)
-		{
-			futheader.m_rawmsg = msg;
-			optheader.m_rawmsg = msg;
-			switch(capturedType)
-			{
-			case t_KrxFuturesTradeBestQuotation:
-				setCodeTime(futheader.m_KrxFuturesTradeBestQuotation);
-				break;
-			case t_KrxOptionsTradeBestQuotation:
-				setCodeTime(optheader.m_KrxOptionsTradeBestQuotation);
-				break;
-			case t_KrxFuturesTrade:
-				setCodeTime(futheader.m_KrxFuturesTrade);
-				break;
-			case t_KrxOptionsTrade:
-				setCodeTime(optheader.m_KrxOptionsTrade);
-				break;
-			case t_KrxFuturesBestQuotation:
-				setCodeTime(futheader.m_KrxFuturesBestQuotation);
-				break;
-			case t_KrxOptionsBestQuotation:
-				setCodeTime(optheader.m_KrxOptionsBestQuotation);
-				break;
-			case t_KrxOptionsGreek:
-				setCodeTime(optheader.m_KrxOptionsGreek);
-				break;
-			default:;
-			}
-		}
-		KrxOptionsHeader optheader;
-		KrxFuturesHeader futheader;
-		char krcode[20];
-		std::string krcodestr;
-		int timestampi;
-	};
-	PacketHandler() : impl(new Impl()) {}
-	PacketHandler(Impl * a_impl) : impl(a_impl) {}
-	~PacketHandler(){ delete impl; }
-	void update(long long capturedType, char *msg){
-		impl->update(capturedType, msg);
-	}
-	Impl * impl;
-private:
-	template<class U> friend class MakeHandlerImpl;
-};
-
-class PacketSubject{
-public:
-	PacketSubject(const std::string& filepath, char type)
+struct Orderbook{
+	Orderbook() {}
+	Orderbook(double *_askprices, double *_bidprices, double currentprice, double expectedprice)
+		: currentprice(currentprice), expectedprice(expectedprice)
 	{
-		switch(tolower(type))
-		{
-		case 'f':
-			{
-				frdr = new KospiFuturesReader(filepath);
-				rdr = frdr; break;
-			}
-		case 'p': case 'c': case 'o':
-			{
-				ordr = new KospiOptionsReader(filepath);
-				rdr = ordr; break;
-			}
-		}
+		memcpy(askprices,_askprices,sizeof(askprices));
+		memcpy(bidprices,_bidprices,sizeof(bidprices));
 	}
 
-	~PacketSubject(){
-		delete rdr;
-	}
-
-	void push(PacketHandler* hdlr){
-		handler.push_back(hdlr);
-	}
-
-	bool next(){
-		if (rdr->empty())
-			return false;
-		rdr->next();
-		for (int i=0;i<(int)handler.size();++i){
-			handler[i]->update(rdr->castedRawType, rdr->content);
-		}
-		return true;
-	}
-
-	KospiOptionsReader *ordr;
-	KospiFuturesReader *frdr;
-	DataReader *rdr;
-	std::vector<PacketHandler *> handler;
+	double askprices[5], bidprices[5];
+	double currentprice;
+	double expectedprice;
 };
 
+struct Greeks{
+	double delta, theta, vega, gamma , rho;
+};
+
+struct PacketInfo{
+	PacketInfo(){}
+	PacketInfo(const std::string& krcodestr, char *src, int size, long long castedRawType, int timestamp)
+		: krcodestr(krcodestr), size(size), castedRawType(castedRawType), timestamp(timestamp), src(src) {}
+
+	std::string krcodestr;
+	char *src;
+	int size;
+	long long castedRawType;
+	int timestamp;
+};
+
+
+struct Brick{
+	enum DataType{
+		MidPrice,
+		Delta,
+	};
+	PacketInfo pi;
+	Orderbook ob;
+	Greeks grk;
+
+	Brick() {}
+	Brick(const PacketInfo& pi) : pi(pi) {}
+	Brick(const PacketInfo& pi, const Orderbook& ob) : pi(pi), ob(ob) {}
+	Brick(const PacketInfo& pi, const Orderbook& ob, const Greeks& grk) : pi(pi), ob(ob), grk(grk) {}
+	Brick(const PacketInfo& pi, const Greeks& grk) : pi(pi), grk(grk) {}
+
+	bool operator<(const Brick& rhs) const {
+		return this->pi.timestamp < rhs.pi.timestamp;
+	}
+
+	double getValue(DataType dm) const {
+		switch(dm){
+			case MidPrice:
+				return midPriceSimpleAvg();
+			case Delta:
+				return grk.delta;
+		}
+		return -100.0; // why -100? sorry. not any intention.
+	}
+
+	double midPriceSimpleAvg() const {
+		return (ob.askprices[0] + ob.bidprices[0]) / 2;
+	}
+};
 
 
 #endif // !BASE_READERS_H

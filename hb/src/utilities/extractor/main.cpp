@@ -3,7 +3,8 @@
 #include <stdlib.h>
 #include <string>
 #include <fstream>
-#include "readers.h"
+#include "brickbase.h"
+#include "readerset.h"
 #include "indexer.h"
 #include "plotter.h"
 
@@ -76,6 +77,13 @@ void indexing(){
 	*/
 	ReaderSet grkrdst(basepath+greekPath,'o');
 	std::vector<Brick *> greeks = grkrdst.blrd.readBlockTime(start_time,end_time,BlockReader::GREEK);
+	BrickBase gbase(greeks);
+	const std::vector<Brick *>& cgreek2550 = gbase.get("KR4201H52550");
+	const std::vector<Brick *>& pgreek2550 = gbase.get("KR4301H52558");
+	std::pair<std::vector<int>, std::vector<double> >
+		cg2550series = bricks2MidPriceGrid(cgreek2550, start_time, end_time, 5000, Brick::Delta);
+	std::pair<std::vector<int>, std::vector<double> >
+		pg2550series = bricks2MidPriceGrid(pgreek2550, start_time, end_time, 5000, Brick::Delta);
 
 #ifdef BOOST
 	boost::timer timer;

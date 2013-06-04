@@ -5,6 +5,7 @@
 #include "descset.h"
 #include "basereaders.h"
 #include "range_query_tree.h"
+#include "packethandler.h"
 
 /*
 
@@ -80,6 +81,12 @@ struct Indexer{
 		int c = 0;
 		int lastTimeStamp = 0;
 		while(psb.next()){
+			if (psb.rdr->castedRawType == t_KrxOptionsPolling)
+				continue;
+			if (psb.rdr->castedRawType == t_KrxOptionsGreek){
+				if (hdlr.impl->timestampi >= 16000000)
+					continue;
+			}
 			if (hdlr.impl->timestampi != 0){
 				if (lastTimeStamp - hdlr.impl->timestampi > 6000000)
 				{	break; }
