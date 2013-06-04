@@ -217,6 +217,14 @@
 				RelativePath=".\readerset.h"
 				>
 			</File>
+			<File
+				RelativePath=".\readerstatic.h"
+				>
+			</File>
+			<File
+				RelativePath=".\singleton.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="리소스 파일"

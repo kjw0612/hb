@@ -166,6 +166,7 @@ inline std::pair<std::vector<int>, std::vector<double> > aXpb
 
 class BrickBase{
 public:
+	BrickBase() {}
 	BrickBase(const std::vector<Brick *>& brick)
 	{
 		for (int i=0;i<(int)brick.size();++i)
