@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include "pplot/PPlot.h"
+#include "readerstatic.h"
 #include <windows.h>
 #include <gdiplus.h>
 #pragma comment(lib, "gdiplus")
@@ -184,8 +185,9 @@ public:
 class Plotter : public MFCWidget
 {
 public:
-	Plotter(const std::string& windowname = "Default Window") : colorSeed(42), MFCWidget(windowname) {}
+	Plotter(const std::string& windowname = "Default Window") : windowname(windowname), colorSeed(42), MFCWidget(windowname) {}
 	int colorSeed;
+	const std::string windowname;
 
 	PColor genColor() {
 		srand(colorSeed);
@@ -194,7 +196,7 @@ public:
 		//return PColor(rand()%256,rand()%256,rand()%256);
 	}
 
-	void addPlot(const std::pair<std::vector<int>, std::vector<double> >& data, const std::string& legend){
+	void addPlot(const std::pair<std::vector<int>, std::vector<double> >& data, const std::string& legend, bool writeToText = true){
 		PlotData *xdata = new PlotData ();
 		PlotData *ydata = new PlotData ();
 		// fill them as any stl container (with floats)
@@ -211,6 +213,23 @@ public:
 		legend_data->mStyle.mFont = "Consolas";
 		
 		mPPlot.mPlotDataContainer.AddXYPlot (xdata, ydata, legend_data);// takes ownership
+
+		if (writeToText){
+			FILE *fo;
+			if (ReaderStatic::get().tempfile() == NULL){
+				fopen_s(&ReaderStatic::get().tempfile(),"plotfile.csv","wt");
+				fo = ReaderStatic::get().tempfile();
+				fprintf(fo,"time,");
+				for (int i=0;i<(int)data.first.size();++i)
+					fprintf(fo,"%d,",data.first[i]);
+				fprintf(fo,"\n");
+			}
+			fo = ReaderStatic::get().tempfile();
+			fprintf(fo,"%s,",legend.c_str());
+			for (int i=0;i<(int)data.first.size();++i)
+				fprintf(fo,"%lf,",data.second[i]);
+			fprintf(fo,"\n");
+		}
 	}
 
 	void draw(){

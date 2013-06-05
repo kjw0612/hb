@@ -39,9 +39,9 @@ public:
 
 	inline static int seq2timestamp(int seq){
 		const int ss_xx = 100, MM_ss = 60, HH_MM = 60;
-		int HH = seq / (ss_xx * MM_ss * HH_MM);
-		int mm = seq / (ss_xx * MM_ss) % HH_MM;
-		int ss = seq / (ss_xx) % MM_ss;
+		int HH = ((int)seq / (ss_xx * MM_ss * HH_MM));
+		int mm = ((int)seq / (ss_xx * MM_ss)) % HH_MM;
+		int ss = ((int)seq / (ss_xx)) % MM_ss;
 		int xx = seq % ss_xx;
 		return ((HH * 100 + mm) * 100 + ss) * 100 + xx;
 	}
@@ -53,10 +53,12 @@ public:
 
 	inline static std::vector<int> makegrid(int timestamp_st, int timestamp_end, int nTimes){
 		std::vector<int> grid(nTimes);
-		int seq_st = Functional::timestamp2seq(timestamp_st), seq_end = Functional::timestamp2seq(timestamp_end);
+		int seq_st = Functional::timestamp2seq(timestamp_st);
+		int seq_end = Functional::timestamp2seq(timestamp_end);
+		int seq_i = 0, timestamp_i = 0;
 		for (int i=0;i<nTimes;++i){
-			int seq_i = ((long long)seq_st * (nTimes-1-i) + (long long)seq_end * (i)) / (nTimes-1);
-			int timestamp_i = Functional::seq2timestamp(seq_i);
+			seq_i = ((long long)seq_st * (nTimes-1-i) + (long long)seq_end * (i)) / (nTimes-1);
+			timestamp_i = Functional::seq2timestamp(seq_i);
 			grid[i] = timestamp_i;
 		}
 		return grid;

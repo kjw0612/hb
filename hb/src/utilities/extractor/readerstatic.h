@@ -13,7 +13,7 @@ public:
 		GREEK = 8,
 	};
 
-	ReaderStatic(){}
+	ReaderStatic() : tempfile_(NULL) {}
 
 	void setupPath_1(const std::string& synconfig_filename = "synconfig.txt"){
 		std::ifstream fi(synconfig_filename.c_str());
@@ -44,8 +44,8 @@ public:
 	void setupDesc_2(){
 		MakeDesc fmd(basepath+futDescPath,'f');
 		MakeDesc omd(basepath+optDescPath,'o');
-		ds.append(fmd.getDS());
-		ds.append(omd.getDS());
+		ds_.append(fmd.getDS());
+		ds_.append(omd.getDS());
 	}
 
 	void setupIndex_3(){
@@ -112,14 +112,20 @@ public:
 	BrickBase & greeksbase(){
 		return greeksbase_;
 	}
+	FILE *& tempfile(){
+		return tempfile_;
+	}
+	DescSet & ds(){
+		return ds_;
+	}
 
 private:
-	DescSet *ds_;
+	DescSet ds_;
 	ReaderSet *fut_, *call_, *put_, *greeks_;
 	std::vector<Brick *> futbs_, callbs_, putbs_, greeksbs_;
 	std::string basepath, futPath, callPath, putPath, greekPath, futDescPath, optDescPath;
-	DescSet ds;
 	BrickBase futbase_, callbase_, putbase_, greeksbase_;
+	FILE * tempfile_;
 };
 
 

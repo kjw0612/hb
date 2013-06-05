@@ -74,6 +74,7 @@ struct Orderbook{
 	}
 
 	double askprices[5], bidprices[5];
+	double askquantities[5], bidquantities[5];
 	double currentprice;
 	double expectedprice;
 };
@@ -98,6 +99,7 @@ struct PacketInfo{
 struct Brick{
 	enum DataType{
 		MidPrice,
+		WeightedMidPrice,
 		Delta,
 	};
 	PacketInfo pi;
@@ -118,6 +120,8 @@ struct Brick{
 		switch(dm){
 			case MidPrice:
 				return midPriceSimpleAvg();
+			case WeightedMidPrice:
+				return midPriceWeighted();
 			case Delta:
 				return grk.delta;
 		}
@@ -126,6 +130,11 @@ struct Brick{
 
 	double midPriceSimpleAvg() const {
 		return (ob.askprices[0] + ob.bidprices[0]) / 2;
+	}
+
+	double midPriceWeighted() const {
+		return (ob.askprices[0] * ob.askquantities[0] + ob.bidprices[0] * ob.bidquantities[0])
+			/ (double)(ob.askquantities[0]+ob.bidquantities[0]);
 	}
 };
 

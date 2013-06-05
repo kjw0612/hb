@@ -10,6 +10,16 @@ struct DescSet{
 		char monthtype;
 		char callputfut;
 	};
+	void report_to_file(const std::string& filename){
+		FILE *fo = NULL;
+		fopen_s(&fo,filename.c_str(), "wt");
+		std::map<std::string, Desc>::const_iterator it = descmap.begin();
+		for (;it != descmap.end(); ++it){
+			fprintf(fo,"%s\t",it->first.c_str());
+			fprintf(fo,"%lf\t%c\n",it->second.strike,it->second.callputfut);
+		}
+		fclose(fo);
+	}
 	// KrxFuturesDesc = KrxOptionsDesc
 	void push(const KrxFuturesDesc *desc)
 	{
