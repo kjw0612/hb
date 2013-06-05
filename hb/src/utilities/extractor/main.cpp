@@ -84,24 +84,24 @@ void setup_time(int start_time, int end_time)
 
 void plot_trajectory(int start_time, int end_time){
 	const std::vector<Brick *>& futbrick = ReaderStatic::get().futbase().get("KR4101H60001");
-	std::pair<v_i, v_d> futSeries = bricks2MidPriceGrid(futbrick, start_time, end_time, 5000);
+	std::pair<v_i, v_d> futSeries = bricks2MidPriceGrid(futbrick, start_time, end_time, 5000, Brick::Ask1);
 	std::pair<v_i, v_d> futSeriesWeighted = bricks2MidPriceGrid(futbrick, start_time, end_time, 5000, Brick::WeightedMidPrice);
 	double fut_price0 = futSeries.second[0];
-	std::pair<v_i, v_d> c2550_futTrajectory = get_trajectory(fut_price0, "KR4201H52550", 'c', start_time, end_time, Brick::WeightedMidPrice);
-	std::pair<v_i, v_d> p2550_futTrajectory = get_trajectory(fut_price0, "KR4301H52558", 'p', start_time, end_time, Brick::WeightedMidPrice);
+	std::pair<v_i, v_d> c2550_futTrajectory = get_trajectory(fut_price0, "KR4201H52550", 'c', start_time, end_time, Brick::Ask1);
+	std::pair<v_i, v_d> p2550_futTrajectory = get_trajectory(fut_price0, "KR4301H52558", 'p', start_time, end_time, Brick::Bid1);
 	std::pair<v_i, v_d> cMinusPTrajectory2550 =
-		get_synthetic_trajectory(fut_price0, "KR4201H52550", 'c', "KR4301H52558", 'p', start_time, end_time, Brick::WeightedMidPrice);
+		get_synthetic_trajectory(fut_price0, "KR4201H52550", 'c', "KR4301H52558", 'p', start_time, end_time, Brick::Ask1, Brick::Bid1);
 	std::pair<v_i, v_d> cMinusPTrajectory2525 =
-		get_synthetic_trajectory(fut_price0, "KR4201H52527", 'c', "KR4301H52525", 'p', start_time, end_time, Brick::WeightedMidPrice);
+		get_synthetic_trajectory(fut_price0, "KR4201H52527", 'c', "KR4301H52525", 'p', start_time, end_time, Brick::Ask1, Brick::Bid1);
 	std::pair<v_i, v_d> cMinusPTrajectory2575 =
-		get_synthetic_trajectory(fut_price0, "KR4201H52576", 'c', "KR4301H52574", 'p', start_time, end_time, Brick::WeightedMidPrice);
+		get_synthetic_trajectory(fut_price0, "KR4201H52576", 'c', "KR4301H52574", 'p', start_time, end_time, Brick::Ask1, Brick::Bid1);
 
 
 	Plotter plotter("A research for option Indicator");
 	//plotter.addPlot(c2550_futTrajectory,"Call 255.0 Delta Adjusted Trajectory");
 	//plotter.addPlot(p2550_futTrajectory,"Put 255.0 Delta Adjusted Trajectory");
 	plotter.addPlot(futSeries,"Futures Trajectory");
-	plotter.addPlot(futSeriesWeighted,"Futures Trajectory Weighted");
+	//plotter.addPlot(futSeriesWeighted,"Futures Trajectory Weighted");
 	plotter.addPlot(cMinusPTrajectory2550,"Call - Put 255.0 Delta Adjusted Trajectory");
 	plotter.addPlot(cMinusPTrajectory2525,"Call - Put 252.5 Delta Adjusted Trajectory");
 	plotter.addPlot(cMinusPTrajectory2575,"Call - Put 257.5 Delta Adjusted Trajectory");

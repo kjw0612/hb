@@ -100,6 +100,8 @@ struct Brick{
 	enum DataType{
 		MidPrice,
 		WeightedMidPrice,
+		Bid1,
+		Ask1,
 		Delta,
 	};
 	PacketInfo pi;
@@ -122,6 +124,10 @@ struct Brick{
 				return midPriceSimpleAvg();
 			case WeightedMidPrice:
 				return midPriceWeighted();
+			case Bid1:
+				return ob.bidprices[0];
+			case Ask1:
+				return ob.askprices[0];
 			case Delta:
 				return grk.delta;
 		}
