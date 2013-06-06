@@ -85,9 +85,53 @@ void run(int start_time, int end_time){
 	}
 	fclose(fo);*/
 }
+
+void prereport(){
+	// this reports each option/futures' minimal unit change of corresponding futures' price.
+	// code, expirydate, # trades, amount, delta, bidticksize, askticksize, bidfutsize, askfutsize
+	FILE *fo;
+	fopen_s(&fo,"moving_unit_report.csv","wt");
+	const DescSet& dsc = ReaderStatic::get().ds();
+	std::map<std::string, DescSet::Desc>::const_iterator it = dsc.descmap.begin();
+	fprintf(fo,"code, expirydate, # trades, amount, delta, bidticksize, askticksize\n");
+	for (;it!=dsc.descmap.end();++it){
+		std::string str = it->first;
+		const std::vector<Brick *>& cb = ReaderStatic::get().callbase().get(str);
+		const std::vector<Brick *>& pb = ReaderStatic::get().putbase().get(str);
+		const std::vector<Brick *>& fb = ReaderStatic::get().futbase().get(str);
+		const std::vector<Brick *>& gb = ReaderStatic::get().greeksbase().get(str);
+		const std::vector<Brick *>* brick;
+		double delta;
+		if (cb.size()>0 && gb.size()>0){
+			brick = &cb;
+			delta = gb.back()->Delta;
+		}
+		else if (pb.size()>0 && gb.size()>0){
+			brick = &pb;
+			delta = gb.back()->Delta;
+		}
+		else if (fb.size()>0){
+			brick = &fb;
+			delta = 1;
+		}
+		else{
+			continue;
+		}
+		int quantity = (int)(brick->back()->ob.askquantities[0] + brick->back()->ob.bidquantities[0]);
+		double bidticksize = brick->back()->ob.bidprices[0] - brick->back()->ob.bidprices[1];
+		double askticksize = brick->back()->ob.askprices[1] - brick->back()->ob.askprices[0];
+		// code, expirydate, # trades, amount, delta, bidticksize, askticksize
+		printf("%s, %s, %d, %d, %lf, %lf, %lf, %lf, %lf\n",str.c_str(), it->second.expirydate.c_str(), 
+			brick->size(), quantity, 
+			delta, bidticksize, askticksize, bidticksize / delta, askticksize / delta);
+		}
+	exit(0);
+}
+
 int main(){
 	int start_time = 9100000, end_time = 9195999;
 	setup_time(start_time, end_time);
+	prereport();
 	plot_trajectory(start_time, end_time);
 	//run(start_time, end_time);
 	return 0;

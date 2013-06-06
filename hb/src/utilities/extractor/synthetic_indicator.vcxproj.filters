@@ -59,6 +59,12 @@
     <ClInclude Include="plotter.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="analysis_trajectory.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="readerstatic.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="synconfig.txt">
