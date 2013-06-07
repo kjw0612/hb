@@ -19,13 +19,16 @@
 typedef std::vector<int> v_i;
 typedef std::vector<double> v_d;
 
-void setup_time(int start_time, int end_time)
-{
+void setup(){
 	ReaderStatic::get().setupPath_1();
 	ReaderStatic::get().setupDesc_2();
 	DescSet & ds_to_watch = ReaderStatic::get().ds();
 	ds_to_watch.report_to_file("desc.txt");
 	ReaderStatic::get().setupIndex_3();
+}
+
+void setup_time(int start_time, int end_time)
+{
 	ReaderStatic::get().setupDataTime_4(start_time, end_time);
 }
 
@@ -186,7 +189,7 @@ void momentum_report(){
 					else{
 						if (fut_prev > fut_prev_prev){
 							++nPUp;
-							if (fabs(potential) < diff_threshold)
+							if (fabs(potential) < diff_threshold / 2)
 								++nPUpNoSignal;
 							else if (potential > 0)
 								++nPUpHit;
@@ -195,7 +198,7 @@ void momentum_report(){
 						}
 						else{
 							++nPDown;
-							if (fabs(potential) < diff_threshold)
+							if (fabs(potential) < diff_threshold / 2)
 								++nPDownNoSignal;
 							else if (potential < 0)
 								++nPDownHit;
@@ -226,12 +229,26 @@ void momentum_report(){
 	printf("Down: %d Down Hit: %d Down Not Hit : %d Down No Signal : %d\n",nPDown,nPDownHit,nPDownNotHit,nPDownNoSignal);
 }
 
+void report_momentum(int start_time, int end_time){
+	setup();
+	const int unitTimeInterval = 1000000;
+	int nDivision = (end_time - start_time) / unitTimeInterval + 1;
+	for (int i=0;i<nDivision;++i){
+		int fromtime, totime;
+		fromtime = ((nDivision - i) * start_time + (i) * end_time) / nDivision;
+		totime = ((nDivision - i - 1) * start_time + (i + 1) * end_time) / nDivision;
+		setup_time(fromtime, totime);
+		momentum_report();
+	}
+}
+
 int main(){
 	//int start_time = 9100000, end_time = 9195999;
-	int start_time = 9100000, end_time = 13595999;
-	setup_time(start_time, end_time);
+	int start_time = 9100000, end_time = 11595999;
+	report_momentum(9100000, 14595999);
+	//setup();
+	//setup_time(start_time, end_time);
 	//prereport();
-	momentum_report();
 	//plot_trajectory(start_time, end_time);
 	//run(start_time, end_time);
 	return 0;
