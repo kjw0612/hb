@@ -3,12 +3,14 @@
 #include <stdlib.h>
 #include <string>
 #include <fstream>
+#include <math.h>
 #include "brickbase.h"
 #include "readerset.h"
 #include "indexer.h"
 #include "plotter.h"
 #include "readerstatic.h"
 #include "analysis_trajectory.h"
+#include "bricksweep.h"
 
 #ifdef BOOST
 #include <boost/timer.hpp>
@@ -90,49 +92,147 @@ void prereport(){
 	// this reports each option/futures' minimal unit change of corresponding futures' price.
 	// code, expirydate, # trades, amount, delta, bidticksize, askticksize, bidfutsize, askfutsize
 	FILE *fo;
-	fopen_s(&fo,"moving_unit_report.csv","wt");
+	fopen_s(&fo,"unit_impact_on_futprice.csv","wt");
 	const DescSet& dsc = ReaderStatic::get().ds();
 	std::map<std::string, DescSet::Desc>::const_iterator it = dsc.descmap.begin();
-	fprintf(fo,"code, expirydate, # trades, amount, delta, bidticksize, askticksize\n");
+	fprintf(fo,"code, expirydate, # trades, amount, delta, bidticksize, askticksize, bidfutunit, askfutunit\n");
 	for (;it!=dsc.descmap.end();++it){
 		std::string str = it->first;
-		const std::vector<Brick *>& cb = ReaderStatic::get().callbase().get(str);
-		const std::vector<Brick *>& pb = ReaderStatic::get().putbase().get(str);
-		const std::vector<Brick *>& fb = ReaderStatic::get().futbase().get(str);
-		const std::vector<Brick *>& gb = ReaderStatic::get().greeksbase().get(str);
-		const std::vector<Brick *>* brick;
-		double delta;
-		if (cb.size()>0 && gb.size()>0){
-			brick = &cb;
-			delta = gb.back()->Delta;
-		}
-		else if (pb.size()>0 && gb.size()>0){
-			brick = &pb;
-			delta = gb.back()->Delta;
-		}
-		else if (fb.size()>0){
-			brick = &fb;
-			delta = 1;
-		}
-		else{
-			continue;
-		}
-		int quantity = (int)(brick->back()->ob.askquantities[0] + brick->back()->ob.bidquantities[0]);
-		double bidticksize = brick->back()->ob.bidprices[0] - brick->back()->ob.bidprices[1];
-		double askticksize = brick->back()->ob.askprices[1] - brick->back()->ob.askprices[0];
+		BrickSweep ri = BrickSweep::getInfo(str);
 		// code, expirydate, # trades, amount, delta, bidticksize, askticksize
-		printf("%s, %s, %d, %d, %lf, %lf, %lf, %lf, %lf\n",str.c_str(), it->second.expirydate.c_str(), 
-			brick->size(), quantity, 
-			delta, bidticksize, askticksize, bidticksize / delta, askticksize / delta);
+		if (!ri.empty()){
+			fprintf(fo,"%s, %s, %d, %d, %lf, %lf, %lf, %lf, %lf\n",
+				ri.krcode.c_str(), ri.expirydate.c_str(), 
+				ri.bricksize, ri.quantity, ri.delta, ri.bidticksize, ri.askticksize,
+				ri.bidfutunit, ri.askfutunit);
 		}
+	}
 	exit(0);
 }
 
+void momentum_report(){
+	printf("report start\n");
+	std::vector<Brick *> allbrick;
+	{
+		std::vector<Brick *> cb = ReaderStatic::get().callbase().getAll();
+		VECTOR_APPEND(cb,allbrick);
+	}
+	{
+		std::vector<Brick *> pb = ReaderStatic::get().putbase().getAll();
+		VECTOR_APPEND(pb,allbrick);
+	}
+	{
+		std::vector<Brick *> fb = ReaderStatic::get().futbase().getAll();
+		VECTOR_APPEND(fb,allbrick);
+	}
+	{
+		std::vector<Brick *> gb = ReaderStatic::get().futbase().getAll();
+		VECTOR_APPEND(gb,allbrick);
+	}
+	std::sort(allbrick.begin(),allbrick.end(), Functional::ptr_comp<Brick>);
+	std::string targetFuture = "KR4101H60001";
+	std::string targetCall = "KR4201H5";
+	std::string targetPut = "KR4301H5";
+	double fut_prev_prev = -1;
+	double fut_prev = -1;
+	int nHold = 0, nUp = 0, nUpHit = 0, nUpNotHit = 0, nUpNoSignal = 0;
+	int nDown = 0, nDownHit = 0, nDownNotHit = 0, nDownNoSignal = 0;
+	int nPHold = 0, nPUp = 0, nPUpHit = 0, nPUpNotHit = 0, nPUpNoSignal = 0;
+	int nPDown = 0, nPDownHit = 0, nPDownNotHit = 0, nPDownNoSignal = 0;
+	int activityrate = 0;
+	double potential = 0;
+	BSBase bsweepbase;
+	std::vector<int> tstamps;
+	std::vector<char> types;
+	double diff_threshold = 0.01;
+	for (int i=0;i<(int)allbrick.size();++i){
+		/*
+		std::string krcode = allbrick[i]->krcode;
+		int futFlag = STRCMPI_FRONT(allbrick[i]->krcode,targetFuture);
+		int callFlag = STRCMPI_FRONT(allbrick[i]->krcode,targetCall);
+		int putFlag = STRCMPI_FRONT(allbrick[i]->krcode,targetPut);
+		*/
+
+		if (!STRCMPI_FRONT(allbrick[i]->krcode,targetFuture)){
+			double current_price = allbrick[i]->midPriceSimpleAvg();
+			if (fut_prev == current_price){
+				++nHold;
+			}
+			else{
+				std::pair<double, int> npair = bsweepbase.diffNormPair();
+				activityrate = npair.second;
+				potential = npair.first;
+				if (fut_prev == -1);
+				else{
+					if (current_price > fut_prev){ // option explains future
+						++nUp;
+						if (fabs(potential) < diff_threshold)
+							++nUpNoSignal;
+						else if (potential > 0)
+							++nUpHit;
+						else
+							++nUpNotHit;
+					}
+					else{
+						++nDown;
+						if (fabs(potential) < diff_threshold)
+							++nDownNoSignal;
+						else if (potential < 0)
+							++nDownHit;
+						else
+							++nDownNotHit;
+					}
+					if (fut_prev_prev == -1); // future explains option
+					else{
+						if (fut_prev > fut_prev_prev){
+							++nPUp;
+							if (fabs(potential) < diff_threshold)
+								++nPUpNoSignal;
+							else if (potential > 0)
+								++nPUpHit;
+							else
+								++nPUpNotHit;
+						}
+						else{
+							++nPDown;
+							if (fabs(potential) < diff_threshold)
+								++nPDownNoSignal;
+							else if (potential < 0)
+								++nPDownHit;
+							else
+								++nPDownNotHit;
+						}
+					}
+					fut_prev_prev = fut_prev;
+				}
+				bsweepbase.resetDiffAll();
+				fut_prev = current_price;
+			}
+		}
+		else if (!STRCMPI_FRONT(allbrick[i]->krcode,targetCall)
+			|| !STRCMPI_FRONT(allbrick[i]->krcode,targetPut))
+		{
+			bsweepbase.setInfo(allbrick[i]->krcode, allbrick[i]);
+		}
+		//switch(allbrick[i]->type){
+		//}
+	}
+	printf("\nHold: %d\n",nHold);
+	printf("[how option explains future]\n");
+	printf("Up: %d Up Hit: %d Up Not Hit : %d Up No Signal : %d\n",nUp,nUpHit,nUpNotHit,nUpNoSignal);
+	printf("Down: %d Down Hit: %d Down Not Hit : %d Down No Signal : %d\n",nDown,nDownHit,nDownNotHit,nDownNoSignal);
+	printf("[how future explains option]\n");
+	printf("Up: %d Up Hit: %d Up Not Hit : %d Up No Signal : %d\n",nPUp,nPUpHit,nPUpNotHit,nPUpNoSignal);
+	printf("Down: %d Down Hit: %d Down Not Hit : %d Down No Signal : %d\n",nPDown,nPDownHit,nPDownNotHit,nPDownNoSignal);
+}
+
 int main(){
-	int start_time = 9100000, end_time = 9195999;
+	//int start_time = 9100000, end_time = 9195999;
+	int start_time = 9100000, end_time = 13595999;
 	setup_time(start_time, end_time);
-	prereport();
-	plot_trajectory(start_time, end_time);
+	//prereport();
+	momentum_report();
+	//plot_trajectory(start_time, end_time);
 	//run(start_time, end_time);
 	return 0;
 }

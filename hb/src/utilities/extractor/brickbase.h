@@ -107,7 +107,7 @@ public:
 		}
 	}
 
-	static double linear_bricks(const std::vector<Brick *>& bricks, int x, bool prev, Brick::DataType dataType)
+	static double linear_bricks(const std::vector<Brick *>& bricks, int x, bool prev, Brick::GetDataType dataType)
 	{
 		Brick brick; brick.pi.timestamp = x;
 		int i = Interpolation::locate_ptr(bricks, &brick);
@@ -128,7 +128,7 @@ public:
 };
 
 inline std::pair<std::vector<int>, std::vector<double> > bricks2MidPriceGrid
-	(const std::vector<Brick *>& bricks, int mintime, int maxtime, int nTimes, Brick::DataType dataType = Brick::MidPrice)
+	(const std::vector<Brick *>& bricks, int mintime, int maxtime, int nTimes, Brick::GetDataType dataType = Brick::MidPrice)
 {
 	std::vector<int> grids = Functional::makegrid(mintime, maxtime, nTimes);
 	std::vector<double> midprices(nTimes);
@@ -194,6 +194,19 @@ public:
 			return empty_bricks;
 		}
 		return codeVectorMap.find(krcode)->second;
+	}
+
+	std::vector<Brick *> getAll()
+	{
+		std::vector<Brick *> ret;
+		std::map<std::string, std::vector<Brick *> >::const_iterator it = codeVectorMap.begin();
+		for (;it!=codeVectorMap.end();++it){
+			for (int i=0;i<(int)it->second.size();++i){
+				it->second[i]->setKrCode(it->first);
+			}
+			std::copy(it->second.begin(),it->second.end(), std::back_inserter(ret));
+		}
+		return ret;
 	}
 
 	std::vector<Brick *> empty_bricks;

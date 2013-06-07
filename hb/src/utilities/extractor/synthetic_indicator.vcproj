@@ -194,6 +194,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\bricksweep.h"
+				>
+			</File>
+			<File
 				RelativePath=".\datawindow.h"
 				>
 			</File>

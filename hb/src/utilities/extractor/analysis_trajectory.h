@@ -30,7 +30,7 @@ std::pair<v_i, v_d> greek_trajectory
 }
 
 std::pair<std::pair<v_i, v_d>, std::pair<v_i, v_d> > get_opt_greek_series
-(const std::string& krcode, char callput, int start_time, int end_time, Brick::DataType dataType = Brick::MidPrice)
+(const std::string& krcode, char callput, int start_time, int end_time, Brick::GetDataType dataType = Brick::MidPrice)
 {
 	const std::vector<Brick *>& greeksbricks = ReaderStatic::get().greeksbase().get(krcode);
 	const std::vector<Brick *>& optbricks =
@@ -42,7 +42,7 @@ std::pair<std::pair<v_i, v_d>, std::pair<v_i, v_d> > get_opt_greek_series
 }
 
 std::pair<v_i, v_d> get_trajectory
-(double fut_price0, const std::string& krcode, char callput, int start_time, int end_time, Brick::DataType dataType = Brick::MidPrice)
+(double fut_price0, const std::string& krcode, char callput, int start_time, int end_time, Brick::GetDataType dataType = Brick::MidPrice)
 {
 	std::pair<std::pair<v_i, v_d>, std::pair<v_i, v_d> > ogseries = get_opt_greek_series(krcode, callput, start_time, end_time, dataType);
 	return greek_trajectory(fut_price0, ogseries.first, ogseries.second);
@@ -50,7 +50,7 @@ std::pair<v_i, v_d> get_trajectory
 
 std::pair<v_i, v_d> get_synthetic_trajectory(double fut_price0, const std::string& krcode, char callput, 
 											 const std::string& krcode_2, char callput_2, int start_time, int end_time,
-											 Brick::DataType dataType = Brick::MidPrice, Brick::DataType dataType2 = Brick::MidPrice)
+											 Brick::GetDataType dataType = Brick::MidPrice, Brick::GetDataType dataType2 = Brick::MidPrice)
 {
 	std::pair<std::pair<v_i, v_d>, std::pair<v_i, v_d> > ogseries1 = get_opt_greek_series(krcode, callput, start_time, end_time, dataType);
 	std::pair<std::pair<v_i, v_d>, std::pair<v_i, v_d> > ogseries2 = get_opt_greek_series(krcode_2, callput_2, start_time, end_time, dataType2);
@@ -58,20 +58,5 @@ std::pair<v_i, v_d> get_synthetic_trajectory(double fut_price0, const std::strin
 	std::pair<v_i, v_d> syn_greeks_series = aXpbY(1, ogseries1.second, -1, ogseries2.second);
 	return greek_trajectory(fut_price0, syn_opt_series, syn_greeks_series);
 }
-
-class ReliabilityInfo{
-public:
-	std::string krcode;
-	char type; // 'f', 'c', 'p'
-	int amount0;
-	int numEvents;
-};
-
-class AnalysisTrajectory{
-public:
-	std::vector<ReliabilityInfo> getReliableOptions(){
-
-	}
-};
 
 #endif // analysis_trajectory_h__

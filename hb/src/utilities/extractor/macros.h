@@ -46,5 +46,7 @@ int fnv_32_buf(const void *buf, size_t len, int hval)
 #define ATOHASH_LEN(src) fnv_32_buf(src, sizeof(src), 0)
 #define ATOI_LEN_SIGN(sign, src) ((sign=='-' ? -1 : 1) * atoi_len(src, sizeof(src)))
 #define ATOLL_LEN_SIGN(sign, src) ((sign=='-' ? -1 : 1) * atoll_len(src, sizeof(src)))
+#define VECTOR_APPEND(avec, bvec) std::copy(avec.begin(),avec.end(),std::back_inserter(bvec))
+#define STRCMPI_FRONT(astr, bstr) _strnicmp(astr.c_str(), bstr.c_str(), std::min(astr.length(),bstr.length()))
 
 #endif // macros_h__

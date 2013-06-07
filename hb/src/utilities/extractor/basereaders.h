@@ -97,28 +97,44 @@ struct PacketInfo{
 
 
 struct Brick{
-	enum DataType{
+	enum Type{
+		OrderBook,
+		OrderBookGreeks,
+		Greek,
+	};
+	enum GetDataType{
 		MidPrice,
 		WeightedMidPrice,
 		Bid1,
 		Ask1,
 		Delta,
 	};
+
+	std::string krcode;
+
+	void setKrCode(const std::string& krcode){
+		this->krcode = krcode;
+	}
+
 	PacketInfo pi;
 	Orderbook ob;
 	Greeks grk;
+	Type type;
 
 	Brick() {}
 	Brick(const PacketInfo& pi) : pi(pi) {}
-	Brick(const PacketInfo& pi, const Orderbook& ob) : pi(pi), ob(ob) {}
-	Brick(const PacketInfo& pi, const Orderbook& ob, const Greeks& grk) : pi(pi), ob(ob), grk(grk) {}
-	Brick(const PacketInfo& pi, const Greeks& grk) : pi(pi), grk(grk) {}
+	Brick(const PacketInfo& pi, const Orderbook& ob)
+		: pi(pi), ob(ob), type(OrderBook) {}
+	Brick(const PacketInfo& pi, const Orderbook& ob, const Greeks& grk)
+		: pi(pi), ob(ob), grk(grk), type(OrderBookGreeks) {}
+	Brick(const PacketInfo& pi, const Greeks& grk)
+		: pi(pi), grk(grk), type(Greek) {}
 
 	bool operator<(const Brick& rhs) const {
 		return this->pi.timestamp < rhs.pi.timestamp;
 	}
 
-	double getValue(DataType dm) const {
+	double getValue(GetDataType dm) const {
 		switch(dm){
 			case MidPrice:
 				return midPriceSimpleAvg();
