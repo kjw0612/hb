@@ -21,11 +21,12 @@ public:
 	}
 
 	const std::vector<Brick *>& readBlockTime(int a_time, int b_time, DataType datatype){
+		clearbricks();
 		std::pair<long long, long long> l_r = indexer->get_interval_within(a_time,b_time);
 		DataReader* rd = psbj.rdr;
 		RawDataReader& rrd = psbj.rdr->rd;
-		PriceCaptureImpl* pcapimpl = new PriceCaptureImpl();
-		PacketHandler pcaphd(pcapimpl);
+		PriceCaptureImpl pcapimpl;
+		PacketHandler pcaphd(&pcapimpl);
 		psbj.push(&pcaphd);
 		rrd.seek(l_r.first);
 		printf("-");
@@ -34,11 +35,11 @@ public:
 			if (isQuotationType(rd->castedRawType)){
 				if (datatype == ORDERBOOK){
 					bricks.push_back
-						(new Brick(PacketInfo(pcapimpl->krcodestr, rrd.msg, rrd.sz, rd->castedRawType, pcapimpl->timestampi),*pcapimpl->ob));
+						(new Brick(PacketInfo(pcapimpl.krcodestr, rrd.msg, rrd.sz, rd->castedRawType, pcapimpl.timestampi),*pcapimpl.ob));
 				}
 				else{
 					bricks.push_back
-						(new Brick(PacketInfo(pcapimpl->krcodestr, rrd.msg, rrd.sz, rd->castedRawType, pcapimpl->timestampi),*pcapimpl->grk));
+						(new Brick(PacketInfo(pcapimpl.krcodestr, rrd.msg, rrd.sz, rd->castedRawType, pcapimpl.timestampi),*pcapimpl.grk));
 				}
 			}
 		}
