@@ -93,18 +93,19 @@
   <ItemGroup>
     <ClInclude Include="analysis_trajectory.h" />
     <ClInclude Include="basereaders.h" />
+    <ClInclude Include="brickbase.h" />
+    <ClInclude Include="bricksweep.h" />
     <ClInclude Include="datawindow.h" />
     <ClInclude Include="descset.h" />
     <ClInclude Include="indexer.h" />
     <ClInclude Include="macros.h" />
+    <ClInclude Include="packethandler.h" />
     <ClInclude Include="plotter.h" />
     <ClInclude Include="pplot\PPlot.h" />
     <ClInclude Include="range_query_tree.h" />
-    <ClInclude Include="rawdatareader.hpp" />
-    <ClInclude Include="readers.h" />
+    <ClInclude Include="readerset.h" />
     <ClInclude Include="readerstatic.h" />
     <ClInclude Include="singleton.h" />
-    <ClInclude Include="singletons.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="synconfig.txt" />

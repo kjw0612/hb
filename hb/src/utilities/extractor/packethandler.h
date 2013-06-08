@@ -58,7 +58,8 @@ public:
 	};
 	PacketHandler() : impl(new Impl()) {}
 	PacketHandler(Impl * a_impl) : impl(a_impl) {}
-	~PacketHandler(){ delete impl; }
+	~PacketHandler(){ //delete impl;
+	}
 	void update(long long capturedType, char *msg){
 		impl->update(capturedType, msg);
 	}

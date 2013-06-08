@@ -150,6 +150,11 @@ struct Brick{
 		return -100.0; // why -100? sorry. not any intention.
 	}
 
+	bool hollowMidPrice() const{
+		return (ob.askprices[0] - ob.bidprices[0]) > ((ob.bidprices[0] - ob.bidprices[1]) * 1.5);
+		// why 1.5? zz.
+	}
+
 	double midPriceSimpleAvg() const {
 		return (ob.askprices[0] + ob.bidprices[0]) / 2;
 	}

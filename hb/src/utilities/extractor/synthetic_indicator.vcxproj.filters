@@ -35,19 +35,10 @@
     <ClInclude Include="macros.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="readers.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="range_query_tree.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="rawdatareader.hpp">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="singleton.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="singletons.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="basereaders.h">
@@ -63,6 +54,18 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="readerstatic.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="brickbase.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="bricksweep.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="packethandler.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="readerset.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

@@ -158,7 +158,8 @@ void momentum_report(){
 
 		if (!STRCMPI_FRONT(allbrick[i]->krcode,targetFuture)){
 			double current_price = allbrick[i]->midPriceSimpleAvg();
-			if (fut_prev == current_price){
+			//(!allbrick[i]->hollowMidPrice())
+			if (fut_prev == current_price || allbrick[i]->hollowMidPrice()){
 				++nHold;
 			}
 			else{
