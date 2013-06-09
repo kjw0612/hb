@@ -100,16 +100,16 @@ void prereport(){
 	fopen_s(&fo,"unit_impact_on_futprice.csv","wt");
 	const DescSet& dsc = ReaderStatic::get().ds();
 	std::map<std::string, DescSet::Desc>::const_iterator it = dsc.descmap.begin();
-	fprintf(fo,"code, expirydate, # trades, amount, delta, bidticksize, askticksize, bidfutunit, askfutunit\n");
+	fprintf(fo,"code, expirydate, # trades, amount, delta, bidticksize, askticksize, bidfutunit, askfutunit, baspread, badelta\n");
 	for (;it!=dsc.descmap.end();++it){
 		std::string str = it->first;
 		BrickSweep ri = BrickSweep::getInfo(str);
 		// code, expirydate, # trades, amount, delta, bidticksize, askticksize
 		if (!ri.empty()){
-			fprintf(fo,"%s, %s, %d, %d, %lf, %lf, %lf, %lf, %lf\n",
+			fprintf(fo,"%s, %s, %d, %d, %lf, %lf, %lf, %lf, %lf, %lf, %lf\n",
 				ri.krcode.c_str(), ri.expirydate.c_str(), 
 				ri.bricksize, ri.quantity, ri.delta, ri.bidticksize, ri.askticksize,
-				ri.bidfutunit, ri.askfutunit);
+				ri.bidfutunit, ri.askfutunit, ri.bidaskspread, ri.basp_futunit);
 		}
 	}
 	exit(0);
@@ -150,6 +150,54 @@ void momentum_report(){
 	std::vector<int> tstamps;
 	std::vector<char> types;
 	double diff_threshold = 0.01;
+	int previous_time = -1;
+	int current_time = -1;
+	int region_sttime, region_endtime;
+	std::vector<std::pair<int, int> > timescales;
+
+	double diff_region = 0.25;
+	//double diff_region = 0;
+	int nDiffRegion=0;
+	double tot_timescales = 0; //¶ßµç..
+	printf("Region : %lf%%\n", diff_region * 100);
+	std::vector<bool> flags;
+
+	for (int i=0;i<(int)allbrick.size();++i){
+		if (!STRCMPI_FRONT(allbrick[i]->krcode,targetFuture)){
+			double current_price = allbrick[i]->midPriceSimpleAvg();
+			if (fut_prev == current_price || allbrick[i]->hollowMidPrice()){
+				continue;
+			}
+			bool flag = 0;
+			current_time = allbrick[i]->pi.timestamp;
+			if (previous_time != -1){
+				int previous_seq = Functional::timestamp2seq(previous_time);
+				int current_seq = Functional::timestamp2seq(current_time);
+				int region_stseq = (int)((double)previous_seq * (1-diff_region) + (double)current_seq * diff_region);
+				int region_endseq = (int)((double)previous_seq * diff_region + (double)current_seq * (1-diff_region));
+				tot_timescales += region_endseq - region_stseq;
+				++nDiffRegion;
+				region_sttime = Functional::seq2timestamp(region_stseq);
+				region_endtime = Functional::seq2timestamp(region_endseq);
+				if (region_endseq - region_stseq > 100){
+					flag = 1;
+				}
+			}
+			else{
+				region_sttime = 0;
+				region_endtime = current_time;
+			}
+			flag = 1;
+			flags.push_back(flag);
+			timescales.push_back(std::make_pair(region_sttime, region_endtime));
+			previous_time = current_time;
+			fut_prev = current_price;
+		}
+	}
+	timescales.push_back(std::make_pair(current_time, 1000000000));
+
+	int regc = 0;
+
 	for (int i=0;i<(int)allbrick.size();++i){
 		/*
 		std::string krcode = allbrick[i]->krcode;
@@ -192,7 +240,7 @@ void momentum_report(){
 					else{
 						if (fut_prev > fut_prev_prev){
 							++nPUp;
-							if (fabs(potential) < diff_threshold / 2)
+							if (fabs(potential) < diff_threshold / 2 || !flags[regc])
 								++nPUpNoSignal;
 							else if (potential > 0)
 								++nPUpHit;
@@ -201,7 +249,7 @@ void momentum_report(){
 						}
 						else{
 							++nPDown;
-							if (fabs(potential) < diff_threshold / 2)
+							if (fabs(potential) < diff_threshold / 2 || !flags[regc])
 								++nPDownNoSignal;
 							else if (potential < 0)
 								++nPDownHit;
@@ -211,6 +259,7 @@ void momentum_report(){
 					}
 					fut_prev_prev = fut_prev;
 				}
+				++regc;
 				bsweepbase.resetDiffAll();
 				fut_prev = current_price;
 			}
@@ -218,29 +267,46 @@ void momentum_report(){
 		else if (!STRCMPI_FRONT(allbrick[i]->krcode,targetCall)
 			|| !STRCMPI_FRONT(allbrick[i]->krcode,targetPut))
 		{
-			bsweepbase.setInfo(allbrick[i]->krcode, allbrick[i]);
+			if (timescales[regc].first <= allbrick[i]->pi.timestamp
+				&& allbrick[i]->pi.timestamp <= timescales[regc].second)
+			{
+				bsweepbase.setInfo(allbrick[i]->krcode, allbrick[i]);
+			}
+			else{
+				int sung = 500;
+			}
 		}
 		//switch(allbrick[i]->type){
 		//}
 	}
+	printf("Average Region : %lf\n",tot_timescales/nDiffRegion);
 	printf("\nHold: %d\n",nHold);
 	printf("[how option explains future]\n");
-	printf("Up: %d Up Hit: %d Up Not Hit : %d Up No Signal : %d\n",nUp,nUpHit,nUpNotHit,nUpNoSignal);
-	printf("Down: %d Down Hit: %d Down Not Hit : %d Down No Signal : %d\n",nDown,nDownHit,nDownNotHit,nDownNoSignal);
+	printf("(%lf ÀûÁß·ü)Up: %d Up Hit: %d Up Not Hit : %d Up No Signal : %d\n",
+		(double)nUpHit/(nUpNotHit+nUpHit)*100,nUp,nUpHit,nUpNotHit,nUpNoSignal);
+	printf("(%lf ÀûÁß·ü)Down: %d Down Hit: %d Down Not Hit : %d Down No Signal : %d\n",
+		(double)nDownHit/(nDownNotHit+nDownHit)*100,nDown,nDownHit,nDownNotHit,nDownNoSignal);
 	printf("[how future explains option]\n");
-	printf("Up: %d Up Hit: %d Up Not Hit : %d Up No Signal : %d\n",nPUp,nPUpHit,nPUpNotHit,nPUpNoSignal);
-	printf("Down: %d Down Hit: %d Down Not Hit : %d Down No Signal : %d\n",nPDown,nPDownHit,nPDownNotHit,nPDownNoSignal);
+	printf("(%lf ÀûÁß·ü)Up: %d Up Hit: %d Up Not Hit : %d Up No Signal : %d\n",
+		(double)nPUpHit/(nPUpNotHit+nPUpHit)*100,nPUp,nPUpHit,nPUpNotHit,nPUpNoSignal);
+	printf("(%lf ÀûÁß·ü)Down: %d Down Hit: %d Down Not Hit : %d Down No Signal : %d\n",
+		(double)nPDownHit/(nPDownHit+nPDownNotHit)*100,nPDown,nPDownHit,nPDownNotHit,nPDownNoSignal);
 }
 
 void report_momentum(int start_time, int end_time){
 	setup();
+#ifdef _DEBUG
+	const int unitTimeInterval = 100000;
+#else
 	const int unitTimeInterval = 1000000;
+#endif
 	int nDivision = (end_time - start_time) / unitTimeInterval + 1;
 	for (int i=0;i<nDivision;++i){
 		int fromtime, totime;
 		fromtime = ((nDivision - i) * start_time + (i) * end_time) / nDivision;
 		totime = ((nDivision - i - 1) * start_time + (i + 1) * end_time) / nDivision;
 		setup_time(fromtime, totime);
+		printf("time %d to time %d\n",fromtime,totime);
 		momentum_report();
 	}
 }
@@ -334,10 +400,17 @@ void statistics_test(){
 }
 
 int main(){
+
+	//setup();
+	//setup_time(11100000, 11590000);
+	//prereport();
+	//return 0;
+
+
 	//statistics_test();
 	//int start_time = 9100000, end_time = 9195999;
 
-	int start_time = 9100000, end_time = 11595999;
+	//int start_time = 9100000, end_time = 9595999;
 	variance_analysis(9100000, 9595999);
 	//report_momentum(9100000, 14595999);
 

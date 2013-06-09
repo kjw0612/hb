@@ -13,6 +13,8 @@ public:
 	double delta;
 	double bidticksize;
 	double askticksize;
+	double bidaskspread;
+	double basp_futunit;
 	double bidfutunit;
 	double askfutunit;
 
@@ -56,6 +58,8 @@ public:
 		ret.quantity = (int)(brick->front()->ob.askquantities[0] + brick->front()->ob.bidquantities[0]);
 		ret.bidticksize = brick->front()->ob.bidprices[0] - brick->front()->ob.bidprices[1];
 		ret.askticksize = brick->front()->ob.askprices[1] - brick->front()->ob.askprices[0];
+		ret.bidaskspread = brick->front()->ob.askprices[0] - brick->front()->ob.bidprices[0];
+		ret.basp_futunit = ret.bidaskspread / ret.delta;
 		ret.bidfutunit = ret.bidticksize / ret.delta;
 		ret.askfutunit = ret.askticksize / ret.delta;
 		return ret;
@@ -113,6 +117,9 @@ public:
 		double tot_weighted_diff = 0;
 		for (int i=0;i<(int)weight_diff.size();++i){
 			tot_weighted_diff += weight_diff[i].first * weight_diff[i].second;
+		}
+		if (total_activityrate==0){
+			return std::make_pair(0,0);
 		}
 		double avg_weighted_diff = tot_weighted_diff / total_activityrate;
 		return std::make_pair(avg_weighted_diff, total_activityrate);
