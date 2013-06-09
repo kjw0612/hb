@@ -247,7 +247,7 @@ void report_momentum(int start_time, int end_time){
 
 #include <algorithm>
 #include <functional>
-
+#include <numeric>
 
 template<class input_type>
 void normalize(std::vector<input_type>& rhs){
@@ -266,7 +266,7 @@ void variance_analysis(int start_time, int end_time){
 	std::string targetFuture = "KR4101H60001";
 
 	std::vector<int> timestamps;
-	std::vector<double> means, variances;
+	std::vector<double> means, variances, stdevs, norm_stdevs, prices;
 	// bid dynamics
 	for (int i=0;i<(int)fb.size();++i){
 		if (!STRCMPI_FRONT(fb[i]->krcode, targetFuture)){
@@ -274,14 +274,48 @@ void variance_analysis(int start_time, int end_time){
 			timestamps.push_back(fb[i]->pi.timestamp);
 			means.push_back(rollstats.mean());
 			variances.push_back(rollstats.variance());
+			stdevs.push_back(std::sqrt(variances.back()));
+			norm_stdevs.push_back(stdevs.back()/fb[i]->ob.bidquantities[0]);
+			prices.push_back(fb[i]->ob.bidprices[0]);
 		}
 	}
+	
+	std::vector<int> pricechanges(prices.size(),0);
+	int lastTime = end_time + 1000000;
+	const int timehorizon = 10; // * 100 ms
+	for (int i=(int)prices.size()-2;i>=0;--i){
+		if (prices[i] != prices[i+1]){
+			lastTime = timestamps[i];
+		}
+		if (lastTime <= timestamps[i] + timehorizon)
+			pricechanges[i] = true;
+	}
+	double tot_stdev = std::accumulate(norm_stdevs.begin(),norm_stdevs.end(),0);
+	double max_stdev = *(std::max_element(norm_stdevs.begin(),norm_stdevs.end()));
+	double avg_stdev = tot_stdev / norm_stdevs.size();
+	int nOverAvg = 0, nOAPC = 0, nBelowAvg = 0, nBAPC = 0;
+	for (int i=0;i<(int)norm_stdevs.size();++i){
+		if (norm_stdevs[i] > avg_stdev){
+			++nOverAvg;
+			if (pricechanges[i])
+				++nOAPC;
+		}
+		else{
+			++nBelowAvg;
+			if (pricechanges[i])
+				++nBAPC;
+		}
+	}
+	printf("%d %d(%lf%%), %d %d(%lf%%)\n",
+		nOverAvg, nOAPC, (double)nOAPC/nOverAvg*100, nBelowAvg, nBAPC, (double)nBAPC/nBelowAvg*100);
 	normalize(means);
 	normalize(variances);
+	/*
 	Plotter plotter("A research for volatility-mean price movement");
 	plotter.addPlot(std::make_pair(timestamps, means), "Mean", false);
 	plotter.addPlot(std::make_pair(timestamps, variances), "Variance", false);
 	plotter.refreshForever();
+	*/
 }
 
 void statistics_test(){
