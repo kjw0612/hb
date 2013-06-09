@@ -8,6 +8,7 @@
 #include "singleton.h"
 #include "basereaders.h"
 #include <vector>
+#include <iostream>
 
 class Functional{
 public:

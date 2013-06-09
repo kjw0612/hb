@@ -1,19 +1,23 @@
 #ifndef macros_h__
 #define macros_h__
 
-long long atoll_len(const void *from, int len){
+#include <stdlib.h>
+#include <ctype.h>
+#include <memory.h>
+
+inline long long atoll_len(const void *from, int len){
 	char buf[30] = "";
 	memcpy(buf, from, len);
 	return _atoi64(buf);
 }
 
-int atoi_len(const void *from, int len){
+inline int atoi_len(const void *from, int len){
 	char buf[20] = "";
 	memcpy(buf, from, len);
 	return atoi(buf);
 }
 
-double atof_len(const void *from, int len){
+inline double atof_len(const void *from, int len){
 	char buf[20] = "";
 	memcpy(buf, from, len);
 	return atof(buf);
@@ -21,7 +25,7 @@ double atof_len(const void *from, int len){
 
 const int FNV_32_PRIME = ((int)0x01000193);
 
-int fnv_32_buf(const void *buf, size_t len, int hval)
+inline int fnv_32_buf(const void *buf, size_t len, int hval)
 {
     unsigned char *bp = (unsigned char *)buf;	/* start of buffer */
     unsigned char *be = bp + len;		/* beyond end of buffer */

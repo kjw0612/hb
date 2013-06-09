@@ -2,9 +2,11 @@
 #define BASE_READERS_H
 
 #include <vector>
+#include "krx_kospi_futures.hpp"
+#include "krx_kospi_options.hpp"
 #include "rawdatareader.hpp"
 
-bool isQuotationType(long long castedRawType){
+inline bool isQuotationType(long long castedRawType){
 	switch(castedRawType)
 	{
 	case t_KrxFuturesTradeBestQuotation:

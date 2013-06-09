@@ -87,6 +87,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="include_tester.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="pplot\PPlot.cpp" />
   </ItemGroup>

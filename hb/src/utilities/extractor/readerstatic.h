@@ -3,6 +3,8 @@
 
 #include "singleton.h"
 #include "readerset.h"
+#include "brickbase.h"
+#include <fstream>
 
 class ReaderStatic : public Singleton<ReaderStatic> {
 public:

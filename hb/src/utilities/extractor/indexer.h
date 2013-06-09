@@ -6,6 +6,7 @@
 #include "basereaders.h"
 #include "range_query_tree.h"
 #include "packethandler.h"
+#include <string>
 
 /*
 

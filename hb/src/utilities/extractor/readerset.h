@@ -2,6 +2,7 @@
 #define readerset_h__
 
 #include "basereaders.h"
+#include "indexer.h"
 
 class BlockReader{
 public:

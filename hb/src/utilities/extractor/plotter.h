@@ -7,7 +7,7 @@
 #include <gdiplus.h>
 #pragma comment(lib, "gdiplus")
 
-long __stdcall WindowProcedure( HWND window, unsigned int msg, WPARAM wp, LPARAM lp )
+inline long __stdcall WindowProcedure( HWND window, unsigned int msg, WPARAM wp, LPARAM lp )
 {
     switch(msg)
     {
@@ -25,7 +25,7 @@ long __stdcall WindowProcedure( HWND window, unsigned int msg, WPARAM wp, LPARAM
     }
 }
 
-std::wstring 
+inline std::wstring 
 mbs_to_wcs(std::string const& str, std::locale const& loc = std::locale())
 {
 	typedef std::codecvt<wchar_t, char, std::mbstate_t> codecvt_t;
@@ -40,7 +40,7 @@ mbs_to_wcs(std::string const& str, std::locale const& loc = std::locale())
 	return std::wstring(&buf[0]);
 }
 
-std::string 
+inline std::string 
 wcs_to_mbs(std::wstring const& str, std::locale const& loc = std::locale())
 {
 	typedef std::codecvt<wchar_t, char, std::mbstate_t> codecvt_t;

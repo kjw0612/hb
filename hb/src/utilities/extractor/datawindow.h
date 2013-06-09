@@ -1,9 +1,12 @@
 #ifndef readingwindow_h__
 #define readingwindow_h__
+
+#include <string>
 #include <deque>
 #include <map>
 #include <algorithm>
 #include "basereaders.h"
+#include <ctype.h>
 
 struct DataWindow{
 	struct Book{

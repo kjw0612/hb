@@ -2,6 +2,9 @@
 #define descset_h__
 #include "macros.h"
 #include "basereaders.h"
+#include <map>
+#include <algorithm>
+#include <string>
 
 struct DescSet{
 	struct Desc{

@@ -2,6 +2,9 @@
 #define packethandler_h__
 
 #include "basereaders.h"
+#include "macros.h"
+#include <map>
+#include <string>
 
 class PacketHandler{
 public:

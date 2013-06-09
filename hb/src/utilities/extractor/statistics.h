@@ -1,6 +1,7 @@
 #ifndef STATISTICS_H
 #define STATISTICS_H
 
+#include <deque>
 
 // See: Chan, Tony F.; Golub, Gene H.; LeVeque, Randall J. (1983). 
 // Algorithms for Computing the Sample Variance: Analysis and Recommendations. 

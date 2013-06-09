@@ -21,6 +21,9 @@
     <ClCompile Include="pplot\PPlot.cpp">
       <Filter>리소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="include_tester.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="datawindow.h">

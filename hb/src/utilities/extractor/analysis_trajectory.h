@@ -1,10 +1,13 @@
 #ifndef analysis_trajectory_h__
 #define analysis_trajectory_h__
 
+#include <vector>
+#include "readerstatic.h"
+
 typedef std::vector<int> v_i;
 typedef std::vector<double> v_d;
 
-std::pair<v_i, v_d> greek_trajectory
+inline std::pair<v_i, v_d> greek_trajectory
 (double fut_price0, const std::pair<v_i, v_d>& opt_price, const std::pair<v_i, v_d>& opt_greek)
 {
 	std::pair<v_i, v_d> ret;
@@ -29,7 +32,7 @@ std::pair<v_i, v_d> greek_trajectory
 	}
 }
 
-std::pair<std::pair<v_i, v_d>, std::pair<v_i, v_d> > get_opt_greek_series
+inline std::pair<std::pair<v_i, v_d>, std::pair<v_i, v_d> > get_opt_greek_series
 (const std::string& krcode, char callput, int start_time, int end_time, Brick::GetDataType dataType = Brick::MidPrice)
 {
 	const std::vector<Brick *>& greeksbricks = ReaderStatic::get().greeksbase().get(krcode);
@@ -41,14 +44,14 @@ std::pair<std::pair<v_i, v_d>, std::pair<v_i, v_d> > get_opt_greek_series
 	return std::make_pair(optseries,greeksseries);
 }
 
-std::pair<v_i, v_d> get_trajectory
+inline std::pair<v_i, v_d> get_trajectory
 (double fut_price0, const std::string& krcode, char callput, int start_time, int end_time, Brick::GetDataType dataType = Brick::MidPrice)
 {
 	std::pair<std::pair<v_i, v_d>, std::pair<v_i, v_d> > ogseries = get_opt_greek_series(krcode, callput, start_time, end_time, dataType);
 	return greek_trajectory(fut_price0, ogseries.first, ogseries.second);
 }
 
-std::pair<v_i, v_d> get_synthetic_trajectory(double fut_price0, const std::string& krcode, char callput, 
+inline std::pair<v_i, v_d> get_synthetic_trajectory(double fut_price0, const std::string& krcode, char callput, 
 											 const std::string& krcode_2, char callput_2, int start_time, int end_time,
 											 Brick::GetDataType dataType = Brick::MidPrice, Brick::GetDataType dataType2 = Brick::MidPrice)
 {
