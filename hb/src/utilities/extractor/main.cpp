@@ -11,6 +11,7 @@
 #include "readerstatic.h"
 #include "analysis_trajectory.h"
 #include "bricksweep.h"
+#include "statistics.h"
 
 #ifdef BOOST
 #include <boost/timer.hpp>
@@ -27,9 +28,10 @@ void setup(){
 	ReaderStatic::get().setupIndex_3();
 }
 
-void setup_time(int start_time, int end_time)
+void setup_time(int start_time, int end_time,
+				int dmask = (ReaderStatic::FUT | ReaderStatic::CALL | ReaderStatic::PUT | ReaderStatic::GREEK))
 {
-	ReaderStatic::get().setupDataTime_4(start_time, end_time);
+	ReaderStatic::get().setupDataTime_4(start_time, end_time, dmask);
 }
 
 void plot_trajectory(int start_time, int end_time){
@@ -243,10 +245,68 @@ void report_momentum(int start_time, int end_time){
 	}
 }
 
+#include <algorithm>
+#include <functional>
+
+
+template<class input_type>
+void normalize(std::vector<input_type>& rhs){
+	input_type max_value = *(std::max_element(rhs.begin(), rhs.end()));
+	if (max_value > 0){
+		for (int i=0;i<(int)rhs.size();++i)
+			rhs[i] /= max_value;
+	}
+}
+
+void variance_analysis(int start_time, int end_time){
+	setup();
+	setup_time(start_time, end_time, ReaderStatic::FUT);
+	std::vector<Brick *> fb = ReaderStatic::get().futbase().getAll();
+	rolling_statistics<double> rollstats(20);
+	std::string targetFuture = "KR4101H60001";
+
+	std::vector<int> timestamps;
+	std::vector<double> means, variances;
+	// bid dynamics
+	for (int i=0;i<(int)fb.size();++i){
+		if (!STRCMPI_FRONT(fb[i]->krcode, targetFuture)){
+			rollstats.add(fb[i]->ob.bidquantities[0]);
+			timestamps.push_back(fb[i]->pi.timestamp);
+			means.push_back(rollstats.mean());
+			variances.push_back(rollstats.variance());
+		}
+	}
+	normalize(means);
+	normalize(variances);
+	Plotter plotter("A research for volatility-mean price movement");
+	plotter.addPlot(std::make_pair(timestamps, means), "Mean", false);
+	plotter.addPlot(std::make_pair(timestamps, variances), "Variance", false);
+	plotter.refreshForever();
+}
+
+void statistics_test(){
+	rolling_statistics<double> rollstats(10);
+	printf("incremental ...\n");
+	for (int i=0;i<100;++i){
+		rollstats.add(i);
+		printf("%lf %lf\n",rollstats.mean(), rollstats.variance());
+	}
+	printf("n^2 + n ...\n");
+	for (int i=0;i<100;++i){
+		rollstats.add(i*i+i);
+		printf("%lf %lf\n",rollstats.mean(), rollstats.variance());
+	}
+	exit(0);
+}
+
 int main(){
+	//statistics_test();
 	//int start_time = 9100000, end_time = 9195999;
+
 	int start_time = 9100000, end_time = 11595999;
-	report_momentum(9100000, 14595999);
+	variance_analysis(9100000, 9595999);
+	//report_momentum(9100000, 14595999);
+
 	//setup();
 	//setup_time(start_time, end_time);
 	//prereport();

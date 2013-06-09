@@ -106,6 +106,7 @@
     <ClInclude Include="readerset.h" />
     <ClInclude Include="readerstatic.h" />
     <ClInclude Include="singleton.h" />
+    <ClInclude Include="statistics.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="synconfig.txt" />
