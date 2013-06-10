@@ -1,0 +1,73 @@
+--------time 9100000 to time 10015999
+report start
+Region : 25.000000%
+Average Region : 66.368713
+
+Hold: 140537
+[how option explains future]
+(40.263158 利吝伏)Up: 1173 Up Hit: 153 Up Not Hit : 227 Up No Signal : 793
+(39.949109 利吝伏)Down: 1174 Down Hit: 157 Down Not Hit : 236 Down No Signal : 781
+[how future explains option]
+(87.673956 利吝伏)Up: 1173 Up Hit: 441 Up Not Hit : 62 Up No Signal : 670
+(84.427767 利吝伏)Down: 1173 Down Hit: 450 Down Not Hit : 83 Down No Signal : 640
+--------time 10015999 to time 10931999
+report start
+Region : 25.000000%
+Average Region : 111.485237
+
+Hold: 136665
+[how option explains future]
+(44.531250 利吝伏)Up: 784 Up Hit: 114 Up Not Hit : 142 Up No Signal : 528
+(42.194093 利吝伏)Down: 775 Down Hit: 100 Down Not Hit : 137 Down No Signal : 538
+[how future explains option]
+(81.570997 利吝伏)Up: 784 Up Hit: 270 Up Not Hit : 61 Up No Signal : 453
+(83.911672 利吝伏)Down: 774 Down Hit: 266 Down Not Hit : 51 Down No Signal : 457
+--------time 10931999 to time 11847999
+report start
+Region : 25.000000%
+Average Region : 65.192224
+
+Hold: 177717
+[how option explains future]
+(43.222506 利吝伏)Up: 1378 Up Hit: 169 Up Not Hit : 222 Up No Signal : 987
+(46.276596 利吝伏)Down: 1375 Down Hit: 174 Down Not Hit : 202 Down No Signal : 999
+[how future explains option]
+(82.041588 利吝伏)Up: 1378 Up Hit: 434 Up Not Hit : 95 Up No Signal : 849
+(85.261194 利吝伏)Down: 1374 Down Hit: 457 Down Not Hit : 79 Down No Signal : 838
+--------time 11847999 to time 12763999
+report start
+Region : 25.000000%
+Average Region : 97.792009
+
+Hold: 142904
+[how option explains future]
+(50.561798 利吝伏)Up: 919 Up Hit: 135 Up Not Hit : 132 Up No Signal : 652
+(44.444444 利吝伏)Down: 909 Down Hit: 120 Down Not Hit : 150 Down No Signal : 639
+[how future explains option]
+(90.633609 利吝伏)Up: 918 Up Hit: 329 Up Not Hit : 34 Up No Signal : 555
+(85.310734 利吝伏)Down: 909 Down Hit: 302 Down Not Hit : 52 Down No Signal : 555
+--------time 12763999 to time 13679999
+report start
+Region : 25.000000%
+Average Region : 87.252064
+
+Hold: 165244
+[how option explains future]
+(42.760943 利吝伏)Up: 1046 Up Hit: 127 Up Not Hit : 170 Up No Signal : 749
+(35.766423 利吝伏)Down: 1014 Down Hit: 98 Down Not Hit : 176 Down No Signal : 740
+[how future explains option]
+(93.467337 利吝伏)Up: 1046 Up Hit: 372 Up Not Hit : 26 Up No Signal : 648
+(88.857939 利吝伏)Down: 1013 Down Hit: 319 Down Not Hit : 40 Down No Signal : 654
+--------time 13679999 to time 14595999
+report start
+Region : 25.000000%
+Average Region : 102.865638
+
+Hold: 171438
+[how option explains future]
+(36.912752 利吝伏)Up: 867 Up Hit: 110 Up Not Hit : 188 Up No Signal : 569
+(41.806020 利吝伏)Down: 883 Down Hit: 125 Down Not Hit : 174 Down No Signal : 584
+[how future explains option]
+(88.797814 利吝伏)Up: 866 Up Hit: 325 Up Not Hit : 41 Up No Signal : 500
+(88.833747 利吝伏)Down: 883 Down Hit: 358 Down Not Hit : 45 Down No Signal : 480
+拌加窍妨搁 酒公 虐唱 穿福绞矫坷 . . .

@@ -34,7 +34,7 @@ void setup_time(int start_time, int end_time,
 	ReaderStatic::get().setupDataTime_4(start_time, end_time, dmask);
 }
 
-void plot_trajectory(int start_time, int end_time){
+void plot_trajectory(int start_time, int end_time, int scenario){
 	const std::vector<Brick *>& futbrick = ReaderStatic::get().futbase().get("KR4101H60001");
 	std::pair<v_i, v_d> futSeries = bricks2MidPriceGrid(futbrick, start_time, end_time, 5000, Brick::Ask1);
 	std::pair<v_i, v_d> futSeriesWeighted = bricks2MidPriceGrid(futbrick, start_time, end_time, 5000, Brick::WeightedMidPrice);
@@ -50,13 +50,25 @@ void plot_trajectory(int start_time, int end_time){
 
 
 	Plotter plotter("A research for option Indicator");
+
+	plotter.addPlot(futSeries,"Futures Trajectory");
+	if (scenario==1){
+		plotter.addPlot(c2550_futTrajectory,"Call 255.0 Delta Adjusted Trajectory");
+		plotter.addPlot(p2550_futTrajectory,"Put 255.0 Delta Adjusted Trajectory");
+		plotter.addPlot(cMinusPTrajectory2550,"Call - Put 255.0 Delta Adjusted Trajectory");
+	}
+	else{
+		plotter.addPlot(cMinusPTrajectory2550,"Call - Put 255.0 Delta Adjusted Trajectory");
+		plotter.addPlot(cMinusPTrajectory2525,"Call - Put 252.5 Delta Adjusted Trajectory");
+		plotter.addPlot(cMinusPTrajectory2575,"Call - Put 257.5 Delta Adjusted Trajectory");
+	}
 	//plotter.addPlot(c2550_futTrajectory,"Call 255.0 Delta Adjusted Trajectory");
 	//plotter.addPlot(p2550_futTrajectory,"Put 255.0 Delta Adjusted Trajectory");
-	plotter.addPlot(futSeries,"Futures Trajectory");
+	//plotter.addPlot(futSeries,"Futures Trajectory");
 	//plotter.addPlot(futSeriesWeighted,"Futures Trajectory Weighted");
-	plotter.addPlot(cMinusPTrajectory2550,"Call - Put 255.0 Delta Adjusted Trajectory");
-	plotter.addPlot(cMinusPTrajectory2525,"Call - Put 252.5 Delta Adjusted Trajectory");
-	plotter.addPlot(cMinusPTrajectory2575,"Call - Put 257.5 Delta Adjusted Trajectory");
+	//plotter.addPlot(cMinusPTrajectory2550,"Call - Put 255.0 Delta Adjusted Trajectory");
+	//plotter.addPlot(cMinusPTrajectory2525,"Call - Put 252.5 Delta Adjusted Trajectory");
+	//plotter.addPlot(cMinusPTrajectory2575,"Call - Put 257.5 Delta Adjusted Trajectory");
 	plotter.refreshForever();
 }
 
@@ -155,8 +167,8 @@ void momentum_report(){
 	int region_sttime, region_endtime;
 	std::vector<std::pair<int, int> > timescales;
 
-	double diff_region = 0.25;
-	//double diff_region = 0;
+	//double diff_region = 0.25;
+	double diff_region = 0;
 	int nDiffRegion=0;
 	double tot_timescales = 0; //¶ßµç..
 	printf("Region : %lf%%\n", diff_region * 100);
@@ -179,7 +191,7 @@ void momentum_report(){
 				++nDiffRegion;
 				region_sttime = Functional::seq2timestamp(region_stseq);
 				region_endtime = Functional::seq2timestamp(region_endseq);
-				if (region_endseq - region_stseq > 100){
+				if (region_endseq - region_stseq > 0){
 					flag = 1;
 				}
 			}
@@ -340,7 +352,7 @@ void variance_analysis(int start_time, int end_time){
 			timestamps.push_back(fb[i]->pi.timestamp);
 			means.push_back(rollstats.mean());
 			variances.push_back(rollstats.variance());
-			stdevs.push_back(std::sqrt(variances.back()));
+			stdevs.push_back(sqrt(variances.back()));
 			norm_stdevs.push_back(stdevs.back()/fb[i]->ob.bidquantities[0]);
 			prices.push_back(fb[i]->ob.bidprices[0]);
 		}
@@ -356,7 +368,7 @@ void variance_analysis(int start_time, int end_time){
 		if (lastTime <= timestamps[i] + timehorizon)
 			pricechanges[i] = true;
 	}
-	double tot_stdev = std::accumulate(norm_stdevs.begin(),norm_stdevs.end(),0);
+	double tot_stdev = std::accumulate(norm_stdevs.begin(),norm_stdevs.end(),0.);
 	double max_stdev = *(std::max_element(norm_stdevs.begin(),norm_stdevs.end()));
 	double avg_stdev = tot_stdev / norm_stdevs.size();
 	int nOverAvg = 0, nOAPC = 0, nBelowAvg = 0, nBAPC = 0;
@@ -399,11 +411,43 @@ void statistics_test(){
 	exit(0);
 }
 
-int main(){
+void suite1_plot(){
+	setup();
+	int start_time = 9100000, end_time = 9595999;
+	setup_time(start_time, end_time);
+	run(start_time, end_time);
+}
 
-	//setup();
-	//setup_time(11100000, 11590000);
-	//prereport();
+void suite2_plot(int scenario_num){
+	setup();
+	int start_time = 9100000, end_time = 9595999;
+	setup_time(start_time, end_time);
+	plot_trajectory(start_time, end_time, scenario_num);
+}
+
+void suite3_prereport(){
+	setup();
+	setup_time(11100000, 11590000);
+	prereport();
+}
+
+void suite4_report_momentum(){
+	report_momentum(9100000, 14595999);
+}
+
+void suite5_report_variance_signal(){
+	variance_analysis(9100000, 9595999);
+}
+
+int main(){
+	//suite1_plot();
+	//suite2_plot(2);
+	//suite3_prereport();
+	//suite4_report_momentum();
+	suite5_report_variance_signal();
+	return 0;
+
+	
 	//return 0;
 
 
@@ -411,8 +455,7 @@ int main(){
 	//int start_time = 9100000, end_time = 9195999;
 
 	//int start_time = 9100000, end_time = 9595999;
-	variance_analysis(9100000, 9595999);
-	//report_momentum(9100000, 14595999);
+	//variance_analysis(9100000, 9595999);
 
 	//setup();
 	//setup_time(start_time, end_time);
