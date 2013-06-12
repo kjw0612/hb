@@ -1,4 +1,9 @@
+mode = headergenerateorder
+src = krx_order.csv
+object = krx_order.hpp
+do
 
+end
 
 mode = headergenerate
 src = krx_kospi_futures.csv

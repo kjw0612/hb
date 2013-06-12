@@ -28,8 +28,10 @@ int main(){
 				std::transform(wordr.begin(),wordr.end(),wordr.begin(),::tolower);
 				if (wordr.compare("headergenerate")==0){
 					unit.type = ExtractorUnit::headergenerate; }
+				else if (wordr.compare("headergenerateorder")==0){
+					unit.type = ExtractorUnit::headergenerateorder; }
 				else{
-					unit.type = ExtractorUnit::reformat; }
+					unit.type = ExtractorUnit::reformat;}
 			}
 			else if (word.compare("src")==0){
 				unit.srcfile = wordr;

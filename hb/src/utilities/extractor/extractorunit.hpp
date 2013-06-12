@@ -52,6 +52,7 @@ class ExtractorUnit{
 public:
 	enum ExecutionType{
 		headergenerate,
+		headergenerateorder,
 		reformat,
 	};
 
@@ -96,6 +97,36 @@ public:
 		}
 	}
 
+	void output_objectfile_order(){
+		std::ofstream fo(objectfile.c_str());
+		std::string ofdef = objectfile;
+		std::replace(ofdef.begin(),ofdef.end(),'.','_');
+		std::transform(ofdef.begin(),ofdef.end(),ofdef.begin(),::toupper);
+		fo << "#ifndef " << ofdef << std::endl;
+		fo << "#define " << ofdef << std::endl;
+
+		for (int i=0;i<(int)hds.size();++i){
+			HeaderDesc& hd = hds[i];
+			fo << std::endl;
+			fo << "struct " << hd.classname << "{" << std::endl;
+			for (int j=0;j<(int)hd.size();++j){
+				fo << "\t";
+				if (::tolower(hd.coltypes[j][0])=='9'){
+					fo << "unsigned ";
+				}
+				fo << "char ";
+				fo << hd.colnames[j] << "[" << hd.datasizes[j] << "];";
+				if (hd.comments[j].length()>0){
+					fo << "\t// " << hd.comments[j];
+				}
+				fo << std::endl;
+			}
+			fo << "};" << std::endl;
+		}
+		fo << "#endif";
+		fo.close();
+	}
+
 	void output_objectfile(){
 		std::ofstream fo(objectfile.c_str());
 		std::string ofdef = objectfile;
@@ -128,6 +159,11 @@ public:
 		}
 		fo << "#endif";
 		fo.close();
+	}
+
+	inline void generate_order_header(){
+		parse_srcfile();
+		output_objectfile_order();
 	}
 
 	inline void generate_header(){
@@ -224,6 +260,9 @@ public:
 	inline void proceed(){
 		if (type == headergenerate){
 			generate_header();
+		}
+		else if (type == headergenerateorder){
+			generate_order_header();
 		}
 		else{
 			reformat_datafiles();
