@@ -129,6 +129,17 @@ public:
 
 	template <class some_packet_type>
 	void setLimitOrderQuotes(const some_packet_type *header){
+		ob->askprices[0] = ATOI_LEN(header->ask1price);
+		ob->askprices[1] = ATOI_LEN(header->ask2price);
+		ob->askprices[2] = ATOI_LEN(header->ask3price);
+		ob->askprices[3] = ATOI_LEN(header->ask4price);
+		ob->askprices[4] = ATOI_LEN(header->ask5price);
+		ob->bidprices[0] = ATOI_LEN(header->bid1price);
+		ob->bidprices[1] = ATOI_LEN(header->bid2price);
+		ob->bidprices[2] = ATOI_LEN(header->bid3price);
+		ob->bidprices[3] = ATOI_LEN(header->bid4price);
+		ob->bidprices[4] = ATOI_LEN(header->bid5price);
+		/*
 		ob->askprices[0] = ATOI_LEN(header->ask1price) / 100.0;
 		ob->askprices[1] = ATOI_LEN(header->ask2price) / 100.0;
 		ob->askprices[2] = ATOI_LEN(header->ask3price) / 100.0;
@@ -139,6 +150,7 @@ public:
 		ob->bidprices[2] = ATOI_LEN(header->bid3price) / 100.0;
 		ob->bidprices[3] = ATOI_LEN(header->bid4price) / 100.0;
 		ob->bidprices[4] = ATOI_LEN(header->bid5price) / 100.0;
+		*/
 		ob->askquantities[0] = ATOI_LEN(header->ask1quantity);
 		ob->askquantities[1] = ATOI_LEN(header->ask2quantity);
 		ob->askquantities[2] = ATOI_LEN(header->ask3quantity);

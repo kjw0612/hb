@@ -31,6 +31,7 @@ public:
 		bool ret = rd.next();
 		len = rd.sz;
 		content = rd.msg;
+		rdtscStamp = rd.rt;
 		setType();
 		return ret;
 	}
@@ -42,6 +43,7 @@ public:
 	char* content;
 	int len, timestamp;
 	long long castedRawType;
+	long long rdtscStamp;
 };
 
 class KospiOptionsReader : public DataReader{
@@ -75,8 +77,8 @@ struct Orderbook{
 		memcpy(bidprices,_bidprices,sizeof(bidprices));
 	}
 
-	double askprices[5], bidprices[5];
-	double askquantities[5], bidquantities[5];
+	int askprices[5], bidprices[5];
+	int askquantities[5], bidquantities[5];
 	double currentprice;
 	double expectedprice;
 };
@@ -87,14 +89,15 @@ struct Greeks{
 
 struct PacketInfo{
 	PacketInfo(){}
-	PacketInfo(const std::string& krcodestr, char *src, int size, long long castedRawType, int timestamp)
-		: krcodestr(krcodestr), size(size), castedRawType(castedRawType), timestamp(timestamp), src(src) {}
+	PacketInfo(const std::string& krcodestr, char *src, int size, long long castedRawType, int timestamp, long long rdtscStamp)
+		: krcodestr(krcodestr), size(size), castedRawType(castedRawType), timestamp(timestamp), src(src), rdtscStamp(rdtscStamp) {}
 
 	std::string krcodestr;
 	char *src;
 	int size;
 	long long castedRawType;
 	int timestamp;
+	long long rdtscStamp;
 };
 
 

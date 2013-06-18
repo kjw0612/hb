@@ -36,11 +36,11 @@ public:
 			if (isQuotationType(rd->castedRawType)){
 				if (datatype == ORDERBOOK){
 					bricks.push_back
-						(new Brick(PacketInfo(pcapimpl.krcodestr, rrd.msg, rrd.sz, rd->castedRawType, pcapimpl.timestampi),*pcapimpl.ob));
+						(new Brick(PacketInfo(pcapimpl.krcodestr, rrd.msg, rrd.sz, rd->castedRawType, pcapimpl.timestampi, rd->rdtscStamp),*pcapimpl.ob));
 				}
 				else{
 					bricks.push_back
-						(new Brick(PacketInfo(pcapimpl.krcodestr, rrd.msg, rrd.sz, rd->castedRawType, pcapimpl.timestampi),*pcapimpl.grk));
+						(new Brick(PacketInfo(pcapimpl.krcodestr, rrd.msg, rrd.sz, rd->castedRawType, pcapimpl.timestampi, rd->rdtscStamp),*pcapimpl.grk));
 				}
 			}
 		}
