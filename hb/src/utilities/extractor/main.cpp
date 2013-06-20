@@ -105,6 +105,28 @@ void run(int start_time, int end_time){
 	fclose(fo);*/
 }
 
+std::vector<std::pair<std::string, double> > first_prices_base(const BrickBase& bbase)
+{
+	std::vector<std::pair<std::string, double> > ret;
+	std::map<std::string, std::vector<Brick *> >::const_iterator it = bbase.codeVectorMap.begin();
+	for (;it!=bbase.codeVectorMap.end();++it){
+		const std::vector<Brick *>& brk = it->second;
+		ret.push_back(std::make_pair(it->first, brk.back()->midPriceSimpleAvg()));
+	}
+	return ret;
+}
+
+void print_firstprices_base(FILE *fo, const BrickBase& bbase)
+{
+	std::vector<std::pair<std::string, double> > fpb = first_prices_base(bbase);
+	const DescSet& dsc = ReaderStatic::get().ds();
+	for (int i=0;i<(int)fpb.size();++i){
+		std::string krcode = fpb[i].first;
+		double strike = dsc.descmap.find(krcode)->second.strike;
+		fprintf(fo,"%s,%lf,%lf\n",krcode.c_str(),fpb[i].second/100,strike);
+	}
+}
+
 void prereport(){
 	// this reports each option/futures' minimal unit change of corresponding futures' price.
 	// code, expirydate, # trades, amount, delta, bidticksize, askticksize, bidfutsize, askfutsize
@@ -124,7 +146,9 @@ void prereport(){
 				ri.bidfutunit, ri.askfutunit, ri.bidaskspread, ri.basp_futunit);
 		}
 	}
-	exit(0);
+	print_firstprices_base(fo,ReaderStatic::get().futbase());
+	print_firstprices_base(fo,ReaderStatic::get().callbase());
+	print_firstprices_base(fo,ReaderStatic::get().putbase());
 }
 
 void momentum_report(){
@@ -427,7 +451,7 @@ void suite2_plot(int scenario_num){
 
 void suite3_prereport(){
 	setup();
-	setup_time(11100000, 11590000);
+	setup_time(11100000, 11290000);
 	prereport();
 }
 
@@ -440,9 +464,9 @@ void suite5_report_variance_signal(){
 }
 
 int main(){
-	suite1_plot();
+	//suite1_plot();
 	//suite2_plot(2);
-	//suite3_prereport();
+	suite3_prereport();
 	//suite4_report_momentum();
 	//suite5_report_variance_signal();
 	return 0;
