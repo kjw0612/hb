@@ -53,6 +53,9 @@ int main(){
 					}
 				}
 			}
+			else if (word.compare("target_dates")==0){
+				unit.target_dates.push_back(wordr);
+			}
 			else if (word.compare("outputfile")==0){
 				unit.outputfile = wordr;
 			}
@@ -61,6 +64,9 @@ int main(){
 			}
 			else if (word.compare("name")==0){
 				unit.name = wordr;
+			}
+			else if (word.compare("target_krcode")==0){
+				unit.target_krcode = wordr;
 			}
 		}
 	}

@@ -1,3 +1,23 @@
+mode = reformat
+src = krx_kospi_futures.csv
+wanteddesc = krx_kospi_futures_extractdesc.csv
+datafile = D:\nujong\data\F20130318_22 D:\nujong\data\F20130314_15
+target_dates = 20130318 20130314
+outputfile = output_futures.csv
+target_krcode = KR4101H6
+do
+
+end
+
+mode = reformat
+src = krx_kospi_options.csv
+wanteddesc = krx_kospi_options_extractdesc.csv
+datafile = data\F20130318_22 data\F20130314_15
+outputfile = output_futures.csv
+do
+
+end
+
 mode = headergenerateorder
 src = krx_order.csv
 object = krx_order.hpp
