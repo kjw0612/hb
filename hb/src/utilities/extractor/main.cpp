@@ -464,9 +464,9 @@ void suite5_report_variance_signal(){
 }
 
 int main(){
-	//suite1_plot();
+	suite1_plot();
 	//suite2_plot(2);
-	suite3_prereport();
+	//suite3_prereport();
 	//suite4_report_momentum();
 	//suite5_report_variance_signal();
 	return 0;

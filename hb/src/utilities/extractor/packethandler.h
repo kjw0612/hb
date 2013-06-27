@@ -161,6 +161,23 @@ public:
 		ob->bidquantities[2] = ATOI_LEN(header->bid3quantity);
 		ob->bidquantities[3] = ATOI_LEN(header->bid4quantity);
 		ob->bidquantities[4] = ATOI_LEN(header->bid5quantity);
+
+		ob->asktotquantity = ATOI_LEN(header->asktotalquantity);
+		ob->bidtotquantity = ATOI_LEN(header->bidtotalquantity);
+
+		ob->asktotcnt = ATOI_LEN(header->asktotalvalidnum);
+		ob->bidtotcnt = ATOI_LEN(header->bidtotalvalidnum);
+
+		ob->askcnts[0] = ATOI_LEN(header->ask1totalvalidnum);
+		ob->askcnts[1] = ATOI_LEN(header->ask2totalvalidnum);
+		ob->askcnts[2] = ATOI_LEN(header->ask3totalvalidnum);
+		ob->askcnts[3] = ATOI_LEN(header->ask4totalvalidnum);
+		ob->askcnts[4] = ATOI_LEN(header->ask5totalvalidnum);
+		ob->bidcnts[0] = ATOI_LEN(header->bid1totalvalidnum);
+		ob->bidcnts[1] = ATOI_LEN(header->bid2totalvalidnum);
+		ob->bidcnts[2] = ATOI_LEN(header->bid3totalvalidnum);
+		ob->bidcnts[3] = ATOI_LEN(header->bid4totalvalidnum);
+		ob->bidcnts[4] = ATOI_LEN(header->bid5totalvalidnum);
 	}
 
 	void setGreeks(const KrxOptionsGreek *optgreek){

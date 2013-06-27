@@ -79,6 +79,9 @@ struct Orderbook{
 
 	int askprices[5], bidprices[5];
 	int askquantities[5], bidquantities[5];
+	int asktotquantity, bidtotquantity;
+	int askcnts[5], bidcnts[5];
+	int asktotcnt, bidtotcnt;
 	double currentprice;
 	double expectedprice;
 };
