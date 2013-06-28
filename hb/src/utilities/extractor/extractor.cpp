@@ -53,7 +53,7 @@ int main(){
 					}
 				}
 			}
-			else if (word.compare("target_dates")==0){
+			else if (word.compare("target_date")==0){
 				unit.target_dates.push_back(wordr);
 			}
 			else if (word.compare("outputfile")==0){

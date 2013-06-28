@@ -1,10 +1,28 @@
 mode = reformat
 src = krx_kospi_futures.csv
 wanteddesc = krx_kospi_futures_extractdesc.csv
-datafile = D:\nujong\data\F20130318_22 D:\nujong\data\F20130314_15
-target_dates = 20130318 20130314
-outputfile = output_futures.csv
+datafile = D:\nujong\data\F20130318_22
+target_date = 20130318
+outputfile = output_futures_20130318.csv
 target_krcode = KR4101H6
+do
+
+mode = reformat
+src = krx_kospi_options.csv
+wanteddesc = krx_kospi_options_extractdesc.csv
+datafile = D:\nujong\data\C161_15515
+target_date = 20130318
+outputfile = output_call_20130318_KR4201H5260.csv
+target_krcode = KR4201H5260
+do
+
+mode = reformat
+src = krx_kospi_options.csv
+wanteddesc = krx_kospi_options_extractdesc.csv
+datafile = D:\nujong\data\P162_15516
+target_date = 20130318
+outputfile = output_put_20130318_KR4301H5237.csv
+target_krcode = KR4301H5237
 do
 
 end
