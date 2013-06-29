@@ -1,6 +1,17 @@
 mode = reformat
 src = krx_kospi_futures.csv
 wanteddesc = krx_kospi_futures_extractdesc.csv
+datafile = C:\Users\koval\Documents\Visual Studio 2012\Projects\extractor\data\F171_15572
+target_date = 20130318
+target_krcode = *
+do
+
+end
+
+
+mode = reformat
+src = krx_kospi_futures.csv
+wanteddesc = krx_kospi_futures_extractdesc.csv
 datafile = D:\nujong\data\F20130318_22
 target_date = 20130318
 outputfile = output_futures_20130318.csv

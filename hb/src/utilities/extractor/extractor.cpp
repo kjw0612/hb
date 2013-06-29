@@ -43,18 +43,19 @@ int main(){
 				unit.objectfile = wordr;
 			}
 			else if (word.compare("datafile")==0){
-				unit.datafiles.clear();
+				unit.datafile = "";
 				while(1){
-					unit.datafiles.push_back(wordr);
+					unit.datafile += wordr;
 					wordr = "";
 					iss >> wordr;
 					if (wordr.length()==0){
 						break;
 					}
+					unit.datafile += " ";
 				}
 			}
 			else if (word.compare("target_date")==0){
-				unit.target_dates.push_back(wordr);
+				unit.target_date = wordr;
 			}
 			else if (word.compare("outputfile")==0){
 				unit.outputfile = wordr;
