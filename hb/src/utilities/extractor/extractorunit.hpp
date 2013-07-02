@@ -194,7 +194,7 @@ public:
 
 		int counter;
 		FILE *fo;
-		RfmPerCode() : counter(0), fo(NULL) {}
+		RfmPerCode() : counter(0), fo(NULL), askQty1(0), bidQty1(0), askPrc1(0), bidPrc1(0), dir(0), priceChanged(0), price_var(0) {}
 
 		RfmPerCode(const std::string& krcode, const std::string& target_date, const std::vector<std::vector<std::string> >& ref_cols) : counter(0){
 			std::string outputfile = krcode + "_" + target_date + ".csv";
@@ -208,12 +208,19 @@ public:
 		}
 
 		void print(const std::vector<std::vector<std::string> >& ref_cols, int refidx,
-			RawDataReader &rd, const char* msgbuf, const std::string& target_date, const HeaderDesc& hdsc, RdtscConvBase& rcb){
+			RawDataReader &rd, const char* msgbuf, const std::string& target_date, const HeaderDesc& hdsc, RdtscConvBase& rcb)
+		{
+			priceChanged = 0;
 			for (int i=1;i<(int)ref_cols[refidx].size();++i){
 				std::string fmt = ref_cols[refidx][i];
 				std::string target_var;
 				int target_var_mode = 0, prtflag = 0;
-				if (fmt.length()==0); // shown as empty column.
+				if (ref_cols[0][i][0]==' '){
+					fprintf(fo," ");
+				}
+				if (fmt.length()==0){ // shown as empty column.
+					fprintf(fo," ");
+				}
 				else if (fmt[0]=='$'){ // special input.
 					if (fmt[1]=='+'){
 						fprintf(fo,"%d",++counter);
@@ -229,6 +236,9 @@ public:
 						target_var = fmt.substr(2);
 						target_var_mode = 1;
 						prtflag = 1;
+					}
+					else if (fmt.substr(1).compare("DIR")==0){
+						fprintf(fo,"%d",dir);
 					}
 					else if ((fmt.substr(1).compare("TIME"))==0){
 						//long long d_timestamp = atoi(tar_varmap["timestamp"].c_str());
@@ -253,7 +263,7 @@ public:
 							//fprintf(fo,"notime..sorry");
 						}
 						//target_dates[dfi]
-						fprintf(fo,"%s %lld",target_date.c_str(),valPrint);
+						fprintf(fo," %s %lld",target_date.c_str(),valPrint);
 					}
 				}
 				else{ prtflag = 1; target_var = fmt; }
@@ -273,9 +283,46 @@ public:
 							rcb.d_timestamp = atoi(ending_buf);
 						}
 					}
+					int intval = atoi(ending_buf);
+					if (intval != 0){
+						if (!_strcmpi(ref_cols[0][i].c_str(),"price")){
+							if (price_var > intval) dir = -1;
+							else if (price_var < intval) dir = 1;
+							price_var = intval;
+						}
+						else if (!_strcmpi(ref_cols[0][i].c_str(),"bidPrc1")){
+							if (bidPrc1 < intval) dir = 1;
+							else if (bidPrc1 > intval) dir = -1;
+							if (bidPrc1 != intval) priceChanged = 1;
+							bidPrc1 = intval;
+						}
+						else if (!_strcmpi(ref_cols[0][i].c_str(),"askPrc1")){
+							if (askPrc1 < intval) dir = 1;
+							else if (askPrc1 > intval) dir = -1;
+							if (bidPrc1 != intval) priceChanged = 1;
+							askPrc1 = intval;
+						}
+						else if (!_strcmpi(ref_cols[0][i].c_str(),"bidQty1")){
+							if (!priceChanged && bidQty1 > intval){ // buy
+								dir = -1;
+							}
+							bidQty1 = intval;
+						}
+						else if (!_strcmpi(ref_cols[0][i].c_str(),"askQty1")){
+							if (!priceChanged && askQty1 > intval){ // sell
+								dir = 1;
+							}
+							askQty1 = intval;
+						}
+					}
 				}
 				if (target_var_mode == 2){
-					fprintf(fo,"%s",tar_varmap[target_var].c_str());
+					if (tar_varmap.find(target_var)==tar_varmap.end()){
+						fprintf(fo," ");
+					}
+					else{
+						fprintf(fo,"%s",tar_varmap[target_var].c_str());
+					}
 				}
 				fprintf(fo,",");
 			}
@@ -283,6 +330,7 @@ public:
 		}
 
 		std::map<std::string, std::string> tar_varmap;
+		int askQty1, bidQty1, askPrc1, bidPrc1, dir, priceChanged, price_var;
 	};
 
 	struct Rfm{
