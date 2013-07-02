@@ -69,9 +69,9 @@ public:
 };
 
 struct Orderbook{
-	Orderbook() {}
+	Orderbook() : currentprice(0), expectedprice(0), tradequantity(0), dir(0), asktotquantity(0), bidtotquantity(0) {}
 	Orderbook(double *_askprices, double *_bidprices, double currentprice, double expectedprice)
-		: currentprice(currentprice), expectedprice(expectedprice)
+		: currentprice(currentprice), expectedprice(expectedprice), tradequantity(0), dir(0)
 	{
 		memcpy(askprices,_askprices,sizeof(askprices));
 		memcpy(bidprices,_bidprices,sizeof(bidprices));
@@ -84,6 +84,8 @@ struct Orderbook{
 	int asktotcnt, bidtotcnt;
 	double currentprice;
 	double expectedprice;
+	int tradequantity;
+	int dir;
 };
 
 struct Greeks{

@@ -463,12 +463,61 @@ void suite5_report_variance_signal(){
 	variance_analysis(9100000, 9595999);
 }
 
+struct traded_pair{
+	traded_pair() : quantity(0), dir(0), obi(), obj() {}
+	traded_pair(int quantity, int dir, const Orderbook& obi, const Orderbook& obj)
+		: quantity(quantity), dir(dir), obi(obi), obj(obj) {}
+	int quantity, dir;
+	Orderbook obi, obj;
+};
+
+void traded_datapair_distribution_analysis(const std::vector<Brick *>& bs1, const std::vector<Brick *>& bs2)
+{
+	std::vector<Brick *> b1b2;
+	std::vector<traded_pair> tpr[2];
+	std::string codes[2];
+	Orderbook obs[2];
+	codes[0] = bs1[0]->pi.krcodestr; codes[1] = bs2[0]->pi.krcodestr;
+	b1b2.insert(b1b2.begin(),bs1.begin(),bs1.end());
+	b1b2.insert(b1b2.begin(),bs2.begin(),bs2.end());
+	std::sort(b1b2.begin(),b1b2.end(),Functional::ptr_comp<Brick>);
+	for (int i=0;i<(int)b1b2.size();++i){
+		for (int j=0;j<2;++j){
+			if (b1b2[i]->pi.krcodestr == codes[j]){
+				obs[j] = b1b2[i]->ob;
+				if (obs[j].tradequantity > 0)
+					tpr[j].push_back(traded_pair(obs[j].tradequantity,obs[j].dir,obs[j],obs[!j]));
+			}
+		}
+	}
+	FILE *fo;
+	fopen_s(&fo,"output_distribute.csv","wt");
+	for (int m=0;m<2;++m){
+		fprintf(fo,"-------------------------------------\n");
+		for (int i=0;i<(int)tpr[m].size();++i){
+			if (tpr[m][i].obj.asktotquantity != 0){
+				fprintf(fo,"%lf,%d\n",tpr[m][i].obi.currentprice,
+					(tpr[m][i].obj.askprices[0] + tpr[m][i].obj.bidprices[0])/2);
+			}
+		}
+	}
+	fclose(fo);
+}
+
+void suite6_tick_traded_distribution(){
+	setup();
+	setup_time(11100000, 11290000);
+	traded_datapair_distribution_analysis
+		(ReaderStatic::get().futbase().get("KR4101H60001"),ReaderStatic::get().callbase().get("KR4201H52550"));
+}
+
 int main(){
-	suite1_plot();
+	//suite1_plot();
 	//suite2_plot(2);
 	//suite3_prereport();
 	//suite4_report_momentum();
 	//suite5_report_variance_signal();
+	suite6_tick_traded_distribution();
 	return 0;
 
 	

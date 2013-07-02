@@ -27,6 +27,7 @@ public:
 		{
 			futheader.m_rawmsg = msg;
 			optheader.m_rawmsg = msg;
+			tradequantity = 0;
 			switch(capturedType)
 			{
 			case t_KrxFuturesTradeBestQuotation:
@@ -58,6 +59,7 @@ public:
 		char krcode[20];
 		std::string krcodestr;
 		int timestampi;
+		int tradequantity;
 	};
 	PacketHandler() : impl(new Impl()) {}
 	PacketHandler(Impl * a_impl) : impl(a_impl) {}
@@ -124,6 +126,8 @@ public:
 	};
 
 	std::map<std::string, obinfo> obmap;
+	Orderbook old_ob;
+
 	Orderbook* ob;
 	Greeks* grk;
 
@@ -180,6 +184,28 @@ public:
 		ob->bidcnts[4] = ATOI_LEN(header->bid5totalvalidnum);
 	}
 
+	template <class some_packet_type>
+	void setTraded(const some_packet_type *header){
+		ob->currentprice = ATOI_LEN(optheader.m_KrxOptionsTrade->currentprice);
+		ob->tradequantity = ATOI_LEN(header->tradequantity);
+		if (((old_ob.currentprice != 0) && old_ob.currentprice > ob->currentprice) ||
+			old_ob.askprices[0] > ob->askprices[0] || old_ob.bidprices[0] > ob->bidprices[0])
+		{
+			ob->dir = -1;
+		}
+		else if (((old_ob.currentprice != 0) && old_ob.currentprice < ob->currentprice) ||
+			old_ob.askprices[0] < ob->askprices[0] || old_ob.bidprices[0] < ob->bidprices[0])
+		{
+			ob->dir = 1;
+		}
+		else if (old_ob.askquantities[0] > ob->askquantities[0]){
+			ob->dir = -1;
+		}
+		else if (old_ob.bidquantities[0] > ob->bidquantities[0]){
+			ob->dir = -1;
+		}
+	}
+
 	void setGreeks(const KrxOptionsGreek *optgreek){
 		grk->delta = ATOLL_LEN_SIGN(optgreek->deltasign[0],optgreek->delta) / 1000000.0;
 		grk->gamma = ATOLL_LEN_SIGN(optgreek->gammasign[0],optgreek->gamma) / 1000000.0;
@@ -200,27 +226,31 @@ public:
 		}
 		ob = &(obmap.find(this->krcodestr)->second.ob);
 		grk = &(obmap.find(this->krcodestr)->second.grk);
+		old_ob = *ob;
+		ob->tradequantity = 0; ob->dir = 0;
 
 		switch(capturedType){
 			case t_KrxFuturesTradeBestQuotation:
 				setLimitOrderQuotes(futheader.m_KrxFuturesTradeBestQuotation);
+				setTraded(futheader.m_KrxFuturesTradeBestQuotation);
 				break;
 			case t_KrxOptionsTradeBestQuotation:
 				setLimitOrderQuotes(optheader.m_KrxOptionsTradeBestQuotation);
+				setTraded(optheader.m_KrxOptionsTradeBestQuotation);
 				break;
 			case t_KrxFuturesTrade:
-				ob->currentprice = ATOI_LEN(futheader.m_KrxFuturesTrade->currentprice) / 100.0;
+				setTraded(futheader.m_KrxFuturesTrade);
 				break;
 			case t_KrxOptionsTrade:
-				ob->currentprice = ATOI_LEN(optheader.m_KrxOptionsTrade->currentprice) / 100.0;
+				setTraded(optheader.m_KrxOptionsTrade);
 				break;
 			case t_KrxFuturesBestQuotation:
 				setLimitOrderQuotes(futheader.m_KrxFuturesBestQuotation);
-				ob->expectedprice = ATOI_LEN(futheader.m_KrxFuturesBestQuotation->expectedprice) / 100.0;
+				ob->expectedprice = ATOI_LEN(futheader.m_KrxFuturesBestQuotation->expectedprice);
 				break;
 			case t_KrxOptionsBestQuotation:
 				setLimitOrderQuotes(optheader.m_KrxOptionsBestQuotation);
-				ob->expectedprice = ATOI_LEN(optheader.m_KrxOptionsBestQuotation->expectedprice) / 100.0;
+				ob->expectedprice = ATOI_LEN(optheader.m_KrxOptionsBestQuotation->expectedprice);
 				break;
 			case t_KrxOptionsGreek:
 				setGreeks(optheader.m_KrxOptionsGreek);
