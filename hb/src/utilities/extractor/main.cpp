@@ -475,6 +475,10 @@ void traded_datapair_distribution_analysis(const std::vector<Brick *>& bs1, cons
 {
 	std::vector<Brick *> b1b2;
 	std::vector<traded_pair> tpr[2];
+
+	std::map<std::pair<int, int>, int> pricemap[2];
+	double currentprices[2] = {0,};
+	std::map<std::pair<int, int>, int> price_changed_map[2];
 	std::string codes[2];
 	Orderbook obs[2];
 	codes[0] = bs1[0]->pi.krcodestr; codes[1] = bs2[0]->pi.krcodestr;
@@ -485,8 +489,16 @@ void traded_datapair_distribution_analysis(const std::vector<Brick *>& bs1, cons
 		for (int j=0;j<2;++j){
 			if (b1b2[i]->pi.krcodestr == codes[j]){
 				obs[j] = b1b2[i]->ob;
-				if (obs[j].tradequantity > 0)
+				if (obs[j].tradequantity > 0){
 					tpr[j].push_back(traded_pair(obs[j].tradequantity,obs[j].dir,obs[j],obs[!j]));
+					pricemap[j][std::make_pair((int)obs[j].currentprice, 
+						(int)((obs[!j].askprices[0] + obs[!j].bidprices[0])))] += obs[j].tradequantity;
+					if (currentprices[j] && obs[j].currentprice != currentprices[j]){
+						price_changed_map[j][std::make_pair((int)obs[j].currentprice, 
+							(int)((obs[!j].askprices[0] + obs[!j].bidprices[0])))]++;
+					}
+					currentprices[j] = obs[j].currentprice;
+				}
 			}
 		}
 	}
@@ -494,19 +506,37 @@ void traded_datapair_distribution_analysis(const std::vector<Brick *>& bs1, cons
 	fopen_s(&fo,"output_distribute.csv","wt");
 	for (int m=0;m<2;++m){
 		fprintf(fo,"-------------------------------------\n");
+		std::map<std::pair<int, int>, int>::const_iterator it = pricemap[m].begin();
+
+		for (;it!=pricemap[m].end();++it){
+			fprintf(fo,"%d,%lf,%d\n",it->first.first,(double)it->first.second/2, it->second);
+		}
+	}
+
+	for (int m=0;m<2;++m){
+		fprintf(fo,"-------------------------------------\n");
+
+		std::map<std::pair<int, int>, int>::const_iterator it = price_changed_map[m].begin();
+
+		for (;it!=price_changed_map[m].end();++it){
+			fprintf(fo,"%d,%lf,%d\n",it->first.first,(double)it->first.second/2, it->second);
+		}
+
+		/*
 		for (int i=0;i<(int)tpr[m].size();++i){
 			if (tpr[m][i].obj.asktotquantity != 0){
 				fprintf(fo,"%lf,%d\n",tpr[m][i].obi.currentprice,
 					(tpr[m][i].obj.askprices[0] + tpr[m][i].obj.bidprices[0])/2);
 			}
 		}
+		*/
 	}
 	fclose(fo);
 }
 
 void suite6_tick_traded_distribution(){
 	setup();
-	setup_time(11100000, 11290000);
+	setup_time(11100000, 12290000);
 	traded_datapair_distribution_analysis
 		(ReaderStatic::get().futbase().get("KR4101H60001"),ReaderStatic::get().callbase().get("KR4201H52550"));
 }
