@@ -541,18 +541,86 @@ void suite6_tick_traded_distribution(){
 		(ReaderStatic::get().futbase().get("KR4101H60001"),ReaderStatic::get().callbase().get("KR4201H52550"));
 }
 
+template <typename T1, typename T2> 
+std::pair<T1,T2> operator+(const std::pair<T1,T2> &p1, const std::pair<T1,T2> &p2) { 
+	return std::pair<T1,T2>(p1.first + p2.first, p1.second + p2.second); 
+} 
+
+void traded_signal_transition_analysis(const std::vector<Brick *>& bs1, const std::vector<Brick *>& bs2)
+{
+	std::vector<Brick *> b1b2;
+	std::map<std::string, int> krcode2idx, krcode2zero;
+	std::map<std::pair<std::pair<std::string, std::string>, std::pair<int, int> > , int > transition_cases;
+	int n = 0;
+	int timeHorizon = 2000; // 2000 msec
+	timeHorizon /= 10;
+
+	b1b2.insert(b1b2.begin(),bs1.begin(),bs1.end());
+	b1b2.insert(b1b2.begin(),bs2.begin(),bs2.end());
+	std::sort(b1b2.begin(),b1b2.end(),Functional::ptr_comp<Brick>);
+
+	for (int i=0;i<(int)b1b2.size();++i){
+		if (krcode2idx.find(b1b2[i]->pi.krcodestr) == krcode2idx.end()){
+			krcode2idx[b1b2[i]->pi.krcodestr] = n++;
+			krcode2zero[b1b2[i]->pi.krcodestr] = 0;
+		}
+	}
+
+	for (int i=0;i<(int)b1b2.size();++i){
+		Orderbook& ob = b1b2[i]->ob;
+		if (ob.tradequantity > 0){
+			//printf("%s\n",b1b2[i]->pi.krcodestr.c_str());
+			std::map<std::string, int> transitiondir = krcode2zero;
+			for (int j=i+1;j<(int)b1b2.size();++j){
+				if (b1b2[i]->pi.timestamp + timeHorizon < b1b2[j]->pi.timestamp){
+					break;
+				}
+				if (b1b2[j]->ob.dir != 0){
+					transitiondir [b1b2[j]->pi.krcodestr] = b1b2[j]->ob.dir;
+					break;
+				}
+			}
+			for (std::map<std::string, int>::const_iterator it = transitiondir.begin(); it != transitiondir.end(); ++it){
+				std::string a = b1b2[i]->pi.krcodestr, b = it->first;
+				int c = b1b2[i]->ob.dir, d = it->second;
+				++transition_cases[std::make_pair(std::make_pair(a,b),std::make_pair(c,d))];
+			}
+		}
+	}
+	FILE *fo;
+	fopen_s(&fo,"output_transition.csv","wt");
+	std::map<std::pair<std::pair<std::string, std::string>, std::pair<int, int> > , int >::const_iterator it = transition_cases.begin();
+	//std::map<std::pair<std::pair<std::string, std::string>, int> , int > 
+
+	for (;it!=transition_cases.end();++it){
+		fprintf(fo,"%s,%s,%d,%d,%d\n",it->first.first.first.c_str(),it->first.first.second.c_str(),it->first.second.first,it->first.second.second,it->second);
+	}
+	fclose(fo);
+}
+
+void suite7_tick_signal_transition(){
+	setup();
+#ifdef _DEBUG
+	setup_time(11100000, 11190000);
+#else
+	setup_time(10100000, 11290000);
+#endif
+	traded_signal_transition_analysis
+		(ReaderStatic::get().futbase().get("KR4101H60001"),ReaderStatic::get().callbase().get("KR4201H52550"));
+		//(ReaderStatic::get().futbase().get("KR4101H60001"),ReaderStatic::get().callbase().getAll());
+}
+
 int main(){
 	//suite1_plot();
 	//suite2_plot(2);
 	//suite3_prereport();
 	//suite4_report_momentum();
 	//suite5_report_variance_signal();
-	suite6_tick_traded_distribution();
+	//suite6_tick_traded_distribution();
+	suite7_tick_signal_transition();
 	return 0;
 
-	
 	//return 0;
-
 
 	//statistics_test();
 	//int start_time = 9100000, end_time = 9195999;
