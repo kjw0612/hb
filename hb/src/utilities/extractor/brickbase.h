@@ -69,6 +69,16 @@ public:
 	{
 		return *a < *b;
 	}
+
+	template<class T>
+	struct ptr_comp_func{
+		typedef bool (*ptr_comp_func_type)(const T& a, const T &b);
+		ptr_comp_func(ptr_comp_func_type comp) : comp(comp) {}
+		bool operator ()(const T * const & a, const T * const & b) const {
+			return comp(*a,*b);
+		}
+		ptr_comp_func_type comp;
+	};
 };
 
 class Interpolation{
@@ -195,6 +205,15 @@ public:
 			return empty_bricks;
 		}
 		return codeVectorMap.find(krcode)->second;
+	}
+
+	std::vector<Brick *> gets(const std::vector<std::string>& krcodes){
+		std::vector<Brick *> ret;
+		for (int i=0;i<(int)krcodes.size();++i){
+			const std::vector<Brick *>& tmp = this->get(krcodes[i]);
+			ret.insert(ret.end(),tmp.begin(),tmp.end());
+		}
+		return ret;
 	}
 
 	std::vector<Brick *> getAll()

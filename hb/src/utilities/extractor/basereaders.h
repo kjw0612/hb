@@ -144,6 +144,10 @@ struct Brick{
 		return this->pi.timestamp < rhs.pi.timestamp;
 	}
 
+	static bool rdtscComp(const Brick& lhs, const Brick& rhs) {
+		return lhs.pi.rdtscStamp < rhs.pi.rdtscStamp;
+	}
+
 	double getValue(GetDataType dm) const {
 		switch(dm){
 			case MidPrice:

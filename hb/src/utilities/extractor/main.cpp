@@ -557,7 +557,12 @@ void traded_signal_transition_analysis(const std::vector<Brick *>& bs1, const st
 
 	b1b2.insert(b1b2.begin(),bs1.begin(),bs1.end());
 	b1b2.insert(b1b2.begin(),bs2.begin(),bs2.end());
-	std::sort(b1b2.begin(),b1b2.end(),Functional::ptr_comp<Brick>);
+	//std::sort(b1b2.begin(),b1b2.end(),Functional::ptr_comp<Brick>);
+	std::sort(b1b2.begin(), b1b2.end(), Functional::ptr_comp_func<Brick>(Brick::rdtscComp) );
+	/*
+	Functional::ptr_comp_func<Brick> compfunctor(Brick::rdtscComp);
+	std::sort(b1b2.begin(), b1b2.end(), compfunctor() );
+	*/
 
 	for (int i=0;i<(int)b1b2.size();++i){
 		if (krcode2idx.find(b1b2[i]->pi.krcodestr) == krcode2idx.end()){
@@ -605,9 +610,17 @@ void suite7_tick_signal_transition(){
 #else
 	setup_time(10100000, 11290000);
 #endif
+
+	std::vector<std::string> targetCodes;
+	targetCodes.push_back("KR4201H52576");
+	targetCodes.push_back("KR4201H52600");
+	targetCodes.push_back("KR4201H52626");
+	targetCodes.push_back("KR4201H52659");
+
 	traded_signal_transition_analysis
-		(ReaderStatic::get().futbase().get("KR4101H60001"),ReaderStatic::get().callbase().get("KR4201H52550"));
+		//(ReaderStatic::get().futbase().get("KR4101H60001"),ReaderStatic::get().callbase().get("KR4201H52550"));
 		//(ReaderStatic::get().futbase().get("KR4101H60001"),ReaderStatic::get().callbase().getAll());
+		(ReaderStatic::get().futbase().get("KR4101H60001"),ReaderStatic::get().callbase().gets(targetCodes));
 }
 
 int main(){
