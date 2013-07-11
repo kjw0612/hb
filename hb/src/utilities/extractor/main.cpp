@@ -623,6 +623,27 @@ void suite7_tick_signal_transition(){
 		(ReaderStatic::get().futbase().get("KR4101H60001"),ReaderStatic::get().callbase().gets(targetCodes));
 }
 
+void suite8_print_data(){
+	setup();
+	FILE *fp;
+	fopen_s(&fp,"output_optdata_xy.csv","wt");
+	int deltat = 500000;
+	for (int t0=9000000;t0<=13000000;t0+=deltat){
+		setup_time(t0, t0+deltat);
+		std::vector<Brick *> b1b2;
+		{	std::vector<Brick *> bs1 = ReaderStatic::get().futbase().get("KR4101H60001");
+			b1b2.insert(b1b2.end(),bs1.begin(),bs1.end());	}
+		{	std::vector<Brick *> bs2 = ReaderStatic::get().callbase().getAll();
+			b1b2.insert(b1b2.end(),bs2.begin(),bs2.end());	}
+		std::sort(b1b2.begin(), b1b2.end(), Functional::ptr_comp_func<Brick>(Brick::rdtscComp) );
+
+		for (int i=0;i<(int)b1b2.size();++i){
+			fprintf(fp,"%d,%s,%lf\n",b1b2[i]->pi.timestamp,b1b2[i]->pi.krcodestr.c_str(),b1b2[i]->getValue(Brick::WeightedMidPrice));
+		}
+	}
+	fclose(fp);
+}
+
 int main(){
 	//suite1_plot();
 	//suite2_plot(2);
@@ -630,7 +651,8 @@ int main(){
 	//suite4_report_momentum();
 	//suite5_report_variance_signal();
 	//suite6_tick_traded_distribution();
-	suite7_tick_signal_transition();
+	//suite7_tick_signal_transition();
+	suite8_print_data();
 	return 0;
 
 	//return 0;
