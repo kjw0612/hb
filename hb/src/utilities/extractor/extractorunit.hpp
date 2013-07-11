@@ -6,6 +6,7 @@
 #include "csvparser.hpp"
 #include "hashergenerator.hpp"
 #include "rawdatareader.hpp"
+#include "functional.h"
 
 struct HeaderDesc{
 	std::string classname;
@@ -263,7 +264,7 @@ public:
 							//fprintf(fo,"notime..sorry");
 						}
 						//target_dates[dfi]
-						fprintf(fo," %s %lld",target_date.c_str(),valPrint);
+						fprintf(fo," %s %d",target_date.c_str(),Functional::seq2timestamp((int)valPrint));
 					}
 				}
 				else{ prtflag = 1; target_var = fmt; }
@@ -280,7 +281,7 @@ public:
 					if (target_var_mode == 1){
 						tar_varmap[target_var] = ending_buf;
 						if (!_strcmpi(target_var.c_str(),"timestamp")){
-							rcb.d_timestamp = atoi(ending_buf);
+							rcb.d_timestamp = Functional::timestamp2seq(atoi(ending_buf));
 						}
 					}
 					int intval = atoi(ending_buf);

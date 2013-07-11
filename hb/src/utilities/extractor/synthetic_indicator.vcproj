@@ -206,6 +206,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\functional.h"
+				>
+			</File>
+			<File
 				RelativePath=".\indexer.h"
 				>
 			</File>
