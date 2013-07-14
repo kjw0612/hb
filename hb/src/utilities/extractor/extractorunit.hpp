@@ -245,7 +245,7 @@ public:
 						long long valPrint = 0;
 						double trailings = 0.;
 						if (rcb.d_timestamp ==0){
-							valPrint = 8000000;
+							valPrint = Functional::timestamp2seq(8000000);
 						}
 						else{
 							if (rcb.rdtsc_st == 0){
@@ -267,7 +267,8 @@ public:
 						//target_dates[dfi]
 						char fbuf[15] = {0,};
 						sprintf_s(fbuf, "%.8f", trailings);
-						fprintf(fo," %s %08d%s",target_date.c_str(),Functional::seq2timestamp((int)valPrint),fbuf+1);
+						int rdtstmp = Functional::seq2timestamp((int)valPrint);
+						fprintf(fo," %s %08d%s",target_date.c_str(),rdtstmp,fbuf+1);
 					}
 				}
 				else{ prtflag = 1; target_var = fmt; }
