@@ -57,5 +57,8 @@
     <None Include="krx_kospi_options.csv">
       <Filter>리소스 파일</Filter>
     </None>
+    <None Include="krx_kospi_options_extractdesc.csv">
+      <Filter>리소스 파일</Filter>
+    </None>
   </ItemGroup>
 </Project>

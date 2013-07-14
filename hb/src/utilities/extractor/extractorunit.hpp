@@ -62,6 +62,8 @@ public:
 	std::vector<std::string> headercodes;
 	std::vector<std::string> headernames;
 	std::map<std::string, std::string> code2header;
+	std::vector<std::vector<std::string> > ref_cols;
+	std::map <std::string, int> ref_header2ind;
 
 	inline void parse_srcfile(){
 		code2header.clear();
@@ -178,9 +180,6 @@ public:
 		output_objectfile();
 	}
 
-	std::vector<std::vector<std::string> > ref_cols;
-	std::map <std::string, int> ref_header2ind;
-
 	struct RdtscConvBase{
 		long long rdtsc_st, diff_rdtsc, prev_rdtsc, prev_timestamp, first_timestamp, d_timestamp;
 		long double filter_ratio, accum_rdtsc, accum_timestamp;
@@ -244,6 +243,7 @@ public:
 					else if ((fmt.substr(1).compare("TIME"))==0){
 						//long long d_timestamp = atoi(tar_varmap["timestamp"].c_str());
 						long long valPrint = 0;
+						double trailings = 0.;
 						if (rcb.d_timestamp ==0){
 							valPrint = 8000000;
 						}
@@ -258,13 +258,16 @@ public:
 								rcb.accum_rdtsc = (rcb.accum_rdtsc * rcb.filter_ratio) + (rd.rt - rcb.rdtsc_st) * (1-rcb.filter_ratio);
 								rcb.accum_timestamp = rcb.accum_timestamp * rcb.filter_ratio + (rcb.d_timestamp - rcb.first_timestamp) * (1-rcb.filter_ratio);
 								valPrint = rcb.first_timestamp + (long long)(rcb.diff_rdtsc * ((long double)rcb.accum_timestamp / rcb.accum_rdtsc));
+								trailings = (rcb.diff_rdtsc * ((long double)rcb.accum_timestamp / rcb.accum_rdtsc)) - (long long)(rcb.diff_rdtsc * ((long double)rcb.accum_timestamp / rcb.accum_rdtsc));
 							}
 							rcb.prev_rdtsc = rcb.rdtsc_st;
 							rcb.prev_timestamp = rcb.d_timestamp;
 							//fprintf(fo,"notime..sorry");
 						}
 						//target_dates[dfi]
-						fprintf(fo," %s %d",target_date.c_str(),Functional::seq2timestamp((int)valPrint));
+						char fbuf[15] = {0,};
+						sprintf_s(fbuf, "%.8f", trailings);
+						fprintf(fo," %s %08d%s",target_date.c_str(),Functional::seq2timestamp((int)valPrint),fbuf+1);
 					}
 				}
 				else{ prtflag = 1; target_var = fmt; }
