@@ -196,8 +196,8 @@ public:
 		FILE *fo;
 		RfmPerCode() : counter(0), fo(NULL), askQty1(0), bidQty1(0), askPrc1(0), bidPrc1(0), dir(0), priceChanged(0), price_var(0) {}
 
-		RfmPerCode(const std::string& krcode, const std::string& target_date, const std::vector<std::vector<std::string> >& ref_cols) : counter(0){
-			std::string outputfile = krcode + "_" + target_date + ".csv";
+		RfmPerCode(const std::string& outputfolder, const std::string& krcode, const std::string& target_date, const std::vector<std::vector<std::string> >& ref_cols) : counter(0){
+			std::string outputfile = outputfolder + krcode + "_" + target_date + ".csv";
 			fopen_s(&fo,outputfile.c_str(),"wt");
 			for (int i=1;i<(int)ref_cols[0].size();++i){
 				if (i>1)
@@ -340,11 +340,11 @@ public:
 
 	struct Rfm{
 
-		void put(const std::string& krcode, std::vector<std::vector<std::string> >& ref_cols, int refidx,
+		void put(const std::string& outputfolder, const std::string& krcode, std::vector<std::vector<std::string> >& ref_cols, int refidx,
 			RawDataReader &rd, const char* msgbuf, const std::string& target_date, const HeaderDesc& hdsc)
 		{
 			if (base.find(krcode) == base.end()){
-				base[krcode] = RfmPerCode(krcode, target_date, ref_cols);
+				base[krcode] = RfmPerCode(outputfolder, krcode, target_date, ref_cols);
 			}
 			base[krcode].print(ref_cols, refidx, rd, msgbuf, target_date, hdsc, rcb);
 		}
@@ -403,7 +403,7 @@ public:
 			else if (_strcmpi(target_krcode.c_str(),krcodebuf)){ // not same
 				continue;
 			}
-			rfm.put(krcodebuf, ref_cols, refidx, rd, msgbuf, target_date, hdsc);
+			rfm.put(outputfolder, krcodebuf, ref_cols, refidx, rd, msgbuf, target_date, hdsc);
 
 		}
 	}
@@ -432,6 +432,7 @@ public:
 	std::string objectfile;
 	// reformatter
 	std::string datafile;
+	std::string outputfolder;
 	std::string outputfile;
 	std::string wanteddescfile;
 	std::string name;

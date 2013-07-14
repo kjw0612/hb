@@ -60,6 +60,22 @@ int main(){
 			else if (word.compare("outputfile")==0){
 				unit.outputfile = wordr;
 			}
+			else if (word.compare("outputfolder")==0){
+				unit.outputfolder = "";
+				while(1){
+					unit.outputfolder += wordr;
+					wordr = "";
+					iss >> wordr;
+					if (wordr.length()==0){
+						break;
+					}
+					unit.outputfolder += " ";
+				}
+				if (unit.outputfolder.back()=='\\');
+				else{
+					unit.outputfolder += '\\';
+				}
+			}
 			else if (word.compare("wanteddesc")==0){
 				unit.wanteddescfile = wordr;
 			}
