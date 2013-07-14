@@ -20,7 +20,12 @@ int main(){
 			break;
 		}
 		else if (word.compare("do")==0){
-			unit.proceed();
+			try{
+				unit.proceed();
+			}
+			catch(const std::exception& e){
+				std::cerr << e.what() << std::endl;
+			}
 		}
 		else{
 			iss >> delim >> wordr;
