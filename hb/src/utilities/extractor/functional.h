@@ -44,6 +44,16 @@ public:
 		return sqa - sqb;
 	}
 
+	inline static std::vector<long long> makegrid_ll(long long a, long long b, int nTimes){
+		std::vector<long long> grid(nTimes);
+		long long seq_i = 0;
+		long long diff = (b-a);
+		for (int i=0;i<nTimes;++i){
+			grid[i] = a + ((long long)diff * (i)) / (nTimes-1);
+		}
+		return grid;
+	}
+
 	inline static std::vector<int> makegrid(int timestamp_st, int timestamp_end, int nTimes){
 		std::vector<int> grid(nTimes);
 		int seq_st = Functional::timestamp2seq(timestamp_st);

@@ -68,6 +68,34 @@ public:
 	}
 };
 
+inline std::vector<Brick *> bricks2Grid
+	(const std::vector<Brick *>& bricks, int mintime, int maxtime, int nTimes)
+{
+	std::vector<Brick *> ret;
+	std::vector<int> grids = Functional::makegrid(mintime, maxtime, nTimes);
+	for (int i=0;i<(int)grids.size();++i){
+		Brick key;
+		key.pi.timestamp = grids[i];
+		ret.push_back(*std::lower_bound(bricks.begin(),bricks.end(),&key,Functional::ptr_comp<Brick>));
+	}
+	return ret;
+}
+
+inline std::vector<Brick *> bricks2GridRdtsc
+	(const std::vector<Brick *>& bricks, long long mintime_rdtsc, long long maxtime_rdtsc, int nTimes)
+{
+	std::vector<Brick *> ret;
+	std::vector<long long> grids = Functional::makegrid_ll(mintime_rdtsc, maxtime_rdtsc, nTimes);
+	for (int i=0;i<(int)grids.size();++i){
+		Brick key;
+		key.pi.rdtscStamp = grids[i];
+		ret.push_back(*std::lower_bound(bricks.begin(),bricks.end(),&key,&Brick::rdtscCompPtr));
+	}
+	return ret;
+}
+
+
+
 inline std::pair<std::vector<int>, std::vector<double> > bricks2MidPriceGrid
 	(const std::vector<Brick *>& bricks, int mintime, int maxtime, int nTimes, Brick::GetDataType dataType = Brick::MidPrice)
 {

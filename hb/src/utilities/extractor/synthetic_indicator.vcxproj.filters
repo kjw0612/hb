@@ -24,6 +24,12 @@
     <ClCompile Include="include_tester.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="winmain.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="suites.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="datawindow.h">
@@ -73,6 +79,9 @@
     </ClInclude>
     <ClInclude Include="statistics.h">
       <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="suites.h">
+      <Filter>소스 파일</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

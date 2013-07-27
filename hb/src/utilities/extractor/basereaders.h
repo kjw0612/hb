@@ -148,6 +148,10 @@ struct Brick{
 		return lhs.pi.rdtscStamp < rhs.pi.rdtscStamp;
 	}
 
+	static bool rdtscCompPtr(const Brick* lhs, const Brick* rhs) {
+		return lhs->pi.rdtscStamp < rhs->pi.rdtscStamp;
+	}
+
 	double getValue(GetDataType dm) const {
 		switch(dm){
 			case MidPrice:

@@ -7,24 +7,6 @@
 #include <gdiplus.h>
 #pragma comment(lib, "gdiplus")
 
-inline long __stdcall WindowProcedure( HWND window, unsigned int msg, WPARAM wp, LPARAM lp )
-{
-    switch(msg)
-    {
-        case WM_DESTROY:
-            std::cout << "\ndestroying window\n" ;
-            PostQuitMessage(0) ;
-            return 0L ;
-        case WM_LBUTTONDOWN:
-            std::cout << "\nmouse left button down at (" << LOWORD(lp)
-                      << ',' << HIWORD(lp) << ")\n" ;
-            // fall thru
-        default:
-            std::cout << '.' ;
-            return DefWindowProc( window, msg, wp, lp ) ;
-    }
-}
-
 inline std::wstring 
 mbs_to_wcs(std::string const& str, std::locale const& loc = std::locale())
 {
@@ -60,14 +42,44 @@ using namespace Gdiplus;
 class MFCWidget : public Painter
 	//: public DummyPainter
 {
+	static long __stdcall internal_WindowProcedure( HWND hWnd, unsigned int msg, WPARAM wp, LPARAM lp )
+	{
+		MFCWidget *c = (MFCWidget *)GetWindowLong(hWnd, GWLP_USERDATA);
+		if (c==NULL)
+			return DefWindowProc(hWnd, msg, wp, lp);
+		return c->WindowProcedure(hWnd, msg, wp, lp);
+	}
+
 public:
+	long __stdcall WindowProcedure( HWND window, unsigned int msg, WPARAM wp, LPARAM lp )
+	{
+		switch(msg)
+		{
+			case WM_DESTROY:
+				std::cout << "\ndestroying window\n" ;
+				PostQuitMessage(0) ;
+				return 0L ;
+			case WM_PAINT:
+				this->draw();
+				return 0;
+			case WM_LBUTTONDOWN:
+				std::cout << "\nmouse left button down at (" << LOWORD(lp)
+						  << ',' << HIWORD(lp) << ")\n" ;
+				// fall thru
+			default:
+				std::cout << '.' ;
+				return DefWindowProc( window, msg, wp, lp ) ;
+		}
+	}
+
+
 	MFCWidget(const std::string& windowname = "Default Window") : width(800), height(600) {
 		GdiplusStartupInput gdiplusStartupInput;
 		ULONG_PTR           gdiplusToken;
 		// Initialize GDI+.
 		GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 		const char g_szClassName[] = "myWindowClass";
-		WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_DBLCLKS, WindowProcedure,
+		WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_DBLCLKS, internal_WindowProcedure,
 			0, 0, GetModuleHandle(0), LoadIcon(0,IDI_APPLICATION),
 			LoadCursor(0,IDC_ARROW), HBRUSH(COLOR_WINDOW+1),
 			0, g_szClassName, LoadIcon(0,IDI_APPLICATION) } ;		
@@ -92,6 +104,8 @@ public:
 		current_pen = new Gdiplus::Pen(Gdiplus::Color(255, 0, 0, 255));
 		current_brush = new Gdiplus::SolidBrush(Gdiplus::Color(255, 0, 0, 255));
 		font = new Font(L"Consolas", 12, FontStyleRegular, UnitPixel);
+		
+		SetWindowLong(hwnd, GWLP_USERDATA, (long)this);
 	}
 	~MFCWidget(){
 		delete graphics;
@@ -173,6 +187,8 @@ public:
 	void SetStyle (const PStyle &inStyle){
 		 // sleepy..
 	}
+	virtual void draw() {}
+
 	int width, height;
 	Gdiplus::Graphics *graphics;
 	Gdiplus::Pen *current_pen;
@@ -185,7 +201,8 @@ public:
 class Plotter : public MFCWidget
 {
 public:
-	Plotter(const std::string& windowname = "Default Window") : windowname(windowname), colorSeed(42), MFCWidget(windowname) {}
+	Plotter(const std::string& windowname = "Default Window")
+		: windowname(windowname), colorSeed(42), MFCWidget(windowname) {}
 	int colorSeed;
 	const std::string windowname;
 
@@ -249,10 +266,10 @@ public:
 	}
 
 	void refreshForever(){
-		
+		//draw();
+		draw();
 		MSG msg;
 		while( GetMessage( &msg, 0, 0, 0 ) ){
-			draw();
 			DispatchMessage(&msg) ;
 		}
 	}
