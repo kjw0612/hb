@@ -3,7 +3,7 @@
 #include "suites.h"
 
 int main(){
-	suite1_plot();
+	//suite1_plot();
 	//suite2_plot(2);
 	//suite3_prereport();
 	//suite4_report_momentum();

@@ -7,6 +7,7 @@
 #include "hashergenerator.hpp"
 #include "rawdatareader.hpp"
 #include "functional.h"
+#include "date.hpp"
 
 struct HeaderDesc{
 	std::string classname;
@@ -352,7 +353,10 @@ public:
 		RdtscConvBase rcb;
 	};
 
-	inline void input_datafiles_output_reformatfile(){
+	//(d_target_date, d_datafile, d_outputfolder);
+	inline void input_datafiles_output_reformatfile
+		(const std::string& target_date, const std::string& datafile, const std::string& outputfolder){
+
 		ref_cols.clear();
 		ref_header2ind.clear();
 		{
@@ -408,9 +412,41 @@ public:
 		}
 	}
 
+	inline std::string findreplace(const std::string& a_str, const std::string& from, const std::string& to){
+		std::string str = a_str;
+		std::string keystr = from;
+		size_t f = str.find(from);
+		str.replace(f, from.length(), to);
+		return str;
+	}
+
 	inline void reformat_datafiles(){
+		std::vector<std::string> target_dates;
+		if (target_date!=""){
+			target_dates.push_back(target_date);
+		}
+		else{
+			for (Date it_d = target_date_from; it_d != target_date_to+1; it_d = it_d+1){
+				target_dates.push_back(it_d.str());
+			}
+		}
+		std::string d_datafile_pre;
+		if (datafile!=""){
+			d_datafile_pre = datafile;
+		}
+		else{
+			if (*datapath.end()!='\\')
+				datapath = datapath + "\\";
+			d_datafile_pre = datapath+target_datafile;
+		}
 		parse_srcfile();
-		input_datafiles_output_reformatfile();
+		for (int i=0;i<(int)target_dates.size();++i){
+			std::string d_target_date = target_dates[i];
+			std::string d_datafile = findreplace(d_datafile_pre,"[$DATE]",d_target_date);
+			std::string d_outputfolder = findreplace(outputfolder,"[$DATE]",d_target_date);
+			system(("mkdir " + d_outputfolder).c_str());
+			input_datafiles_output_reformatfile(d_target_date, d_datafile, d_outputfolder);
+		}
 	}
 
 	inline void proceed(){
@@ -438,6 +474,12 @@ public:
 	std::string name;
 	std::string target_krcode;
 	std::string target_date;
+
+	//automation
+	std::string datapath;
+	std::string target_date_from;
+	std::string target_date_to;
+	std::string target_datafile;
 };
 
 #endif // extractorunit_h__
