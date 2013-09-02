@@ -33,9 +33,15 @@
     <ClInclude Include="krx_kospi_options.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="date.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="extractor.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="date.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

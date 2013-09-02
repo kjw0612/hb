@@ -93,7 +93,7 @@ int main(){
 			else if (word.compare("outputfolder")==0){
 				unit.outputfolder = "";
 				unit.outputfolder = get1row(iss, wordr);
-				if (*unit.outputfolder.end()=='\\');
+				if (unit.outputfolder[(int)unit.outputfolder.size()-1]=='\\');
 				else{
 					unit.outputfolder += '\\';
 				}

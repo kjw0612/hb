@@ -26,7 +26,7 @@ public:
 		year(old.year) { }
 	const std::string str() const{
 		char ret[9] = "";
-		sprintf_s(ret,8,"%04d%02d%02d",year,month,day);
+		sprintf_s(ret,9,"%04d%02d%02d",year,month,day);
 		return ret;
 	}
 	//  mutators

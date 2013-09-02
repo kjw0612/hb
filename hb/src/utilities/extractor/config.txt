@@ -3,9 +3,10 @@ src = krx_kospi_futures.csv
 wanteddesc = krx_kospi_futures_extractdesc.csv
 outputfolder = D:\SEOUL_EX\[$DATE]
 datapath = D:\SEOUL\[$DATE]
-target_date_from = 20130801
+target_date_from = 20130804
 target_date_to = 20130830
 target_datafile = F171_15572
+target_krcode = *
 do
 
 mode = reformat

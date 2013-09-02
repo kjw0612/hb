@@ -88,6 +88,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="csvparser.hpp" />
+    <ClInclude Include="date.hpp" />
     <ClInclude Include="extractorunit.hpp" />
     <ClInclude Include="hashergenerator.hpp" />
     <ClInclude Include="rawdatareader.hpp" />
@@ -95,6 +96,7 @@
     <ClInclude Include="krx_kospi_options.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="date.cpp" />
     <ClCompile Include="extractor.cpp" />
   </ItemGroup>
   <ItemGroup>

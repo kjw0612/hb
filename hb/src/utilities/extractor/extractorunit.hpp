@@ -435,7 +435,7 @@ public:
 			d_datafile_pre = datafile;
 		}
 		else{
-			if (*datapath.end()!='\\')
+			if (datapath[(int)datapath.size()-1]!='\\')
 				datapath = datapath + "\\";
 			d_datafile_pre = datapath+target_datafile;
 		}
