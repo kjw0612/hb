@@ -9,6 +9,31 @@
 #include "functional.h"
 #include "date.hpp"
 
+#undef UNICODE
+#include <Windows.h>
+
+inline std::vector<std::string> filenames(const std::string& dirpath){
+	std::vector<std::string> ret;
+	WIN32_FIND_DATA search_data;
+	memset(&search_data, 0, sizeof(WIN32_FIND_DATA));
+	HANDLE handle = FindFirstFile(dirpath.c_str(), &search_data);
+	while(handle != INVALID_HANDLE_VALUE)
+	{
+		ret.push_back(search_data.cFileName);
+		if(FindNextFile(handle, &search_data) == FALSE)
+			break;
+	}
+	//Close the handle after use or memory/resource leak
+	FindClose(handle);
+	return ret;
+}
+
+inline void check_and_create_directory(const std::string& dirpath){
+	std::vector<std::string> files = filenames(dirpath + "*");
+	if (files.size()==0)
+		system(("mkdir " + dirpath).c_str());
+}
+
 struct HeaderDesc{
 	std::string classname;
 	std::map<std::string, int> colnameindmap;
@@ -56,6 +81,7 @@ public:
 		headergenerate,
 		headergenerateorder,
 		reformat,
+		reconfigure,
 	};
 
 	std::vector<HeaderDesc> hds;
@@ -420,6 +446,77 @@ public:
 		return str;
 	}
 
+	inline void reconfigure_file(const std::string& fromfile, const std::string& tofile){
+		CsvParser csvp(fromfile);
+		csvp.getline();
+		std::vector<std::string> header = csvp.line;
+		int ti;
+		std::vector<int> is;
+		FILE *fo = NULL;
+		fopen_s(&fo, tofile.c_str(), "wt");
+		for (int i=0;i<(int)header.size();++i){
+			if (!strcmpi(header[i].c_str(),"type")){
+				ti = i;
+			}
+			else if (!strcmpi(header[i].c_str(),"arrivaltime") || !strcmpi(header[i].c_str(),"price") || !strcmpi(header[i].c_str(),"vol") || !strcmpi(header[i].c_str(),"direction")
+				|| !strcmpi(header[i].c_str()," bidPrc1") || !strcmpi(header[i].c_str(),"bidQty1") || !strcmpi(header[i].c_str()," AskPrc1") || !strcmpi(header[i].c_str(),"AskQty1"))
+			{
+				fprintf(fo,"%s,",header[i].c_str());
+				is.push_back(i);
+			}
+		}
+		fprintf(fo,"\n");
+		while(csvp.getline()){
+			std::vector<std::string> content = csvp.line;
+			if (!strcmpi(content[ti].c_str(),"T") || !strcmpi(content[ti].c_str(),"TBA") ){
+				for (int i=0;i<(int)is.size();++i){
+					fprintf(fo,"%s,",content[is[i]].c_str());
+				}
+				fprintf(fo,"\n");
+			}
+		}
+		fclose(fo);
+	}
+
+	inline void reconfigure_files(){
+		std::vector<std::string> target_dates;
+		if (target_date!=""){
+			target_dates.push_back(target_date);
+		}
+		else{
+			for (Date it_d = target_date_from; it_d != target_date_to+1; it_d = it_d+1){
+				target_dates.push_back(it_d.str());
+			}
+		}
+		std::string d_datafile_pre;
+		if (datafile!=""){
+			d_datafile_pre = datafile;
+		}
+		else{
+			if (datapath[(int)datapath.size()-1]!='\\')
+				datapath = datapath + "\\";
+			d_datafile_pre = datapath+target_datafile;
+		}
+		for (int i=0;i<(int)target_dates.size();++i){
+			std::string d_target_date = target_dates[i];
+			std::string d_datapath = findreplace(d_datafile_pre,"[$DATE]",d_target_date);
+			std::string d_dirpath = findreplace(datapath,"[$DATE]",d_target_date);
+			std::string d_outputfolder = findreplace(outputfolder,"[$DATE]",d_target_date);
+
+			std::vector<std::string> datafiles = filenames(d_datapath);
+			for (int i=0;i<(int)datafiles.size();++i){
+				if (datafiles[i][0]!='.'){
+					//printf("%s\n",datafiles[i].c_str());
+					std::string fromfile = d_dirpath + datafiles[i];
+					std::string tofile = d_outputfolder + datafiles[i];
+					//printf("[%s] -> [%s]\n",fromfile.c_str(),tofile.c_str());
+					check_and_create_directory(d_outputfolder);
+					reconfigure_file(fromfile, tofile);
+				}
+			}
+		}
+	}
+
 	inline void reformat_datafiles(){
 		std::vector<std::string> target_dates;
 		if (target_date!=""){
@@ -444,7 +541,7 @@ public:
 			std::string d_target_date = target_dates[i];
 			std::string d_datafile = findreplace(d_datafile_pre,"[$DATE]",d_target_date);
 			std::string d_outputfolder = findreplace(outputfolder,"[$DATE]",d_target_date);
-			system(("mkdir " + d_outputfolder).c_str());
+			check_and_create_directory(d_outputfolder);
 			input_datafiles_output_reformatfile(d_target_date, d_datafile, d_outputfolder);
 		}
 	}
@@ -455,6 +552,9 @@ public:
 		}
 		else if (type == headergenerateorder){
 			generate_order_header();
+		}
+		else if (type == reconfigure){
+			reconfigure_files();
 		}
 		else{
 			reformat_datafiles();

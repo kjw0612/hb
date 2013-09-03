@@ -52,6 +52,8 @@ int main(){
 					unit.type = ExtractorUnit::headergenerate; }
 				else if (wordr.compare("headergenerateorder")==0){
 					unit.type = ExtractorUnit::headergenerateorder; }
+				else if (wordr.compare("reconfigure")==0){
+					unit.type = ExtractorUnit::reconfigure; }
 				else{
 					unit.type = ExtractorUnit::reformat;}
 			}
