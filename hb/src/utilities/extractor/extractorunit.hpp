@@ -468,6 +468,17 @@ public:
 		std::vector<int> is;
 		FILE *fo = NULL;
 		fopen_s(&fo, tofile.c_str(), "wt");
+		
+		/*
+		else if (fmt.substr(1).compare("b_s_ba_aa_bc_ac_bdir_adir")==0){
+			bool is_buy, is_sell, is_bidcancel, is_askcancel, is_bidmoved, is_askmoved;
+			is_buy= is_sell= is_bidcancel= is_askcancel= is_bidmoved= is_askmoved= false;
+			if (hdsc.classname.compare("KrxFuturesTrade")==0){ // T
+				if (dir==1) is_askmoved = true;
+				else is_bidmoved = true;
+			}
+		}*/
+
 		for (int i=0;i<(int)header.size();++i){
 			if (!strcmpi(header[i].c_str(),"type")){
 				ti = i;
