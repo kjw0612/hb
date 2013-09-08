@@ -24,9 +24,6 @@
     <ClCompile Include="include_tester.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="winmain.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="suites.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>

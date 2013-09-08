@@ -1,3 +1,14 @@
+mode = reformat
+src = krx_kospi_futures.csv
+wanteddesc = krx_kospi_futures_extractdesc.csv
+outputfolder = F:\output\
+target_date = 20130318
+datafile = C:\Users\koval\Documents\Visual Studio 2012\Projects\extractor\data\F171_15572
+target_krcode = *
+do
+end
+
+
 mode = reconfigure
 datapath = D:\SEOUL_EX\[$DATE]
 outputfolder = D:\SEOUL_EX_T\[$DATE]

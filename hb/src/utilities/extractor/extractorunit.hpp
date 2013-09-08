@@ -209,10 +209,14 @@ public:
 
 	struct RdtscConvBase{
 		long long rdtsc_st, diff_rdtsc, prev_rdtsc, prev_timestamp, first_timestamp, d_timestamp;
+		long double est_rdtstmp, prev_max_est_rdtsmp;
 		long double filter_ratio, accum_rdtsc, accum_timestamp;
+		long long nSamples;
 		RdtscConvBase(){
 			rdtsc_st = 0, diff_rdtsc = 0, prev_rdtsc = 0, prev_timestamp = 0, first_timestamp = 0, d_timestamp = 0;
-			filter_ratio = 0.95;
+			est_rdtstmp = prev_max_est_rdtsmp = 0;
+			filter_ratio = 0;
+			nSamples = 0;
 			accum_rdtsc = 0, accum_timestamp = 0;
 		}
 	};
@@ -284,8 +288,14 @@ public:
 								rcb.diff_rdtsc = rd.rt - rcb.rdtsc_st;
 								rcb.accum_rdtsc = (rcb.accum_rdtsc * rcb.filter_ratio) + (rd.rt - rcb.rdtsc_st) * (1-rcb.filter_ratio);
 								rcb.accum_timestamp = rcb.accum_timestamp * rcb.filter_ratio + (rcb.d_timestamp - rcb.first_timestamp) * (1-rcb.filter_ratio);
-								valPrint = rcb.first_timestamp + (long long)(rcb.diff_rdtsc * ((long double)rcb.accum_timestamp / rcb.accum_rdtsc));
-								trailings = (rcb.diff_rdtsc * ((long double)rcb.accum_timestamp / rcb.accum_rdtsc)) - (long long)(rcb.diff_rdtsc * ((long double)rcb.accum_timestamp / rcb.accum_rdtsc));
+								rcb.filter_ratio = (long double)rcb.nSamples / (1 + rcb.nSamples);
+								++rcb.nSamples;
+								rcb.est_rdtstmp = (long double)rcb.accum_timestamp / rcb.accum_rdtsc * rcb.diff_rdtsc;
+								if (rcb.est_rdtstmp < rcb.prev_max_est_rdtsmp+1e-6)
+									rcb.est_rdtstmp = rcb.prev_max_est_rdtsmp+1e-6;
+								long double est_rdtstmp = rcb.est_rdtstmp;
+								valPrint = rcb.first_timestamp + (long long)(est_rdtstmp);
+								trailings = (est_rdtstmp) - (long long)(est_rdtstmp);
 							}
 							rcb.prev_rdtsc = rcb.rdtsc_st;
 							rcb.prev_timestamp = rcb.d_timestamp;
@@ -296,6 +306,8 @@ public:
 						sprintf_s(fbuf, "%.8f", trailings);
 						int rdtstmp = Functional::seq2timestamp((int)valPrint);
 						fprintf(fo," %s %08d%s",target_date.c_str(),rdtstmp,fbuf+1);
+						if (rcb.prev_max_est_rdtsmp < rcb.est_rdtstmp)
+							rcb.prev_max_est_rdtsmp = rcb.est_rdtstmp;
 					}
 				}
 				else{ prtflag = 1; target_var = fmt; }
@@ -442,6 +454,8 @@ public:
 		std::string str = a_str;
 		std::string keystr = from;
 		size_t f = str.find(from);
+		if (f==-1)
+			return str;
 		str.replace(f, from.length(), to);
 		return str;
 	}
