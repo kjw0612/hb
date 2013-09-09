@@ -460,6 +460,11 @@ public:
 		return str;
 	}
 
+	struct ObSig{
+		std::string type;
+		int dir, bidqty, askqty;
+	};
+
 	inline void reconfigure_file(const std::string& fromfile, const std::string& tofile){
 		CsvParser csvp(fromfile);
 		csvp.getline();
@@ -468,16 +473,8 @@ public:
 		std::vector<int> is;
 		FILE *fo = NULL;
 		fopen_s(&fo, tofile.c_str(), "wt");
-		
-		/*
-		else if (fmt.substr(1).compare("b_s_ba_aa_bc_ac_bdir_adir")==0){
-			bool is_buy, is_sell, is_bidcancel, is_askcancel, is_bidmoved, is_askmoved;
-			is_buy= is_sell= is_bidcancel= is_askcancel= is_bidmoved= is_askmoved= false;
-			if (hdsc.classname.compare("KrxFuturesTrade")==0){ // T
-				if (dir==1) is_askmoved = true;
-				else is_bidmoved = true;
-			}
-		}*/
+
+		int idir = 0, ibqty = 0, iaqty = 0;
 
 		for (int i=0;i<(int)header.size();++i){
 			if (!strcmpi(header[i].c_str(),"type")){
@@ -489,16 +486,51 @@ public:
 				fprintf(fo,"%s,",header[i].c_str());
 				is.push_back(i);
 			}
+			if (!strcmpi(header[i].c_str(),"direction")){
+				idir = i;
+			}
+			if (!strcmpi(header[i].c_str(),"bidQty1")){
+				ibqty = i;
+			}
+			if (!strcmpi(header[i].c_str(),"askQty1")){
+				iaqty = i;
+			}
 		}
+		ObSig oldsig, sig;
+		fprintf(fo,"b_s_ba_aa_bc_ac_bdir_adir,");
+
 		fprintf(fo,"\n");
 		while(csvp.getline()){
 			std::vector<std::string> content = csvp.line;
-			if (!strcmpi(content[ti].c_str(),"T") || !strcmpi(content[ti].c_str(),"TBA") ){
-				for (int i=0;i<(int)is.size();++i){
-					fprintf(fo,"%s,",content[is[i]].c_str());
-				}
-				fprintf(fo,"\n");
+			//if (!strcmpi(content[ti].c_str(),"T") || !strcmpi(content[ti].c_str(),"TBA") ){
+			for (int i=0;i<(int)is.size();++i){
+				fprintf(fo,"%s,",content[is[i]].c_str());
 			}
+			//}
+
+			bool is_buy, is_sell, is_askadded, is_bidadded, is_bidcancelled, is_askcancelled, is_bidmoved, is_askmoved;
+			is_buy=is_sell=is_askadded=is_bidadded=is_bidcancelled=is_askcancelled=is_bidmoved=is_askmoved=false;
+
+			sig.type = content[ti];
+			sig.dir = atoi(content[idir].c_str());
+			sig.askqty = atoi(content[iaqty].c_str());
+			sig.bidqty = atoi(content[ibqty].c_str());
+			if (!strcmpi(sig.type.c_str(),"BA") && !strcmpi(oldsig.type.c_str(),"BA")){
+				if (sig.askqty > oldsig.askqty) is_askadded = true;
+				if (sig.bidqty > oldsig.bidqty) is_bidadded = true;
+				if (sig.askqty < oldsig.askqty) is_askcancelled = true;
+				if (sig.bidqty < oldsig.bidqty) is_bidcancelled = true;
+			}
+			if (sig.dir==1) is_buy = true;
+			if (sig.dir==-1) is_sell = true;
+			if (!strcmpi(sig.type.c_str(),"T")){
+				if (sig.dir==1) is_bidmoved = true;
+				else is_askmoved = true;
+			}
+			oldsig = sig;
+
+			fprintf(fo,"%d%d%d%d%d%d%d%d,",is_buy, is_sell, is_askadded, is_bidadded, is_bidcancelled, is_askcancelled, is_bidmoved, is_askmoved);
+			fprintf(fo,"\n");
 		}
 		fclose(fo);
 	}
