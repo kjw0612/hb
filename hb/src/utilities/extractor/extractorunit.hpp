@@ -503,10 +503,7 @@ public:
 		while(csvp.getline()){
 			std::vector<std::string> content = csvp.line;
 			//if (!strcmpi(content[ti].c_str(),"T") || !strcmpi(content[ti].c_str(),"TBA") ){
-			for (int i=0;i<(int)is.size();++i){
-				fprintf(fo,"%s,",content[is[i]].c_str());
-			}
-			//}
+
 
 			bool is_buy, is_sell, is_askadded, is_bidadded, is_bidcancelled, is_askcancelled, is_bidmoved, is_askmoved;
 			is_buy=is_sell=is_askadded=is_bidadded=is_bidcancelled=is_askcancelled=is_bidmoved=is_askmoved=false;
@@ -529,8 +526,17 @@ public:
 			}
 			oldsig = sig;
 
-			fprintf(fo,"%d%d%d%d%d%d%d%d,",is_buy, is_sell, is_askadded, is_bidadded, is_bidcancelled, is_askcancelled, is_bidmoved, is_askmoved);
-			fprintf(fo,"\n");
+			if (is_buy || is_sell || is_askadded || is_bidadded || is_bidcancelled || is_askcancelled || is_bidmoved || is_askmoved){
+
+				char prt[21] = "";
+				sprintf_s(prt,20,"%d%d%d%d%d%d%d%d_,",is_buy, is_sell, is_askadded, is_bidadded, is_bidcancelled, is_askcancelled, is_bidmoved, is_askmoved);
+
+				for (int i=0;i<(int)is.size();++i){
+					fprintf(fo,"%s,",content[is[i]].c_str());
+				}
+				fprintf(fo,"%s",prt);
+				fprintf(fo,"\n");
+			}
 		}
 		fclose(fo);
 	}
