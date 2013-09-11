@@ -12,6 +12,30 @@
 #undef UNICODE
 #include <Windows.h>
 
+const std::string whiteSpaces( " \f\n\r\t\v" );
+
+inline void trimRight( std::string& str,
+			   const std::string& trimChars = whiteSpaces )
+{
+	std::string::size_type pos = str.find_last_not_of( trimChars );
+	str.erase( pos + 1 );    
+}
+
+
+inline void trimLeft( std::string& str,
+			  const std::string& trimChars = whiteSpaces )
+{
+	std::string::size_type pos = str.find_first_not_of( trimChars );
+	str.erase( 0, pos );
+}
+
+
+inline void trim( std::string& str, const std::string& trimChars = whiteSpaces )
+{
+	trimRight( str, trimChars );
+	trimLeft( str, trimChars );
+}
+
 inline std::vector<std::string> filenames(const std::string& dirpath){
 	std::vector<std::string> ret;
 	WIN32_FIND_DATA search_data;
@@ -329,30 +353,44 @@ public:
 					}
 					int intval = atoi(ending_buf);
 					if (intval != 0){
-						if (!_strcmpi(ref_cols[0][i].c_str(),"price")){
-							if (price_var > intval) dir = -1;
-							else if (price_var < intval) dir = 1;
+						std::string key = ref_cols[0][i];
+						trim(key);
+						if (!_strcmpi(key.c_str(),"price")){
+							/* old askqty1*/
+							/* old bidqty1*/
+							if (askPrc1 == intval){
+								dir = 1;
+								askPrc1 += 5;
+							}
+							else if (bidPrc1 == intval){
+								dir = -1;
+								bidPrc1 -= 5;
+							}
+							else{
+								if (price_var > intval) dir = -1;
+								else if (price_var < intval) dir = 1;
+							}
 							price_var = intval;
 						}
-						else if (!_strcmpi(ref_cols[0][i].c_str(),"bidPrc1")){
+						else if (!_strcmpi(key.c_str(),"bidPrc1")){
 							if (bidPrc1 < intval) dir = 1;
 							else if (bidPrc1 > intval) dir = -1;
 							if (bidPrc1 != intval) priceChanged = 1;
 							bidPrc1 = intval;
 						}
-						else if (!_strcmpi(ref_cols[0][i].c_str(),"askPrc1")){
+						else if (!_strcmpi(key.c_str(),"askPrc1")){
 							if (askPrc1 < intval) dir = 1;
 							else if (askPrc1 > intval) dir = -1;
 							if (bidPrc1 != intval) priceChanged = 1;
 							askPrc1 = intval;
 						}
-						else if (!_strcmpi(ref_cols[0][i].c_str(),"bidQty1")){
+						else if (!_strcmpi(key.c_str(),"bidQty1")){
 							if (!priceChanged && bidQty1 > intval){ // buy
 								dir = -1;
 							}
 							bidQty1 = intval;
 						}
-						else if (!_strcmpi(ref_cols[0][i].c_str(),"askQty1")){
+						else if (!_strcmpi(key.c_str(),"askQty1")){
 							if (!priceChanged && askQty1 > intval){ // sell
 								dir = 1;
 							}
@@ -402,7 +440,8 @@ public:
 			while(descin.getline()){
 				std::vector<std::string> col;
 				while(!descin.empty()){
-					col.push_back(descin.getstr());
+					std::string inp = descin.getstr();
+					col.push_back(inp);
 				}
 				ref_header2ind[col[0]] = ref_cols.size();
 				ref_cols.push_back(col);
@@ -461,9 +500,14 @@ public:
 	}
 
 	struct ObSig{
+		ObSig() : type(), dir(0), bidqty1(0), askqty1(0), bidprc1(0), askprc1(0) {}
 		std::string type;
-		int dir, bidqty, askqty;
+		int dir, bidqty1, askqty1, bidprc1, askprc1;
 	};
+
+	template <typename T> int sign(T val) {
+		return (T(0) < val) - (val < T(0));
+	}
 
 	inline void reconfigure_file(const std::string& fromfile, const std::string& tofile){
 		CsvParser csvp(fromfile);
@@ -474,7 +518,8 @@ public:
 		FILE *fo = NULL;
 		fopen_s(&fo, tofile.c_str(), "wt");
 
-		int idir = 0, ibqty = 0, iaqty = 0;
+		int idir, ibqty1, iaqty1, ibprc1, iaprc1, ivol;
+		ivol = idir = ibqty1 = iaqty1 = ibprc1 = iaprc1 = 0;
 
 		for (int i=0;i<(int)header.size();++i){
 			if (!strcmpi(header[i].c_str(),"type")){
@@ -486,55 +531,85 @@ public:
 				fprintf(fo,"%s,",header[i].c_str());
 				is.push_back(i);
 			}
-			if (!strcmpi(header[i].c_str(),"direction")){
-				idir = i;
-			}
-			if (!strcmpi(header[i].c_str(),"bidQty1")){
-				ibqty = i;
-			}
-			if (!strcmpi(header[i].c_str(),"askQty1")){
-				iaqty = i;
-			}
+			if (!strcmpi(header[i].c_str(),"direction")) idir = i;
+			if (!strcmpi(header[i].c_str(),"vol")) ivol = i;
+			if (!strcmpi(header[i].c_str(),"bidQty1")) ibqty1 = i;
+			if (!strcmpi(header[i].c_str(),"askQty1")) iaqty1 = i;
+			if (!strcmpi(header[i].c_str()," bidPrc1")) ibprc1 = i;
+			if (!strcmpi(header[i].c_str()," askPrc1")) iaprc1 = i;
 		}
 		ObSig oldsig, sig;
-		fprintf(fo,"b_s_ba_aa_bc_ac_bdir_adir,");
+		fprintf(fo,"is_sell,is_buy,is_bidinsertion,is_askinsertion,is_bidcancelled,is_askcancelled,dir_bidmoved,dir_askmoved,");
 
 		fprintf(fo,"\n");
 		while(csvp.getline()){
 			std::vector<std::string> content = csvp.line;
 			//if (!strcmpi(content[ti].c_str(),"T") || !strcmpi(content[ti].c_str(),"TBA") ){
 
-
-			bool is_buy, is_sell, is_askadded, is_bidadded, is_bidcancelled, is_askcancelled, is_bidmoved, is_askmoved;
-			is_buy=is_sell=is_askadded=is_bidadded=is_bidcancelled=is_askcancelled=is_bidmoved=is_askmoved=false;
+			int dirtraded;
+			int askqtydelta1, bidqtydelta1;
+			int dirbidmoved, diraskmoved;
+			dirtraded = askqtydelta1 = bidqtydelta1 = dirbidmoved = diraskmoved = 0;
 
 			sig.type = content[ti];
 			sig.dir = atoi(content[idir].c_str());
-			sig.askqty = atoi(content[iaqty].c_str());
-			sig.bidqty = atoi(content[ibqty].c_str());
-			if (!strcmpi(sig.type.c_str(),"BA") && !strcmpi(oldsig.type.c_str(),"BA")){
-				if (sig.askqty > oldsig.askqty) is_askadded = true;
-				if (sig.bidqty > oldsig.bidqty) is_bidadded = true;
-				if (sig.askqty < oldsig.askqty) is_askcancelled = true;
-				if (sig.bidqty < oldsig.bidqty) is_bidcancelled = true;
+			sig.askqty1 = atoi(content[iaqty1].c_str()); sig.askprc1 = atoi(content[iaprc1].c_str());
+			sig.bidqty1 = atoi(content[ibqty1].c_str()); sig.bidprc1 = atoi(content[ibprc1].c_str());
+			int qtytraded = atoi(content[ivol].c_str());
+
+			dirtraded = sig.dir;
+			if (!strcmpi(sig.type.c_str(),"BA") || !strcmpi(sig.type.c_str(),"TBA")){
+				// BA나 TBA일 때에.. ask 또는 bid 1호가 가격이 바뀐 경우 각각의 direction을 계산 가능하다.
+				diraskmoved = sign(sig.askprc1 - oldsig.askprc1);
+				dirbidmoved = sign(sig.bidprc1 - oldsig.bidprc1);
+				// askqty1 이 -1이라는 것은 T로 한 가격 밀린 호가의 qty는 알 수 없다는(알 필요 없다는) 의미이다.
+				// 이 부분에서 insertion, deletion 일어날 수 없기 때문.
+				// ask1이 움직이지 않은 상태라면 insertion, deletion delta를 계산 가능하다.
+				if (oldsig.askqty1 != -1 && !diraskmoved){
+					// askqtydelta1은 ask 1호가의 insertion, deletion volume을 의미한다.
+					askqtydelta1 = sig.askqty1 - oldsig.askqty1;
+					// 체결된 수량만큼 insertion, deletion 델타에서 제외한다.
+					if (sig.dir>0) askqtydelta1 += qtytraded;
+				}
+				// bid part도 마찬가지로 한다.
+				if (oldsig.bidqty1 != -1 && !dirbidmoved){
+					bidqtydelta1 = sig.bidqty1 - oldsig.bidqty1;
+					if (sig.dir<0) bidqtydelta1 += qtytraded;
+				}
+				// ask 1호가가 - 방향으로 일어난 경우 새로운 price가 order book에 quote로 쌓인 것이다.
+				if (diraskmoved < 0) askqtydelta1 = sig.askqty1;
+				// bid 역시 마찬가지로 해 준다.
+				if (dirbidmoved > 0) bidqtydelta1 = sig.bidqty1;
 			}
-			if (sig.dir==1) is_buy = true;
-			if (sig.dir==-1) is_sell = true;
 			if (!strcmpi(sig.type.c_str(),"T")){
-				if (sig.dir==1) is_bidmoved = true;
-				else is_askmoved = true;
+				if (dirtraded>0){
+					diraskmoved = 1;
+					//T 인 경우 예컨대 buy 인 경우 ask는 실종되고 bid는 남는다.
+					sig.bidprc1 = oldsig.bidprc1; // bid1 remains 
+					sig.bidqty1 = oldsig.bidqty1;
+					// ask는 실종됨.
+					sig.askprc1 += 5;
+					sig.askqty1 = -1; // don't know
+				}
+				if (dirtraded<0){
+					dirbidmoved = -1;
+					sig.askprc1 = oldsig.askprc1; // ask1 remains
+					sig.askqty1 = oldsig.askqty1;
+					sig.bidprc1 -= 5;
+					sig.bidqty1 = -1; // don't know
+
+				}
 			}
+			
 			oldsig = sig;
 
-			if (is_buy || is_sell || is_askadded || is_bidadded || is_bidcancelled || is_askcancelled || is_bidmoved || is_askmoved){
-
-				char prt[21] = "";
-				sprintf_s(prt,20,"%d%d%d%d%d%d%d%d_,",is_buy, is_sell, is_askadded, is_bidadded, is_bidcancelled, is_askcancelled, is_bidmoved, is_askmoved);
-
+			if (dirtraded || diraskmoved || dirbidmoved || askqtydelta1 || bidqtydelta1){
 				for (int i=0;i<(int)is.size();++i){
 					fprintf(fo,"%s,",content[is[i]].c_str());
 				}
-				fprintf(fo,"%s",prt);
+				fprintf(fo,"%d,%d,",dirtraded==-1,dirtraded==1);
+				fprintf(fo,"%d,%d,%d,%d,",bidqtydelta1>0,askqtydelta1>0,bidqtydelta1<0,askqtydelta1<0);
+				fprintf(fo,"%d,%d,",dirbidmoved,diraskmoved);
 				fprintf(fo,"\n");
 			}
 		}
