@@ -106,6 +106,7 @@ public:
 		headergenerateorder,
 		reformat,
 		reconfigure,
+		reconfigure_detail,
 	};
 
 	std::vector<HeaderDesc> hds;
@@ -509,7 +510,7 @@ public:
 		return (T(0) < val) - (val < T(0));
 	}
 
-	inline void reconfigure_file(const std::string& fromfile, const std::string& tofile){
+	inline void reconfigure_file(const std::string& fromfile, const std::string& tofile, int detail_verbose){
 		CsvParser csvp(fromfile);
 		csvp.getline();
 		std::vector<std::string> header = csvp.line;
@@ -525,12 +526,19 @@ public:
 			if (!strcmpi(header[i].c_str(),"type")){
 				ti = i;
 			}
-			else if (!strcmpi(header[i].c_str(),"arrivaltime") || !strcmpi(header[i].c_str(),"price") || !strcmpi(header[i].c_str(),"vol") || !strcmpi(header[i].c_str(),"direction")
-				|| !strcmpi(header[i].c_str()," bidPrc1") || !strcmpi(header[i].c_str(),"bidQty1") || !strcmpi(header[i].c_str()," AskPrc1") || !strcmpi(header[i].c_str(),"AskQty1"))
-			{
-				fprintf(fo,"%s,",header[i].c_str());
-				is.push_back(i);
+			else{
+				int isprtlist = 0;
+				if (detail_verbose) isprtlist = 1;
+				else if (!strcmpi(header[i].c_str(),"arrivaltime") || !strcmpi(header[i].c_str(),"price") || !strcmpi(header[i].c_str(),"vol") || !strcmpi(header[i].c_str(),"direction")
+					|| !strcmpi(header[i].c_str()," bidPrc1") || !strcmpi(header[i].c_str(),"bidQty1") || !strcmpi(header[i].c_str()," AskPrc1") || !strcmpi(header[i].c_str(),"AskQty1")){
+					isprtlist = 1;
+				}
+				if (isprtlist){
+					fprintf(fo,"%s,",header[i].c_str());
+					is.push_back(i);
+				}
 			}
+
 			if (!strcmpi(header[i].c_str(),"direction")) idir = i;
 			if (!strcmpi(header[i].c_str(),"vol")) ivol = i;
 			if (!strcmpi(header[i].c_str(),"bidQty1")) ibqty1 = i;
@@ -538,6 +546,10 @@ public:
 			if (!strcmpi(header[i].c_str()," bidPrc1")) ibprc1 = i;
 			if (!strcmpi(header[i].c_str()," askPrc1")) iaprc1 = i;
 		}
+
+		if (detail_verbose)
+			fprintf(fo,"is_level1event,");
+
 		ObSig oldsig, sig;
 		fprintf(fo,"is_sell,is_buy,is_bidinsertion,is_askinsertion,is_bidcancelled,is_askcancelled,dir_bidmoved,dir_askmoved,");
 
@@ -603,7 +615,26 @@ public:
 			
 			oldsig = sig;
 
-			if (dirtraded || diraskmoved || dirbidmoved || askqtydelta1 || bidqtydelta1){
+			if (detail_verbose){
+				for (int i=0;i<(int)is.size();++i){
+					if (is[i] < content.size())
+						fprintf(fo,"%s,",content[is[i]].c_str());
+					else
+						fprintf(fo," ,");
+				}
+				if (dirtraded || diraskmoved || dirbidmoved || askqtydelta1 || bidqtydelta1)
+				{
+					fprintf(fo,"1,");
+				}
+				else{
+					fprintf(fo,"0,");
+				}
+				fprintf(fo,"%d,%d,",dirtraded==-1,dirtraded==1);
+				fprintf(fo,"%d,%d,%d,%d,",bidqtydelta1>0,askqtydelta1>0,bidqtydelta1<0,askqtydelta1<0);
+				fprintf(fo,"%d,%d,",dirbidmoved,diraskmoved);
+				fprintf(fo,"\n");
+			}
+			else if (dirtraded || diraskmoved || dirbidmoved || askqtydelta1 || bidqtydelta1){
 				for (int i=0;i<(int)is.size();++i){
 					fprintf(fo,"%s,",content[is[i]].c_str());
 				}
@@ -649,7 +680,7 @@ public:
 					std::string tofile = d_outputfolder + datafiles[i];
 					//printf("[%s] -> [%s]\n",fromfile.c_str(),tofile.c_str());
 					check_and_create_directory(d_outputfolder);
-					reconfigure_file(fromfile, tofile);
+					reconfigure_file(fromfile, tofile, (type == reconfigure_detail) );
 				}
 			}
 		}
@@ -691,7 +722,7 @@ public:
 		else if (type == headergenerateorder){
 			generate_order_header();
 		}
-		else if (type == reconfigure){
+		else if (type == reconfigure || type == reconfigure_detail){
 			reconfigure_files();
 		}
 		else{
