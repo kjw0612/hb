@@ -2,11 +2,13 @@
 #include <shared_ptr>
 #else
 #include <boost/shared_ptr.hpp>
+#include <boost/timer.hpp>
 using namespace boost;
 #endif
 
 #include <vector>
 #include <string>
+#include <iostream>
 using namespace std;
 
 typedef vector<double> vd;

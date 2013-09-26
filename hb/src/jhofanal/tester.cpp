@@ -14,12 +14,18 @@ string filepathdatestr(const string& datestr){
 
 int test(){
 	shared_ptr<TeachEvalScheme> tescheme(new TeachEvalScheme());
+	/*
 	for (int i=0;i<14;++i)
 		tescheme->addSet(filepathdatestr(dates[i]),TeachEvalScheme::Training);
 	for (int i=14;i<19;++i)
 		tescheme->addSet(filepathdatestr(dates[i]),TeachEvalScheme::Test);
+		*/
+	for (int i=0;i<8;++i)
+		tescheme->addSet(filepathdatestr(dates[i]),TeachEvalScheme::Training);
+	for (int i=15;i<16;++i)
+		tescheme->addSet(filepathdatestr(dates[i]),TeachEvalScheme::Test);
 
-	shared_ptr<LearningSystem> spls(new SimpleStatSystem(sbnames()));
+	shared_ptr<LearningSystem> spls(new SimpleStatSystem(concat(sbnames(),bamnames()),5));
 	tescheme->teach(spls);
 	tescheme->eval(spls);
 	printf("training set error = %lf\ntest set error = %lf\n", tescheme->errors[0],tescheme->errors[1]);
