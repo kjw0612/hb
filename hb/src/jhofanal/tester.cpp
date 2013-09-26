@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "teach_eval_scheme.hpp"
 #include "simple_stat_system.hpp"
+#include "simple_linparam_model.hpp"
 
 string dates[19] = {"20130805", "20130806", "20130807", "20130808", "20130809", 
 					"20130812", "20130813", "20130814", "20130816", "20130819",
@@ -13,6 +14,7 @@ string filepathdatestr(const string& datestr){
 }
 
 int test(){
+	functionals_test();
 	shared_ptr<TeachEvalScheme> tescheme(new TeachEvalScheme());
 	/*
 	for (int i=0;i<14;++i)
@@ -20,12 +22,18 @@ int test(){
 	for (int i=14;i<19;++i)
 		tescheme->addSet(filepathdatestr(dates[i]),TeachEvalScheme::Test);
 		*/
-	for (int i=0;i<8;++i)
+	int ntrainset = 8;
+
+#ifdef _DEBUG
+	ntrainset = 1;
+#endif
+	for (int i=0;i<ntrainset;++i)
 		tescheme->addSet(filepathdatestr(dates[i]),TeachEvalScheme::Training);
 	for (int i=15;i<16;++i)
 		tescheme->addSet(filepathdatestr(dates[i]),TeachEvalScheme::Test);
 
-	shared_ptr<LearningSystem> spls(new SimpleStatSystem(concat(sbnames(),bamnames()),5));
+	//shared_ptr<LearningSystem> spls(new SimpleStatSystem(concat(sbnames(),bamnames()),5));
+	shared_ptr<LearningSystem> spls(new SimpleLinparamModel(concat(sbnames(),bamnames()),5));
 	tescheme->teach(spls);
 	tescheme->eval(spls);
 	printf("training set error = %lf\ntest set error = %lf\n", tescheme->errors[0],tescheme->errors[1]);

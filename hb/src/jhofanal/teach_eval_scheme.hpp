@@ -31,6 +31,7 @@ vt& concat(vt& v1, vt& v2){
 
 class LearningSystem{
 public:
+	LearningSystem() : isOptimized_(false) {}
 	virtual vs xnames() = 0;
 	virtual vs ynames() {
 		vs ret; ret.push_back("dir_bidmoved"); ret.push_back("dir_askmoved");
@@ -41,13 +42,59 @@ public:
 		assert(xs.size()==ys.size());
 		for (int i=0;i<(int)xs.size();++i) add(xs[i],ys[i]);
 	}
-	virtual void optimize() = 0;
+	virtual void optimize() {
+		if (!isOptimized_){
+			this->optimize();
+			isOptimized_ = true;
+		}
+	}
 	virtual double error(const vi& x, const vi& y) = 0;
 	virtual pair<double, int> errors(const vvi& xs, const vvi& ys) {
 		double ret = 0;
 		for (int i=0;i<(int)xs.size();++i) ret += error(xs[i], ys[i]);
 		return make_pair(ret, (int)xs.size());
 	}
+	bool isOptimized_;
+};
+
+class Mto1System : public LearningSystem{
+public:
+	Mto1System (const vs& xnames_, int nn = 1) : xnames_(xnames_), nn(nn) {}
+	static int hashy(const vi& y){
+		//assert(y.size()==1); // only damn single value suitable as input.
+		int ret = 0;
+		for (int i=0;i<(int)y.size();++i) ret += y[i];
+		return (ret > 0);
+	}
+	vs xnames(){ return xnames_; }
+	vvi remakeX(const vvi& xs){
+		vvi ret;
+		for (int i=0;i+nn<(int)xs.size();i+=nn){
+			vi vr;
+			for (int j=i;j<i+nn;++j){
+				vr.insert(vr.end(),xs[j].begin(),xs[j].end());
+			}
+			ret.push_back(vr);
+		}
+		return ret;
+	}
+	vvi remakeY(const vvi& ys){
+		vvi ret;
+		for (int i=0;i+nn<(int)ys.size();i+=nn){
+			ret.push_back(ys[i+nn-1]);
+		}
+		return ret;
+	}
+	void adds(const vvi& xs, const vvi& ys){
+		if (nn==1) LearningSystem::adds(xs,ys);
+		else LearningSystem::adds(remakeX(xs),remakeY(ys));
+	}
+	pair<double, int> errors(const vvi& xs, const vvi& ys){
+		LearningSystem::optimize();
+		if (nn==1) return LearningSystem::errors(xs,ys);
+		else return LearningSystem::errors(remakeX(xs),remakeY(ys));
+	}
+	int nn; vs xnames_;
 };
 
 #define TRIM_SPACE " \t\n\v"

@@ -189,7 +189,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\functionals.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\settings.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\simple_linparam_model.hpp"
 				>
 			</File>
 			<File
