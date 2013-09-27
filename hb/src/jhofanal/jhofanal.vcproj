@@ -197,6 +197,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\neural_network.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\optimization_method.hpp"
 				>
 			</File>
