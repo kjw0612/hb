@@ -4,6 +4,7 @@
 #include "settings.hpp"
 #include "csvparser.hpp"
 #include "csvparserfast.hpp"
+#include "optimization_method.hpp"
 
 
 //is_sell	is_buy	is_bidinsertion	is_askinsertion	is_bidcancelled	is_askcancelled	dir_bidmoved	dir_askmoved
@@ -42,9 +43,10 @@ public:
 		assert(xs.size()==ys.size());
 		for (int i=0;i<(int)xs.size();++i) add(xs[i],ys[i]);
 	}
-	virtual void optimize() {
+	virtual void lazyOptimize() {}
+	void optimize() {
 		if (!isOptimized_){
-			this->optimize();
+			lazyOptimize();
 			isOptimized_ = true;
 		}
 	}
@@ -85,7 +87,7 @@ public:
 		}
 		return ret;
 	}
-	void adds(const vvi& xs, const vvi& ys){
+	virtual void adds(const vvi& xs, const vvi& ys){
 		if (nn==1) LearningSystem::adds(xs,ys);
 		else LearningSystem::adds(remakeX(xs),remakeY(ys));
 	}
@@ -95,6 +97,34 @@ public:
 		else return LearningSystem::errors(remakeX(xs),remakeY(ys));
 	}
 	int nn; vs xnames_;
+};
+
+class ParamSystem : public Mto1System, public CostFunction{
+public:
+	ParamSystem (const vs& xnames_, int nn = 1) : Mto1System(xnames_, nn) {}
+
+	virtual double eval(const vi& x, const vd& param) const = 0;
+	void add(const vi& x, const vi& y){
+		xs.push_back(x); ys.push_back(y); // lazy evaluation
+	}
+	virtual void adds(const vvi& xs_, const vvi& ys_){
+		vvi xxs_ = remakeX(xs_), yys_ = remakeY(ys_);
+		xs.insert(xs.end(),xxs_.begin(),xxs_.end());
+		ys.insert(ys.end(),yys_.begin(),yys_.end());
+	}
+	inline double error(const vi &x, const vi& y){
+		double y_real = (double)hashy(y);
+		return fabs(y_real - eval(x, paramset));
+	}
+	virtual double costFunction(const vd& param) const{
+		double cf = 0;
+		for (int i=0;i<(int)xs.size();++i){
+			cf += pow(eval(xs[i], param) - hashy(ys[i]),2);
+		}
+		return cf / xs.size();
+	}
+	vvi xs, ys;
+	vd paramset;
 };
 
 #define TRIM_SPACE " \t\n\v"

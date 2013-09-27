@@ -193,11 +193,23 @@
 				>
 			</File>
 			<File
+				RelativePath=".\logistic_model.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\optimization_method.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\settings.hpp"
 				>
 			</File>
 			<File
 				RelativePath=".\simple_linparam_model.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\simple_poly_model.hpp"
 				>
 			</File>
 			<File

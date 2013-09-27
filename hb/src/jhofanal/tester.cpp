@@ -2,6 +2,8 @@
 #include "teach_eval_scheme.hpp"
 #include "simple_stat_system.hpp"
 #include "simple_linparam_model.hpp"
+#include "simple_poly_model.hpp"
+#include "logistic_model.hpp"
 
 string dates[19] = {"20130805", "20130806", "20130807", "20130808", "20130809", 
 					"20130812", "20130813", "20130814", "20130816", "20130819",
@@ -22,7 +24,7 @@ int test(){
 	for (int i=14;i<19;++i)
 		tescheme->addSet(filepathdatestr(dates[i]),TeachEvalScheme::Test);
 		*/
-	int ntrainset = 8;
+	int ntrainset = 1;
 
 #ifdef _DEBUG
 	ntrainset = 1;
@@ -32,10 +34,25 @@ int test(){
 	for (int i=15;i<16;++i)
 		tescheme->addSet(filepathdatestr(dates[i]),TeachEvalScheme::Test);
 
-	//shared_ptr<LearningSystem> spls(new SimpleStatSystem(concat(sbnames(),bamnames()),5));
-	shared_ptr<LearningSystem> spls(new SimpleLinparamModel(concat(sbnames(),bamnames()),5));
+	shared_ptr<LearningSystem> lgstmd(new LogisticModel(concat(sbnames(),bamnames()),4));
+	tescheme->teach(lgstmd);
+	tescheme->eval(lgstmd);
+	printf("\nLogistic training set error = %lf\ntest set error = %lf\n", tescheme->errors[0],tescheme->errors[1]);
+
+	shared_ptr<LearningSystem> spllm(new SimpleLinparamModel(concat(sbnames(),bamnames()),4));
+	tescheme->teach(spllm);
+	tescheme->eval(spllm);
+	printf("\nLINPARAM training set error = %lf\ntest set error = %lf\n", tescheme->errors[0],tescheme->errors[1]);
+
+	shared_ptr<LearningSystem> spls(new SimpleStatSystem(concat(sbnames(),bamnames()),4));
 	tescheme->teach(spls);
 	tescheme->eval(spls);
-	printf("training set error = %lf\ntest set error = %lf\n", tescheme->errors[0],tescheme->errors[1]);
+	printf("\nSIMPLE STAT training set error = %lf\ntest set error = %lf\n", tescheme->errors[0],tescheme->errors[1]);
+
+	shared_ptr<LearningSystem> splpm(new SimplePolyModel(concat(sbnames(),bamnames()),4,2));
+	tescheme->teach(splpm);
+	tescheme->eval(splpm);
+	printf("\nSIMPLE POLY training set error = %lf\ntest set error = %lf\n", tescheme->errors[0],tescheme->errors[1]);
+
 	return 0;
 }

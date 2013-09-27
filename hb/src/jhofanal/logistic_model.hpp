@@ -1,5 +1,5 @@
-#ifndef simple_linparam_model_h__
-#define simple_linparam_model_h__
+#ifndef logistic_model_h__
+#define logistic_model_h__
 
 #include "teach_eval_scheme.hpp"
 #include "functionals.hpp"
@@ -10,13 +10,16 @@ vector<T> vector<T>::operator+(const vector<T>& rhs) const {
 	return (*this);
 }*/
 
-class SimpleLinparamModel : public ParamSystem{
+class LogisticModel : public ParamSystem{
 public:
-	SimpleLinparamModel (const vs& xnames_, int nn = 1) : ParamSystem(xnames_, nn) {}
+	LogisticModel(const vs& xnames_, int nn = 1) : ParamSystem(xnames_, nn) {}
+	inline static double logisticFunction(double val){
+		return 1 / (1 + exp(-val));
+	}
 	double eval(const vi& x, const vd& param) const {
 		double ret = param[0];
 		for (int i=0;i<(int)x.size();++i) ret += param[i+1] * x[i];
-		return ret;
+		return logisticFunction(ret);
 	}
 	void lazyOptimize(){
 		paramset = vd(xs[0].size()+1,0);
@@ -26,4 +29,5 @@ public:
 	}
 };
 
-#endif // simple_linparam_model_h__
+
+#endif // logistic_model_h__
