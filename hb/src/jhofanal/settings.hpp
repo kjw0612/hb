@@ -1,14 +1,17 @@
-#ifdef __GXX_EXPERIMENTAL_CXX0X__ 
-#include <shared_ptr>
-#else
+#ifdef _USE_BOOST_
 #include <boost/shared_ptr.hpp>
 #include <boost/timer.hpp>
 using namespace boost;
+#else
+#include <memory>
+#include <chrono>
+#include <ctime>
 #endif
 
 #include <vector>
 #include <string>
 #include <iostream>
+#include <assert.h>
 using namespace std;
 
 typedef vector<double> vd;

@@ -211,9 +211,20 @@ public:
 
 	void teach(const shared_ptr<LearningSystem>& ls){
 		for (int i=0;i<(int)dataset[Training].size();++i){
+#ifdef _USE_BOOST_
 			boost::timer timer_;
+#else
+			chrono::time_point<chrono::system_clock> start, end;
+			start = chrono::system_clock::now();
+#endif
 			pair<vvi, vvi> xydata = getDataFast(dataset[Training][i], ls->xnames(), ls->ynames());
-			std::cout << "faster ? " << timer_.elapsed() << std::endl;
+#ifdef _USE_BOOST_
+			std::cout << "elapsed time ? " << timer_.elapsed() << std::endl;
+#else
+			end = chrono::system_clock::now();
+			std::chrono::duration<double> elapsed_seconds = end-start;
+			std::cout << "elapsed time ? " << elapsed_seconds.count() << std::endl;
+#endif
 			//timer_.restart();
 			//getData(dataset[Training][i], ls->xnames(), ls->ynames());
 			//std::cout << "slower ? " << timer_.elapsed() << std::endl;

@@ -13,9 +13,6 @@ vector<T> vector<T>::operator+(const vector<T>& rhs) const {
 class LogisticModel : public ParamSystem{
 public:
 	LogisticModel(const vs& xnames_, int nn = 1) : ParamSystem(xnames_, nn) {}
-	inline static double logisticFunction(double val){
-		return 1 / (1 + exp(-val));
-	}
 	double eval(const vi& x, const vd& param) const {
 		double ret = param[0];
 		for (int i=0;i<(int)x.size();++i) ret += param[i+1] * x[i];
