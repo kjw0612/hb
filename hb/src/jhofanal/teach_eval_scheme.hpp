@@ -46,8 +46,8 @@ public:
 	virtual void lazyOptimize() {}
 	void optimize() {
 		if (!isOptimized_){
-			lazyOptimize();
 			isOptimized_ = true;
+			lazyOptimize();
 		}
 	}
 	virtual double error(const vi& x, const vi& y) = 0;
@@ -62,9 +62,10 @@ public:
 class Mto1System : public LearningSystem{
 public:
 	Mto1System (const vs& xnames_, int nn = 1) : xnames_(xnames_), nn(nn) {}
-	static int hashy(const vi& y){
+	template<class T>
+	static int hashy(const vector<T>& y){
 		//assert(y.size()==1); // only damn single value suitable as input.
-		int ret = 0;
+		T ret = 0;
 		for (int i=0;i<(int)y.size();++i) ret += y[i];
 		return (ret > 0);
 	}

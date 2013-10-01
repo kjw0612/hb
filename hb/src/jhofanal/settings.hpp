@@ -1,3 +1,7 @@
+#ifndef __GXX_EXPERIMENTAL_CXX0X__
+#define _USE_BOOST_
+#endif
+
 #ifdef _USE_BOOST_
 #include <boost/shared_ptr.hpp>
 #include <boost/timer.hpp>

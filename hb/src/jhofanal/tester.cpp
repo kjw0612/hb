@@ -35,6 +35,12 @@ int test(){
 	for (int i=15;i<16;++i)
 		tescheme->addSet(filepathdatestr(dates[i]),TeachEvalScheme::Test);
 
+
+	shared_ptr<LearningSystem> nnwk(new NeuralNetwork(concat(sbnames(),bamnames()),4));
+	tescheme->teach(nnwk);
+	tescheme->eval(nnwk);
+	printf("\nNeuralNetwork training set error = %lf\ntest set error = %lf\n", tescheme->errors[0],tescheme->errors[1]);
+
 	shared_ptr<LearningSystem> lgstmd(new LogisticModel(concat(sbnames(),bamnames()),4));
 	tescheme->teach(lgstmd);
 	tescheme->eval(lgstmd);

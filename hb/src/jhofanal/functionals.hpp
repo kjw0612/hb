@@ -5,7 +5,14 @@ template<class T>
 vector<T> operator+(const vector<T>& lhs, const vector<T>& rhs) {
 	assert(lhs.size()==rhs.size());
 	vector<T> ret = lhs;
-	for (int i=0;i<(int)ret.size();++i) ret[i] += rhs[i];
+	for (int i=0;i<(int)ret.size();++i) ret[i] = ret[i] + rhs[i];
+	return ret;
+}
+
+template<class T>
+vector<T> operator+(const vector<T>& lhs, int offset) {
+	assert(offset < (int)lhs.size());
+	vector<T> ret(lhs.begin()+offset,lhs.end());
 	return ret;
 }
 
@@ -46,7 +53,7 @@ vector<T> batchMultip(const vector<T>& lhs, const vector<T2>& rhs) {
 
 template<class T>
 vector<vector<T> > transpose(const vector<vector<T> >& rhs){
-	vector<vector<T> > ret(rhs.size(),vector<T>(rhs[0].size()));
+	vector<vector<T> > ret(rhs[0].size(),vector<T>(rhs.size()));
 	for (int i=0;i<(int)ret.size();++i){
 		for (int j=0;j<(int)ret[i].size();++j){
 			ret[i][j] = rhs[j][i];
