@@ -20,7 +20,7 @@ template<class T, class T2>
 vector<T> operator-(const vector<T>& lhs, const vector<T2>& rhs) {
 	assert(lhs.size()==rhs.size());
 	vector<T> ret = lhs;
-	for (int i=0;i<(int)ret.size();++i) ret[i] -= rhs[i];
+	for (int i=0;i<(int)ret.size();++i) ret[i] = ret[i] - rhs[i];
 	return ret;
 }
 
