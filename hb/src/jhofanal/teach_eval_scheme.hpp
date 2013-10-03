@@ -24,6 +24,10 @@ inline vs bacnames(){
 	vs ret; ret.push_back("is_bidcancelled"); ret.push_back("is_askcancelled");
 	return ret;
 }
+inline vs qtynames(){
+	vs ret; ret.push_back("bidQty1"); ret.push_back("askQty1");
+	return ret;
+}
 template<class vt>
 vt& concat(vt& v1, vt& v2){
 	v1.insert( v1.end(), v2.begin(), v2.end() );
