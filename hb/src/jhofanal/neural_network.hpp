@@ -7,7 +7,7 @@
 class NeuralNetwork : public Mto1System{
 public:
 	// depth means # of layer on neural network 
-	NeuralNetwork (const vs& xnames_, int nn = 1, int depth = 3, const vi &_layers = vi(),
+	NeuralNetwork (const vs& xnames_, int nn = 2, int depth = 2, const vi &_layers = vi(),
 		const shared_ptr<VectorFunction>& _g = shared_ptr<VectorFunction>(new LogisticVF()))
 		: Mto1System(xnames_, nn), depth(depth), layers(_layers), g(_g)
 	{
@@ -22,12 +22,12 @@ public:
 		double eps = 1e-4;
 		for (int i=1;i<(int)layers.size();++i){
 			theta.push_back(vvd(layers[i]-1,vd(layers[i-1])));
-			/*
+			
 			for (int j=0;j<(int)theta.back().size();++j){
 				for (int k=0;k<(int)theta.back()[j].size();++k){
-					theta.back()[j][k] = (rand()%1000-500)/10000.;
+					theta.back()[j][k] = (rand()%20001-10000) / 10000. * eps;
 				}
-			}*/
+			}
 		}
 	}
 
@@ -41,14 +41,28 @@ public:
 	}
 
 	void lazyOptimize(){
+		//xs.resize(200);
+		//ys.resize(200);
 		//double alpha = 0.2;
-		double alpha = 10;
-		for (int i=0;i<10;++i){
+		double alpha = 200;
+		for (int i=0;i<20;++i){
 			v3d dtheta = backPropagation(xs, ys, layers, theta, g);
-			//v3d dtheta_crosscheck = diffDeriva(xs, ys, layers, theta, g);
+			/*
+			v3d dtheta_crosscheck = diffDeriva(xs, ys, layers, theta, g);
+			//dtheta = dtheta_crosscheck;
+			for (int j=0;j<(int)dtheta.size();++j){
+				for(int k=0;k<(int)dtheta[j].size();++k){
+					for (int l=0;l<(int)dtheta[j][k].size();++l){
+						printf("[%lf %lf] ",dtheta[j][k][l],dtheta_crosscheck[j][k][l]);
+					}
+					printf("\n");
+				}
+			}
+			scanf("%*c");*/
 			pair<double, int> errs = LearningSystem::errors(xs,ys);
 			printf("[%d] %lf ",i+1, errs.first/errs.second);
 			theta = theta - dtheta * alpha;
+			alpha *= 0.7;
 		}
 	}
 
@@ -57,7 +71,6 @@ public:
 		double _y = aas.back()[1];
 		return fabs((double)hashy(y) - _y);
 	}
-
 	
 	static v3d diffDeriva(const vvi& _xs, const vvi& _ys, const vi& _layers, const v3d& _theta,
 		const shared_ptr<VectorFunction>& _g)
@@ -74,10 +87,10 @@ public:
 						vvd upVvd = fwdPropagation(_xs[l], _layers, theta, _g);
 						theta[i][j][k] -= 2 *eps;
 						vvd downVvd = fwdPropagation(_xs[l], _layers, theta, _g);
-						theta[i][j][k] += 2 *eps;
+						theta[i][j][k] += eps;
 						double upV = upVvd.back()[1], downV = downVvd.back()[1];
 						double upError = upV - hashy(_ys[l]), downError = downV - hashy(_ys[l]);
-						ret[i][j][k] += (upError - downError) / (2*eps);
+						ret[i][j][k] += (upError*upError - downError*downError) / (eps);
 					}
 					ret[i][j][k] /= _xs.size();
 				}
@@ -132,7 +145,7 @@ public:
 				vd thetadelta(_layers[i]);
 				vvd theta_trans = transpose(_theta[i]);
 				for (int j=0;j<(int)theta_trans.size();++j)
-					thetadelta[j] = (deltas[i+1]+1) * theta_trans[j];
+					thetadelta[j] = theta_trans[j] * (deltas[i+1]+1);
 
 				vd gpflat(ai[i].size(),1);
 				if (_g){

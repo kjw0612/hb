@@ -16,7 +16,34 @@ string filepathdatestr(const string& datestr){
 	return ret;
 }
 
+void neural_network_test(){
+	vvi xs, ys;
+	for (int i=0;i<1000;++i){
+		vi x(2), y(1);
+		x[0] = rand()%2;
+		x[1] = rand()%2;
+		y[0] = x[0] && x[1];
+		xs.push_back(x), ys.push_back(y);
+	}
+	shared_ptr<LearningSystem> nnwk(new NeuralNetwork(vs(2),1));
+	nnwk->adds(xs, ys);
+	nnwk->optimize();
+	pair<double, int> res = nnwk->errors(xs,ys);
+	printf("\n%lf %d\n",res.first, res.second);
+	//scanf("%*c");
+}
+
+inline void test_and_report(const string& name,
+							const shared_ptr<LearningSystem>& ls, const shared_ptr<TeachEvalScheme>& tescheme)
+{
+	printf("[%s]\n",name.c_str());
+	tescheme->teach(ls);
+	tescheme->eval(ls);
+	printf("\n%s training set error = %lf\ntest set error = %lf\n\n", name.c_str(), tescheme->errors[0],tescheme->errors[1]);
+}
+
 int test(){
+	//neural_network_test();
 	functionals_test();
 	shared_ptr<TeachEvalScheme> tescheme(new TeachEvalScheme());
 	/*
@@ -36,30 +63,23 @@ int test(){
 		tescheme->addSet(filepathdatestr(dates[i]),TeachEvalScheme::Test);
 
 
-	shared_ptr<LearningSystem> nnwk(new NeuralNetwork(concat(sbnames(),bamnames()),4));
-	tescheme->teach(nnwk);
-	tescheme->eval(nnwk);
-	printf("\nNeuralNetwork training set error = %lf\ntest set error = %lf\n", tescheme->errors[0],tescheme->errors[1]);
+	test_and_report("NeuralNetwork",
+		shared_ptr<LearningSystem> (new NeuralNetwork(concat(sbnames(),bamnames()),4)), tescheme);
 
-	shared_ptr<LearningSystem> lgstmd(new LogisticModel(concat(sbnames(),bamnames()),4));
-	tescheme->teach(lgstmd);
-	tescheme->eval(lgstmd);
-	printf("\nLogistic training set error = %lf\ntest set error = %lf\n", tescheme->errors[0],tescheme->errors[1]);
+	//test_and_report("NeuralNetwork",
+	//	shared_ptr<LearningSystem> (new NeuralNetwork(concat(bainames(),bacnames()),2)), tescheme);
 
-	shared_ptr<LearningSystem> spllm(new SimpleLinparamModel(concat(sbnames(),bamnames()),4));
-	tescheme->teach(spllm);
-	tescheme->eval(spllm);
-	printf("\nLINPARAM training set error = %lf\ntest set error = %lf\n", tescheme->errors[0],tescheme->errors[1]);
+	//test_and_report("LogisticTraining",
+	//	shared_ptr<LearningSystem> (new LogisticModel(concat(sbnames(),bamnames()),4)), tescheme);
 
-	shared_ptr<LearningSystem> spls(new SimpleStatSystem(concat(sbnames(),bamnames()),4));
-	tescheme->teach(spls);
-	tescheme->eval(spls);
-	printf("\nSIMPLE STAT training set error = %lf\ntest set error = %lf\n", tescheme->errors[0],tescheme->errors[1]);
+	test_and_report("SimpleLinParam",
+		shared_ptr<LearningSystem> (new SimpleLinparamModel(concat(sbnames(),bamnames()),4)), tescheme);
 
-	shared_ptr<LearningSystem> splpm(new SimplePolyModel(concat(sbnames(),bamnames()),4,2));
-	tescheme->teach(splpm);
-	tescheme->eval(splpm);
-	printf("\nSIMPLE POLY training set error = %lf\ntest set error = %lf\n", tescheme->errors[0],tescheme->errors[1]);
+	test_and_report("SimpleStat",
+		shared_ptr<LearningSystem> (new SimpleStatSystem(concat(sbnames(),bamnames()),4)), tescheme);
+
+	//test_and_report("SimplePoly",
+	//	shared_ptr<LearningSystem> (new SimplePolyModel(concat(sbnames(),bamnames()),4)), tescheme);
 
 	return 0;
 }
