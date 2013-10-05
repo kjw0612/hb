@@ -28,6 +28,10 @@ inline vs qtynames(){
 	vs ret; ret.push_back("bidQty1"); ret.push_back("askQty1");
 	return ret;
 }
+inline vs qtynorms(){
+	vs ret; ret.push_back("a+bQty1"); ret.push_back("a/(a+b)Qty1");
+	return ret;
+}
 template<class vt>
 vt& concat(vt& v1, vt& v2){
 	v1.insert( v1.end(), v2.begin(), v2.end() );
@@ -42,8 +46,8 @@ public:
 		vs ret; ret.push_back("dir_bidmoved"); ret.push_back("dir_askmoved");
 		return ret;
 	}
-	virtual void add(const vi& x, const vi& y) = 0;
-	virtual void adds(const vvi& xs, const vvi& ys) {
+	virtual void add(const vd& x, const vd& y) = 0;
+	virtual void adds(const vvd& xs, const vvd& ys) {
 		assert(xs.size()==ys.size());
 		for (int i=0;i<(int)xs.size();++i) add(xs[i],ys[i]);
 	}
@@ -54,8 +58,8 @@ public:
 			lazyOptimize();
 		}
 	}
-	virtual double error(const vi& x, const vi& y) = 0;
-	virtual pair<double, int> errors(const vvi& xs, const vvi& ys) {
+	virtual double error(const vd& x, const vd& y) = 0;
+	virtual pair<double, int> errors(const vvd& xs, const vvd& ys) {
 		double ret = 0;
 		for (int i=0;i<(int)xs.size();++i) ret += error(xs[i], ys[i]);
 		return make_pair(ret, (int)xs.size());
@@ -74,10 +78,10 @@ public:
 		return (ret > 0);
 	}
 	vs xnames(){ return xnames_; }
-	vvi remakeX(const vvi& xs){
-		vvi ret;
+	vvd remakeX(const vvd& xs){
+		vvd ret;
 		for (int i=0;i+nn<(int)xs.size();i+=nn){
-			vi vr;
+			vd vr;
 			for (int j=i;j<i+nn;++j){
 				vr.insert(vr.end(),xs[j].begin(),xs[j].end());
 			}
@@ -85,18 +89,18 @@ public:
 		}
 		return ret;
 	}
-	vvi remakeY(const vvi& ys){
-		vvi ret;
+	vvd remakeY(const vvd& ys){
+		vvd ret;
 		for (int i=0;i+nn<(int)ys.size();i+=nn){
 			ret.push_back(ys[i+nn-1]);
 		}
 		return ret;
 	}
-	virtual void adds(const vvi& xs, const vvi& ys){
+	virtual void adds(const vvd& xs, const vvd& ys){
 		if (nn==1) LearningSystem::adds(xs,ys);
 		else LearningSystem::adds(remakeX(xs),remakeY(ys));
 	}
-	pair<double, int> errors(const vvi& xs, const vvi& ys){
+	pair<double, int> errors(const vvd& xs, const vvd& ys){
 		LearningSystem::optimize();
 		if (nn==1) return LearningSystem::errors(xs,ys);
 		else return LearningSystem::errors(remakeX(xs),remakeY(ys));
@@ -108,16 +112,16 @@ class ParamSystem : public Mto1System, public CostFunction{
 public:
 	ParamSystem (const vs& xnames_, int nn = 1) : Mto1System(xnames_, nn) {}
 
-	virtual double eval(const vi& x, const vd& param) const = 0;
-	void add(const vi& x, const vi& y){
+	virtual double eval(const vd& x, const vd& param) const = 0;
+	void add(const vd& x, const vd& y){
 		xs.push_back(x); ys.push_back(y); // lazy evaluation
 	}
-	virtual void adds(const vvi& xs_, const vvi& ys_){
-		vvi xxs_ = remakeX(xs_), yys_ = remakeY(ys_);
+	virtual void adds(const vvd& xs_, const vvd& ys_){
+		vvd xxs_ = remakeX(xs_), yys_ = remakeY(ys_);
 		xs.insert(xs.end(),xxs_.begin(),xxs_.end());
 		ys.insert(ys.end(),yys_.begin(),yys_.end());
 	}
-	inline double error(const vi &x, const vi& y){
+	inline double error(const vd &x, const vd& y){
 		double y_real = (double)hashy(y);
 		return fabs(y_real - eval(x, paramset));
 	}
@@ -128,7 +132,7 @@ public:
 		}
 		return cf / xs.size();
 	}
-	vvi xs, ys;
+	vvd xs, ys;
 	vd paramset;
 };
 
@@ -162,12 +166,22 @@ public:
 	void addSet(const string& filename, DataType datatype){
 		dataset[datatype].push_back(filename);
 	}
-	static pair<vvi, vvi> getDataFast(const string& filename, const vs& xnames, const vs& ynames){
+	static pair<vvd, vvd> getDataFast(const string& filename, const vs& xnames, const vs& ynames){
 		vi xidxs(xnames.size(),-1), yidxs(ynames.size(),-1);
-		vvi xs; vvi ys;
+		vi aloneflag(xnames.size(),0);
+		int allone = 0;
+		vvd xs; vvd ys;
 		xs.reserve(200000),ys.reserve(200000);
 		CsvParserFast cp(filename);
 		int m = cp.getline(1);
+		for (int i=0;i<(int)xnames.size();++i){
+			aloneflag[i] = !(!strcmpitr(xnames[i],"bidqty1") || !strcmpitr(xnames[i],"askqty1"));
+			allone |= aloneflag[i];
+		}
+		if (!allone){
+			for (int i=0;i<(int)xnames.size();++i)
+				aloneflag[i] = 1;
+		}
 		for (int k=0;k<2;++k){
 			const vs& names = (k==0) ? xnames : ynames;
 			vi& idxs = (k==0) ? xidxs : yidxs;
@@ -183,8 +197,8 @@ public:
 			for (int k=0;k<2;++k){
 				const vs& names = (k==0) ? xnames : ynames;
 				vi& idxs = (k==0) ? xidxs : yidxs;
-				vvi& vals = (k==0) ? xs : ys;
-				vi val(names.size());
+				vvd& vals = (k==0) ? xs : ys;
+				vd val(names.size());
 				for (int j=0;j<(int)names.size();++j){
 					val[j] = (int)cp.lined[idxs[j]];
 				}
@@ -199,18 +213,41 @@ public:
 			if (!atleast1one)
 				ys[i] = ys[i+1];
 		}
-		vvi xxs, yys;
+		vvd xxs, yys;
 		xxs.reserve(20000),yys.reserve(20000);
 		for (int i=0;i<(int)xs.size();++i){
 			int atleast1one = 0;
 			for (int j=0;j<(int)xs[i].size();++j){
-				if (xs[i][j]!=0) atleast1one = 1;
+				if (xs[i][j]!=0 && aloneflag[j]) atleast1one = 1;
 			}
 			if (atleast1one){
 				xxs.push_back(xs[i]);
 				yys.push_back(ys[i]);
 			}
 		}
+		// normalize data
+		vd xsmax = xxs[0];
+		for (int j=0;j<(int)xxs[0].size();++j){
+			for (int i=0;i<(int)xxs.size();++i){
+				xsmax[j] = max(xsmax[j],xxs[i][j]);
+			}
+		}
+		/*
+		for (int i=0;i<(int)xxs.size();++i){
+			double a, b;
+			a = xxs[i][0]; b = xxs[i][1];
+			xxs[i][0] = (a+b) / 500.;
+			xxs[i][1] = ((a+b)==0) ? 0 : a/(a+b);
+		}*/
+		
+		for (int j=0;j<(int)xxs[0].size();++j){
+			for (int i=0;i<(int)xxs.size();++i){
+				if (xsmax[j] > 20){
+					xxs[i][j] /= 150;
+				}
+			}
+		}
+		// normalize data end
 		return make_pair(xxs, yys);
 	}
 
@@ -222,7 +259,7 @@ public:
 			chrono::time_point<chrono::system_clock> start, end;
 			start = chrono::system_clock::now();
 #endif
-			pair<vvi, vvi> xydata = getDataFast(dataset[Training][i], ls->xnames(), ls->ynames());
+			pair<vvd, vvd> xydata = getDataFast(dataset[Training][i], ls->xnames(), ls->ynames());
 #ifdef _USE_BOOST_
 			std::cout << "elapsed time ? " << timer_.elapsed() << std::endl;
 #else
@@ -243,7 +280,7 @@ public:
 			int ndata=0;
 			errors[k] = 0;
 			for (int i=0;i<(int)dataset[k].size();++i){
-				pair<vvi, vvi> xydata = getDataFast(dataset[k][i], ls->xnames(), ls->ynames());
+				pair<vvd, vvd> xydata = getDataFast(dataset[k][i], ls->xnames(), ls->ynames());
 				pair<double, int> res = ls->errors(xydata.first,xydata.second);
 				errors[k] += res.first;
 				ndata += res.second;

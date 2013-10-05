@@ -8,22 +8,22 @@
 class SimpleStatSystem : public Mto1System{
 public:
 	SimpleStatSystem(const vs& xnames_, int nn = 1) : Mto1System(xnames_, nn) {}
-	static int hash(const vi& x){
+	static int hash(const vd& x){
 		int n = (int)x.size();
 		int ret = 0;
 		for (int i=0;i<n;++i){
-			ret *= 2; ret += x[i]; }
+			ret *= 2; ret += (int)x[i]; }
 		ret += 1<<(n+1);
 		return ret;
 	}
-	void add(const vi& x, const vi& y){
+	void add(const vd& x, const vd& y){
 		int hashx = hash(x);
 		pi val = cases[hashx];
 		if (hashy(y)) ++val.first;
 		else ++val.second;
 		cases[hashx] = val;
 	}
-	double error(const vi& x, const vi& y){
+	double error(const vd& x, const vd& y){
 		int hashx = hash(x);
 		map<int, pi>::iterator it = cases.lower_bound(hashx);
 		pi val = it->second;

@@ -17,9 +17,9 @@ string filepathdatestr(const string& datestr){
 }
 
 void neural_network_test(){
-	vvi xs, ys;
+	vvd xs, ys;
 	for (int i=0;i<1000;++i){
-		vi x(2), y(1);
+		vd x(2), y(1);
 		x[0] = rand()%2;
 		x[1] = rand()%2;
 		y[0] = x[0] && x[1];
@@ -62,8 +62,19 @@ int test(){
 	for (int i=15;i<16;++i)
 		tescheme->addSet(filepathdatestr(dates[i]),TeachEvalScheme::Test);
 
+	/*
 	test_and_report("NeuralNetwork",
-		shared_ptr<LearningSystem> (new NeuralNetwork(concat(sbnames(),bamnames()),4)), tescheme);
+		shared_ptr<LearningSystem> (new NeuralNetwork(concat(sbnames(),bamnames()), 3, 2, vi(), shared_ptr<VectorFunction>())), tescheme);
+		*/
+
+	test_and_report("NeuralNetwork",
+		shared_ptr<LearningSystem> (new NeuralNetwork(qtynames(),3)), tescheme);
+
+	test_and_report("NeuralNetwork",
+		shared_ptr<LearningSystem> (new NeuralNetwork(concat(qtynames(),concat(sbnames(),bamnames())),3)), tescheme);
+
+	test_and_report("NeuralNetwork",
+		shared_ptr<LearningSystem> (new NeuralNetwork(concat(sbnames(),bamnames()),3)), tescheme);
 
 	//test_and_report("NeuralNetwork",
 	//	shared_ptr<LearningSystem> (new NeuralNetwork(concat(qtynames(),concat(sbnames(),bamnames())),4)), tescheme);

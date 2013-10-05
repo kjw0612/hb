@@ -14,7 +14,7 @@ class SimplePolyModel : public ParamSystem{
 public:
 	//m = degree. 1 to simple linear model.
 	SimplePolyModel (const vs& xnames_, int nn = 1, int m = 1) : ParamSystem(xnames_, nn), m(m) {}
-	double eval(const vi& x, const vd& param) const {
+	double eval(const vd& x, const vd& param) const {
 		double ret = param[0];
 		for (int j=0;j<m;++j){
 			for (int i=0;i<(int)x.size();++i){

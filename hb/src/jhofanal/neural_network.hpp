@@ -31,11 +31,11 @@ public:
 		}
 	}
 
-	void add(const vi& x, const vi& y){
+	void add(const vd& x, const vd& y){
 		xs.push_back(x); ys.push_back(y); // lazy evaluation
 	}
-	virtual void adds(const vvi& xs_, const vvi& ys_){
-		vvi xxs_ = remakeX(xs_), yys_ = remakeY(ys_);
+	virtual void adds(const vvd& xs_, const vvd& ys_){
+		vvd xxs_ = remakeX(xs_), yys_ = remakeY(ys_);
 		xs.insert(xs.end(),xxs_.begin(),xxs_.end());
 		ys.insert(ys.end(),yys_.begin(),yys_.end());
 	}
@@ -45,6 +45,9 @@ public:
 		//ys.resize(200);
 		//double alpha = 0.2;
 		double alpha = 200;
+		if (!g){
+			alpha = 1;
+		}
 		for (int i=0;i<20;++i){
 			v3d dtheta = backPropagation(xs, ys, layers, theta, g);
 			/*
@@ -62,17 +65,22 @@ public:
 			pair<double, int> errs = LearningSystem::errors(xs,ys);
 			printf("[%d] %lf ",i+1, errs.first/errs.second);
 			theta = theta - dtheta * alpha;
-			alpha *= 0.7;
+			if (g){
+				alpha *= 0.7;
+			}
+			else{
+				alpha *= 0.9;
+			}
 		}
 	}
 
-	double error(const vi& x, const vi& y) {
+	double error(const vd& x, const vd& y) {
 		vvd aas = fwdPropagation(x, layers, theta, g);
 		double _y = aas.back()[1];
 		return fabs((double)hashy(y) - _y);
 	}
 	
-	static v3d diffDeriva(const vvi& _xs, const vvi& _ys, const vi& _layers, const v3d& _theta,
+	static v3d diffDeriva(const vvd& _xs, const vvd& _ys, const vi& _layers, const v3d& _theta,
 		const shared_ptr<VectorFunction>& _g)
 	{
 		v3d theta = _theta;
@@ -104,7 +112,7 @@ public:
 	}*/
 	/*
 	double eval(const vi& x, const vd& param) const { }*/
-	static vvd fwdPropagation(const vi& _x, const vi& _layers, const v3d& _theta,
+	static vvd fwdPropagation(const vd& _x, const vi& _layers, const v3d& _theta,
 		const shared_ptr<VectorFunction>& _g)
 	{
 		vvd ai;
@@ -124,7 +132,7 @@ public:
 		return ai;
 	}
 
-	static v3d backPropagation(const vvi& _xs, const vvi& _ys, const vi& _layers, const v3d& _theta,
+	static v3d backPropagation(const vvd& _xs, const vvd& _ys, const vi& _layers, const v3d& _theta,
 		const shared_ptr<VectorFunction>& _g)
 	{
 		v3d dthetas = _theta;
@@ -135,7 +143,7 @@ public:
 		}
 		
 		for (int ix=0;ix<(int)_xs.size();++ix){
-			vi _x = _xs[ix], _y = _ys[ix];
+			vd _x = _xs[ix], _y = _ys[ix];
 			vvd ai = fwdPropagation(_x, _layers, _theta, _g);
 			int n = _layers.size();
 			vvd deltas(n);
@@ -156,9 +164,11 @@ public:
 						gpflat[j] = ai[i][j] * (1-ai[i][j]);
 						//gpflat[j] = gprime[j][j];
 					}
+					deltas[i] = batchMultip(thetadelta, gpflat);
 				}
-
-				deltas[i] = batchMultip(thetadelta, gpflat);
+				else{
+					deltas[i] = thetadelta;
+				}
 			}
 			for (int l=0;l<=n-2;++l){
 				for (int i=0;i<(int)dthetas[l].size();++i)
@@ -177,7 +187,7 @@ public:
 
 	int depth;
 	v3d theta;
-	vvi xs, ys;
+	vvd xs, ys;
 	vi layers;
 	shared_ptr<VectorFunction> g;
 };
