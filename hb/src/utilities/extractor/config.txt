@@ -2,7 +2,17 @@ mode = reconfigure_detail
 datapath = D:\SEOUL_EX\[$DATE]
 outputfolder = D:\SEOUL_EX_SIG1\[$DATE]
 target_date_from = 20130805
-target_date_to = 20130831
+target_date_to = 20130805
+target_datafile = *
+do
+end
+
+
+mode = reconfigure_detail
+datapath = D:\SEOUL_EX\[$DATE]
+outputfolder = D:\SEOUL_EX_SIG1\[$DATE]
+target_date_from = 20130805
+target_date_to = 20130805
 target_datafile = *
 do
 end

@@ -500,10 +500,56 @@ public:
 		return str;
 	}
 
+	
 	struct ObSig{
 		ObSig() : type(), dir(0), bidqty1(0), askqty1(0), bidprc1(0), askprc1(0) {}
 		std::string type;
 		int dir, bidqty1, askqty1, bidprc1, askprc1;
+	};
+
+	struct BAbook{
+		BAbook() { memset(prc,0,sizeof(prc)); memset(qty,0,sizeof(qty)); }
+		int prc[5], qty[5];
+	};
+
+	struct ObSigN{
+		ObSigN() : type(), dir(0), bbook(), abook() {}
+		std::string type;
+		int dir, price;
+		BAbook bbook, abook;
+		std::pair<int, int> prc2book(int price) const{
+			for (int i=0;i<2;++i){
+				const BAbook *target;
+				if (i==0) target = &bbook;
+				else target = &abook;
+				for (int j=0;j<5;++j){
+					if (target->prc[j] == price){
+						// j<0 then bid, j>0 then ask
+						return std::make_pair((i==0) ? -(j+1) : (j+1), target->qty[j]);
+					}
+				}
+			}
+			return std::make_pair(0,0);
+		}
+		std::vector<int> prices() const{
+			std::vector<int> ret;
+			for (int i=0;i<2;++i)
+				for (int j=0;j<5;++j)
+					ret.push_back((i==0) ? bbook.prc[j] : abook.prc[j]);
+			return ret;
+		}
+		void remove_price(int price){
+			std::pair<int, int> prcpair = prc2book(price);
+			BAbook *target = NULL;
+			if (prcpair.first < 0) target = &bbook;
+			else target = &abook;
+			for (int i=0;i<5;++i){
+				target->prc[i] = target->prc[i+1];
+				target->qty[i] = target->qty[i+1];
+			}
+			target->prc[4] = target->prc[3] + (target->prc[3] - target->prc[2]);
+			target->qty[4] = -1;
+		}
 	};
 
 	template <typename T> int sign(T val) {
@@ -519,18 +565,178 @@ public:
 		FILE *fo = NULL;
 		fopen_s(&fo, tofile.c_str(), "wt");
 
+		BAbook ibbook, iabook;
+		int idir, ivol, iprice;
+		iprice = ivol = idir = 0;
+
+		for (int i=0;i<(int)header.size();++i){
+			int isprtlist = 0;
+			if (!_strcmpi(header[i].c_str(),"type")){
+				ti = i;
+				isprtlist = 1;
+			}
+			else{
+				if (detail_verbose) isprtlist = 1;
+				else if (!_strcmpi(header[i].c_str(),"arrivaltime") || !_strcmpi(header[i].c_str(),"price") || !_strcmpi(header[i].c_str(),"vol") || !_strcmpi(header[i].c_str(),"direction")
+					|| !_strcmpi(header[i].c_str()," bidPrc1") || !_strcmpi(header[i].c_str(),"bidQty1") || !_strcmpi(header[i].c_str()," AskPrc1") || !_strcmpi(header[i].c_str(),"AskQty1")){
+						isprtlist = 1;
+				}
+			}
+			if (isprtlist){
+				fprintf(fo,"%s,",header[i].c_str());
+				is.push_back(i);
+			}
+
+			if (!_strcmpi(header[i].c_str(),"direction")) idir = i;
+			if (!_strcmpi(header[i].c_str(),"vol")) ivol = i;
+			if (!_strcmpi(header[i].c_str(),"price")) iprice = i;
+			std::string key = header[i];
+			if (key[0] == ' ') key = key.substr(1); // trim.
+			BAbook *targetbook = NULL;
+			if (!_strcmpi(key.substr(0,3).c_str(),"bid")){ targetbook = &ibbook; }
+			else if (!_strcmpi(key.substr(0,3).c_str(),"ask")){ targetbook = &iabook; }
+			if (targetbook){
+				key = key.substr(3);
+				int *targetarr = NULL;
+				if (!_strcmpi(key.substr(0,3).c_str(),"qty")){ targetarr = targetbook->qty; }
+				else if (!_strcmpi(key.substr(0,3).c_str(),"prc")){ targetarr = targetbook->prc; }
+				if (targetarr){
+					key = key.substr(3);
+					int idx = atoi(key.c_str());
+					targetarr[idx-1] = i;
+				}
+			}
+		}
+		int price = 0, vol = 0;
+		ObSigN oldsig, sig;
+		fprintf(fo,"type1,price1,vol1,type2,price2,vol2,\n");
+		while(csvp.getline()){
+
+			std::vector<std::string> content = csvp.line;
+
+			for (int i=0;i<(int)is.size();++i){
+				if (is[i] < (int)content.size())
+					fprintf(fo,"%s,",content[is[i]].c_str());
+				else
+					fprintf(fo," ,");
+			}
+
+			price = atoi(content[iprice].c_str());
+			vol = atoi(content[ivol].c_str());
+			sig.type = content[ti];
+			sig.dir = atoi(content[idir].c_str());
+			sig.price = price;
+			if (!_strcmpi(sig.type.c_str(),"BA") || !_strcmpi(sig.type.c_str(),"TBA")){
+				for (int i=0;i<2;++i){
+					BAbook *targetb, *idxb;
+					if (i==0) targetb = &sig.bbook, idxb = &ibbook;
+					else targetb = &sig.abook, idxb = &iabook;
+					for (int j=0;j<2;++j){
+						int *target, *idx;
+						if (j==0) target = targetb->qty, idx = idxb->qty;
+						else target = targetb->prc, idx = idxb->prc;
+						for (int k=0;k<5;++k)
+							target[k] = atoi(content[idx[k]].c_str());
+					}
+				}
+			}
+
+			std::vector<int> prcs;
+			std::vector<std::pair<int, int> > osbs, nsbs;
+			std::pair<int, int> osb, nsb;
+
+			if (oldsig.type.length()){
+				std::vector<int> nprices = sig.prices();
+				std::vector<int> oprices = oldsig.prices();
+				nprices.insert(nprices.end(),oprices.begin(),oprices.end());
+				std::sort(nprices.begin(),nprices.end());
+				nprices.resize(std::unique(nprices.begin(),nprices.end())-nprices.begin());
+				for (int i=0;i<(int)nprices.size();++i){
+					std::pair<int, int> sb = sig.prc2book(nprices[i]);
+					std::pair<int, int> oldsb = oldsig.prc2book(nprices[i]);
+					if (sb.second != oldsb.second && (oldsb.second != -1)){ // if -1 then (T, BA) or (T, TBA)
+						if ((sb.second==0 && (oldsb.first==5 || oldsb.first==-5)) ||
+							(oldsb.second==0 && (sb.first==5 || sb.first==-5)) || 
+							(oldsb.second==0 && oldsig.price == nprices[i]))
+							continue;
+						nsbs.push_back(sb);
+						osbs.push_back(oldsb);
+						prcs.push_back(nprices[i]);
+					}
+				}
+			}
+			if (nsbs.size()==3){
+				int j = 1;
+			}
+			std::string typestr[4] = {"","trade","cancel","insertion"};
+			int type12[2] = {0,}, price12[2] = {0,}, vol12[2] = {0,}, cc = 0;
+			if (!_strcmpi(sig.type.c_str(),"TBA") || !_strcmpi(sig.type.c_str(),"T")){ // at least it's traded.
+				type12[cc] = 1; // trade;
+				price12[cc] = price;
+				vol12[cc++] = vol;
+				for (int i=0;i<(int)osbs.size();++i){
+					if (prcs[i] == price){
+						osbs.erase(osbs.begin()+i);
+						prcs.erase(prcs.begin()+i);
+						nsbs.erase(nsbs.begin()+i);
+						break;
+					}
+				}
+			}
+			if (!_strcmpi(sig.type.c_str(),"TBA") || !_strcmpi(sig.type.c_str(),"BA")){
+				for (int i=0;i<(int)osbs.size();++i){
+					if (nsbs[i].second > osbs[i].second){
+						type12[cc] = 3; // insertion
+						price12[cc] = prcs[i];
+						vol12[cc] = nsbs[i].second - osbs[i].second;
+						++cc;
+						break;
+					}
+					if (nsbs[i].second < osbs[i].second){
+						type12[cc] = 2; // cancellation
+						price12[cc] = prcs[i];
+						vol12[cc] = osbs[i].second - nsbs[i].second;
+						++cc;
+						break;
+					}
+				}
+			}
+			if (!_strcmpi(sig.type.c_str(),"T")){
+				sig.bbook = oldsig.bbook;
+				sig.abook = oldsig.abook;
+				sig.remove_price(price);
+			}
+			for (int i=0;i<2;++i){
+				if (cc>i) fprintf(fo,"%s,%d,%d,",typestr[type12[i]].c_str(),price12[i],vol12[i]);
+				else fprintf(fo,",,,");
+			}
+			fprintf(fo,"\n");
+			
+			oldsig = sig;
+		}
+	}
+
+	inline void reconfigure_file_old(const std::string& fromfile, const std::string& tofile, int detail_verbose){
+		CsvParser csvp(fromfile);
+		csvp.getline();
+		std::vector<std::string> header = csvp.line;
+		int ti;
+		std::vector<int> is;
+		FILE *fo = NULL;
+		fopen_s(&fo, tofile.c_str(), "wt");
+
 		int idir, ibqty1, iaqty1, ibprc1, iaprc1, ivol;
 		ivol = idir = ibqty1 = iaqty1 = ibprc1 = iaprc1 = 0;
 
 		for (int i=0;i<(int)header.size();++i){
-			if (!strcmpi(header[i].c_str(),"type")){
+			if (!_strcmpi(header[i].c_str(),"type")){
 				ti = i;
 			}
 			else{
 				int isprtlist = 0;
 				if (detail_verbose) isprtlist = 1;
-				else if (!strcmpi(header[i].c_str(),"arrivaltime") || !strcmpi(header[i].c_str(),"price") || !strcmpi(header[i].c_str(),"vol") || !strcmpi(header[i].c_str(),"direction")
-					|| !strcmpi(header[i].c_str()," bidPrc1") || !strcmpi(header[i].c_str(),"bidQty1") || !strcmpi(header[i].c_str()," AskPrc1") || !strcmpi(header[i].c_str(),"AskQty1")){
+				else if (!_strcmpi(header[i].c_str(),"arrivaltime") || !_strcmpi(header[i].c_str(),"price") || !_strcmpi(header[i].c_str(),"vol") || !_strcmpi(header[i].c_str(),"direction")
+					|| !_strcmpi(header[i].c_str()," bidPrc1") || !_strcmpi(header[i].c_str(),"bidQty1") || !_strcmpi(header[i].c_str()," AskPrc1") || !_strcmpi(header[i].c_str(),"AskQty1")){
 					isprtlist = 1;
 				}
 				if (isprtlist){
@@ -539,12 +745,12 @@ public:
 				}
 			}
 
-			if (!strcmpi(header[i].c_str(),"direction")) idir = i;
-			if (!strcmpi(header[i].c_str(),"vol")) ivol = i;
-			if (!strcmpi(header[i].c_str(),"bidQty1")) ibqty1 = i;
-			if (!strcmpi(header[i].c_str(),"askQty1")) iaqty1 = i;
-			if (!strcmpi(header[i].c_str()," bidPrc1")) ibprc1 = i;
-			if (!strcmpi(header[i].c_str()," askPrc1")) iaprc1 = i;
+			if (!_strcmpi(header[i].c_str(),"direction")) idir = i;
+			if (!_strcmpi(header[i].c_str(),"vol")) ivol = i;
+			if (!_strcmpi(header[i].c_str(),"bidQty1")) ibqty1 = i;
+			if (!_strcmpi(header[i].c_str(),"askQty1")) iaqty1 = i;
+			if (!_strcmpi(header[i].c_str()," bidPrc1")) ibprc1 = i;
+			if (!_strcmpi(header[i].c_str()," askPrc1")) iaprc1 = i;
 		}
 
 		if (detail_verbose)
@@ -556,7 +762,7 @@ public:
 		fprintf(fo,"\n");
 		while(csvp.getline()){
 			std::vector<std::string> content = csvp.line;
-			//if (!strcmpi(content[ti].c_str(),"T") || !strcmpi(content[ti].c_str(),"TBA") ){
+			//if (!_strcmpi(content[ti].c_str(),"T") || !_strcmpi(content[ti].c_str(),"TBA") ){
 
 			int dirtraded;
 			int askqtydelta1, bidqtydelta1;
@@ -570,7 +776,7 @@ public:
 			int qtytraded = atoi(content[ivol].c_str());
 
 			dirtraded = sig.dir;
-			if (!strcmpi(sig.type.c_str(),"BA") || !strcmpi(sig.type.c_str(),"TBA")){
+			if (!_strcmpi(sig.type.c_str(),"BA") || !_strcmpi(sig.type.c_str(),"TBA")){
 				// BA나 TBA일 때에.. ask 또는 bid 1호가 가격이 바뀐 경우 각각의 direction을 계산 가능하다.
 				diraskmoved = sign(sig.askprc1 - oldsig.askprc1);
 				dirbidmoved = sign(sig.bidprc1 - oldsig.bidprc1);
@@ -593,7 +799,7 @@ public:
 				// bid 역시 마찬가지로 해 준다.
 				if (dirbidmoved > 0) bidqtydelta1 = sig.bidqty1;
 			}
-			if (!strcmpi(sig.type.c_str(),"T")){
+			if (!_strcmpi(sig.type.c_str(),"T")){
 				if (dirtraded>0){
 					diraskmoved = 1;
 					//T 인 경우 예컨대 buy 인 경우 ask는 실종되고 bid는 남는다.
@@ -617,7 +823,7 @@ public:
 
 			if (detail_verbose){
 				for (int i=0;i<(int)is.size();++i){
-					if (is[i] < content.size())
+					if (is[i] < (int)content.size())
 						fprintf(fo,"%s,",content[is[i]].c_str());
 					else
 						fprintf(fo," ,");
