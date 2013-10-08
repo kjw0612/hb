@@ -510,6 +510,9 @@ public:
 	struct BAbook{
 		BAbook() { memset(prc,0,sizeof(prc)); memset(qty,0,sizeof(qty)); }
 		int prc[5], qty[5];
+		bool initialized() const{
+			return prc[0]>0 || prc[1]>0 || prc[2]>0 || prc[3]>0 || prc[4]>0;
+		}
 	};
 
 	struct ObSigN{
@@ -607,9 +610,9 @@ public:
 				}
 			}
 		}
-		int price = 0, vol = 0;
+		int price = 0, vol = 0, seq = 0;
 		ObSigN oldsig, sig;
-		fprintf(fo,"type1,price1,vol1,type2,price2,vol2,\n");
+		fprintf(fo,"type1,price1,vol1,type2,price2,vol2,type3,price3,vol3,\n");
 		while(csvp.getline()){
 
 			std::vector<std::string> content = csvp.line;
@@ -623,6 +626,10 @@ public:
 
 			price = atoi(content[iprice].c_str());
 			vol = atoi(content[ivol].c_str());
+			seq = atoi(content[0].c_str());
+			if (seq == 35303){
+				seq = seq;
+			}
 			sig.type = content[ti];
 			sig.dir = atoi(content[idir].c_str());
 			sig.price = price;
@@ -655,11 +662,12 @@ public:
 					std::pair<int, int> sb = sig.prc2book(nprices[i]);
 					std::pair<int, int> oldsb = oldsig.prc2book(nprices[i]);
 					if (sb.second != oldsb.second && (oldsb.second != -1)){ // if -1 then (T, BA) or (T, TBA)
-						if (
-							(sb.second==0 && (oldsb.first==5 || oldsb.first==-5)) || // 5 disappears
-							(oldsb.second==0 && (sb.first==5 || sb.first==-5)) || // 5 comes
-							(oldsb.second==0 && oldsig.price == nprices[i]))
+						if ((sb.second==0 && (oldsb.first==5 || oldsb.first==-5)) || // 5 disappears
+							(oldsb.second==0 && (sb.first==5 || sb.first==-5)) // 5 comes
+							)
 							continue;
+						//if (oldsb.second==0 && oldsig.price == nprices[i])
+						//	continue;
 						nsbs.push_back(sb);
 						osbs.push_back(oldsb);
 						prcs.push_back(nprices[i]);
@@ -670,7 +678,7 @@ public:
 				int j = 1;
 			}
 			std::string typestr[4] = {"","trade","cancel","insertion"};
-			int type12[2] = {0,}, price12[2] = {0,}, vol12[2] = {0,}, cc = 0;
+			int type12[9] = {0,}, price12[9] = {0,}, vol12[9] = {0,}, cc = 0;
 			if (!_strcmpi(sig.type.c_str(),"TBA") || !_strcmpi(sig.type.c_str(),"T")){ // at least it's traded.
 				type12[cc] = 1; // trade;
 				price12[cc] = price;
@@ -690,29 +698,35 @@ public:
 				}
 			}
 			if (!_strcmpi(sig.type.c_str(),"TBA") || !_strcmpi(sig.type.c_str(),"BA")){
-				for (int i=0;i<(int)osbs.size();++i){
-					if (nsbs[i].second > osbs[i].second){
-						type12[cc] = 3; // insertion
-						price12[cc] = prcs[i];
-						vol12[cc] = nsbs[i].second - osbs[i].second;
-						++cc;
-						break;
-					}
-					if (nsbs[i].second < osbs[i].second){
-						type12[cc] = 2; // cancellation
-						price12[cc] = prcs[i];
-						vol12[cc] = osbs[i].second - nsbs[i].second;
-						++cc;
-						break;
+				if (oldsig.type.length() && oldsig.abook.initialized() && oldsig.bbook.initialized() && sig.abook.initialized() && sig.bbook.initialized()){
+					for (int i=0;i<(int)osbs.size();++i){
+						if (nsbs[i].second > osbs[i].second){
+							type12[cc] = 3; // insertion
+							price12[cc] = prcs[i];
+							vol12[cc] = nsbs[i].second - osbs[i].second;
+							++cc;
+							//break;
+						}
+						if (nsbs[i].second < osbs[i].second){
+							type12[cc] = 2; // cancellation
+							price12[cc] = prcs[i];
+							vol12[cc] = osbs[i].second - nsbs[i].second;
+							++cc;
+							//break;
+						}
 					}
 				}
+			}
+			if (cc>3){
+				printf("sung\n");
+				cc = cc;
 			}
 			if (!_strcmpi(sig.type.c_str(),"T")){
 				sig.bbook = oldsig.bbook;
 				sig.abook = oldsig.abook;
 				sig.remove_price(price);
 			}
-			for (int i=0;i<2;++i){
+			for (int i=0;i<3;++i){
 				if (cc>i) fprintf(fo,"%s,%d,%d,",typestr[type12[i]].c_str(),price12[i],vol12[i]);
 				else fprintf(fo,",,,");
 			}
