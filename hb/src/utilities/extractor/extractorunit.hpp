@@ -655,8 +655,9 @@ public:
 					std::pair<int, int> sb = sig.prc2book(nprices[i]);
 					std::pair<int, int> oldsb = oldsig.prc2book(nprices[i]);
 					if (sb.second != oldsb.second && (oldsb.second != -1)){ // if -1 then (T, BA) or (T, TBA)
-						if ((sb.second==0 && (oldsb.first==5 || oldsb.first==-5)) ||
-							(oldsb.second==0 && (sb.first==5 || sb.first==-5)) || 
+						if (
+							(sb.second==0 && (oldsb.first==5 || oldsb.first==-5)) || // 5 disappears
+							(oldsb.second==0 && (sb.first==5 || sb.first==-5)) || // 5 comes
 							(oldsb.second==0 && oldsig.price == nprices[i]))
 							continue;
 						nsbs.push_back(sb);
@@ -676,9 +677,14 @@ public:
 				vol12[cc++] = vol;
 				for (int i=0;i<(int)osbs.size();++i){
 					if (prcs[i] == price){
-						osbs.erase(osbs.begin()+i);
-						prcs.erase(prcs.begin()+i);
-						nsbs.erase(nsbs.begin()+i);
+						if (sign(nsbs[i].first) == sig.dir){
+							osbs.erase(osbs.begin()+i);
+							prcs.erase(prcs.begin()+i);
+							nsbs.erase(nsbs.begin()+i);
+						}
+						else{
+							osbs[i].second = 0;
+						}
 						break;
 					}
 				}
