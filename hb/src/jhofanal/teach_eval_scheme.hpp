@@ -167,6 +167,7 @@ public:
 		dataset[datatype].push_back(filename);
 	}
 	static pair<vvd, vvd> getDataFast(const string& filename, const vs& xnames, const vs& ynames){
+		int volidx = 0;
 		vi xidxs(xnames.size(),-1), yidxs(ynames.size(),-1);
 		vi aloneflag(xnames.size(),0);
 		int allone = 0;
@@ -189,6 +190,8 @@ public:
 				for (int i=0;i<m;++i){
 					if (!strcmpitr(names[j], cp.line[i]))
 						idxs[j] = i;
+					if (!strcmpitr("vol",cp.line[i]))
+						volidx = i;
 				}
 				assert(idxs[j]>=0);
 			}
@@ -202,7 +205,8 @@ public:
 				for (int j=0;j<(int)names.size();++j){
 					val[j] = (int)cp.lined[idxs[j]];
 				}
-				vals.push_back(val);
+				if (cp.lined[volidx] >= 20 || cp.lined[volidx] == 0)
+					vals.push_back(val);
 			}
 		}
 		for (int i=(int)ys.size()-2;i>=0;--i){
@@ -243,6 +247,8 @@ public:
 		for (int j=0;j<(int)xxs[0].size();++j){
 			for (int i=0;i<(int)xxs.size();++i){
 				if (xsmax[j] > 20){
+					//xxs[i][j] = xxs[i][j] <= 1 ? -2 : log(xxs[i][j])-2;
+					//xxs[i][j] = pow(xxs[i][j]/100,1/2.);
 					xxs[i][j] /= 150;
 				}
 			}

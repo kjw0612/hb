@@ -67,8 +67,10 @@ int test(){
 		shared_ptr<LearningSystem> (new NeuralNetwork(concat(sbnames(),bamnames()), 3, 2, vi(), shared_ptr<VectorFunction>())), tescheme);
 		*/
 
+	/*
 	test_and_report("NeuralNetwork",
 		shared_ptr<LearningSystem> (new NeuralNetwork(qtynames(),3)), tescheme);
+*/
 
 	test_and_report("NeuralNetwork",
 		shared_ptr<LearningSystem> (new NeuralNetwork(concat(qtynames(),concat(sbnames(),bamnames())),3)), tescheme);
