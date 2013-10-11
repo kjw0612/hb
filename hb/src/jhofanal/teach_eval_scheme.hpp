@@ -205,7 +205,7 @@ public:
 				for (int j=0;j<(int)names.size();++j){
 					val[j] = (int)cp.lined[idxs[j]];
 				}
-				if (cp.lined[volidx] >= 20 || cp.lined[volidx] == 0)
+				if (cp.lined[volidx] >= 10 || cp.lined[volidx] == 0)
 					vals.push_back(val);
 			}
 		}

@@ -70,7 +70,7 @@ int test(){
 	/*
 	test_and_report("NeuralNetwork",
 		shared_ptr<LearningSystem> (new NeuralNetwork(qtynames(),3)), tescheme);
-*/
+		*/
 
 	test_and_report("NeuralNetwork",
 		shared_ptr<LearningSystem> (new NeuralNetwork(concat(qtynames(),concat(sbnames(),bamnames())),3)), tescheme);
@@ -93,11 +93,11 @@ int test(){
 	test_and_report("SimpleLinParam",
 		shared_ptr<LearningSystem> (new SimpleLinparamModel(concat(qtynames(),concat(sbnames(),bamnames())),4)), tescheme);
 
-	test_and_report("SimpleStat",
-		shared_ptr<LearningSystem> (new SimpleStatSystem(concat(sbnames(),bamnames()),4)), tescheme);
-
 	//test_and_report("SimplePoly",
 	//	shared_ptr<LearningSystem> (new SimplePolyModel(concat(sbnames(),bamnames()),4)), tescheme);
+
+	test_and_report("SimpleStat",
+		shared_ptr<LearningSystem> (new SimpleStatSystem(concat(sbnames(),bamnames()),4)), tescheme);
 
 	return 0;
 }

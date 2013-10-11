@@ -26,7 +26,10 @@ public:
 	double error(const vd& x, const vd& y){
 		int hashx = hash(x);
 		map<int, pi>::iterator it = cases.lower_bound(hashx);
-		pi val = it->second;
+		pi val(1,0);
+		if (it!=cases.end()){
+			val = it->second;
+		}
 		double prob = val.first / (double)(val.first + val.second);
 		double y_real = (double)hashy(y);
 		return fabs(prob - y_real);
