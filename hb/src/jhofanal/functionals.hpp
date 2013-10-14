@@ -110,5 +110,9 @@ inline string filepathdatestr(const string& datestr){
 	return ret;
 }
 
+template<class T>
+inline void initPtr(shared_ptr<T>& rhs){
+	rhs = shared_ptr<T>(new T());
+}
 
 #endif // functionals_h__

@@ -3,13 +3,22 @@
 
 #include "functionals.hpp"
 
+class OrderBook{
+public:
+	class Container{
+	public:
+		int price, qty;
+	};
+	vector<Container> ask, bid;
+};
+
 class ObInfo{
 public:
-	enum TYPE {
-		TRADE,
-		INSERTION,
-		CANCEL,
-		NONE
+	enum TYPE{
+		TRADE = 1,
+		INSERTION = 2,
+		CANCEL = 3,
+		NONE = 4,
 	};
 	ObInfo() : n(0) {}
 	void add(const string& _type, int _price, int _vol){
@@ -28,6 +37,11 @@ public:
 	TYPE type[3];
 	int price[3];
 	int vol[3];
+};
+
+class TradeInfo{
+public:
+	int price, vol, direction;
 };
 
 class Sig1Info{

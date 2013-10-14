@@ -87,15 +87,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="format_adapt_test.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="tester.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="csvparser.hpp" />
     <ClInclude Include="csvparserfast.hpp" />
+    <ClInclude Include="formaldata.hpp" />
     <ClInclude Include="functionals.hpp" />
     <ClInclude Include="logistic_model.hpp" />
     <ClInclude Include="neural_network.hpp" />
+    <ClInclude Include="obinfo2sig.hpp" />
     <ClInclude Include="optimization_method.hpp" />
     <ClInclude Include="settings.hpp" />
     <ClInclude Include="simple_linparam_model.hpp" />

@@ -21,6 +21,9 @@
     <ClCompile Include="tester.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="format_adapt_test.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="csvparser.hpp">
@@ -57,6 +60,12 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="vectorfunctions.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="formaldata.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="obinfo2sig.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
