@@ -73,10 +73,10 @@ int test(){
 		*/
 
 	test_and_report("NeuralNetwork",
-		shared_ptr<LearningSystem> (new NeuralNetwork(concat(qtynames(),concat(sbnames(),bamnames())),3)), tescheme);
+		shared_ptr<LearningSystem> (new NeuralNetwork(concat(qtynames(),concat(sbnames(),bamnames())),5)), tescheme);
 
 	test_and_report("NeuralNetwork",
-		shared_ptr<LearningSystem> (new NeuralNetwork(concat(sbnames(),bamnames()),3)), tescheme);
+		shared_ptr<LearningSystem> (new NeuralNetwork(concat(sbnames(),bamnames()),5)), tescheme);
 
 	//test_and_report("NeuralNetwork",
 	//	shared_ptr<LearningSystem> (new NeuralNetwork(concat(qtynames(),concat(sbnames(),bamnames())),4)), tescheme);

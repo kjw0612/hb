@@ -204,9 +204,11 @@ public:
 				vd val(names.size());
 				for (int j=0;j<(int)names.size();++j){
 					val[j] = (int)cp.lined[idxs[j]];
+					//if (!strcmpitr(names[j],"is_sell") || !strcmpitr(names[j],"is_buy"))
+					//	val[j] *= (cp.lined[volidx]+1)/10.;
 				}
-				if (cp.lined[volidx] >= 10 || cp.lined[volidx] == 0)
-					vals.push_back(val);
+				//if (cp.lined[volidx] >= 10 || cp.lined[volidx] == 0)
+				vals.push_back(val);
 			}
 		}
 		for (int i=(int)ys.size()-2;i>=0;--i){
