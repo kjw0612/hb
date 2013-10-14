@@ -171,7 +171,15 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\format_adapt_test.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\main.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\tester.cpp"
 				>
 			</File>
 		</Filter>
@@ -189,6 +197,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\formaldata.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\functionals.hpp"
 				>
 			</File>
@@ -198,6 +210,10 @@
 			</File>
 			<File
 				RelativePath=".\neural_network.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\obinfo2sig.hpp"
 				>
 			</File>
 			<File
@@ -222,10 +238,6 @@
 			</File>
 			<File
 				RelativePath=".\teach_eval_scheme.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\tester.cpp"
 				>
 			</File>
 		</Filter>

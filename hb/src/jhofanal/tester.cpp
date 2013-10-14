@@ -11,10 +11,6 @@ string dates[19] = {"20130805", "20130806", "20130807", "20130808", "20130809",
 					"20130820", "20130821", "20130822", "20130823", "20130826",
 					"20130827", "20130828", "20130829", "20130830"};
 
-string filepathdatestr(const string& datestr){
-	string ret = "D:\\SEOUL_EX_T\\" + datestr + "\\KR4101H90008_" + datestr + ".csv";
-	return ret;
-}
 
 void neural_network_test(){
 	vvd xs, ys;

@@ -136,26 +136,6 @@ public:
 	vd paramset;
 };
 
-#define TRIM_SPACE " \t\n\v"
-namespace ospace {
-	inline std::string trim(std::string& s,const std::string& drop = TRIM_SPACE){
-		std::string r=s.erase(s.find_last_not_of(drop)+1);
-		return r.erase(0,r.find_first_not_of(drop));
-	}
-	inline std::string rtrim(std::string s,const std::string& drop = TRIM_SPACE){
-		return s.erase(s.find_last_not_of(drop)+1);
-	}
-	inline std::string ltrim(std::string s,const std::string& drop = TRIM_SPACE){
-		return s.erase(0,s.find_first_not_of(drop));
-	}
-}
-
-int strcmpitr(const string& a, const string& b){
-	string a_(a), b_(b);
-	ospace::trim(a_), ospace::trim(b_);
-	return _strcmpi(a_.c_str(), b_.c_str());
-}
-
 class TeachEvalScheme{
 public:
 	enum DataType{
