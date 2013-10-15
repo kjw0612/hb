@@ -18,16 +18,21 @@ public:
 		TRADE = 1,
 		INSERTION = 2,
 		CANCEL = 3,
-		NONE = 4,
+		NONE = 0,
 	};
-	ObInfo() : n(0) {}
+	ObInfo() : n(0) { 
+		type[0] = type[1] = type[2] = NONE;
+		price[0] = price[1] = price[2] = 0;
+		vol[0] = vol[1] = vol[2] = 0;
+	}
+	static TYPE toType(const string& rhs){
+		if (!strcmpitr(rhs,"INSERTION")) return INSERTION;
+		else if (!strcmpitr(rhs,"CANCEL")) return CANCEL;
+		else if (!strcmpitr(rhs,"TRADE")) return TRADE;
+		else return NONE;
+	}
 	void add(const string& _type, int _price, int _vol){
-		TYPE type_ = TRADE;
-		if (!strcmpitr(_type,"trade")) type_ = TRADE;
-		else if (!strcmpitr(_type,"insertion")) type_ = INSERTION;
-		else if (!strcmpitr(_type,"cancel")) type_ = CANCEL;
-		else if (!strcmpitr(_type,"none")) type_ = NONE;
-		add(type_, _price, _vol);
+		add(toType(_type), _price, _vol);
 	}
 	void add(TYPE _type, int _price, int _vol){
 		type[n] = _type; price[n] = _price; vol[n] = _vol;
@@ -48,6 +53,9 @@ class Sig1Info{
 public:
 	Sig1Info() : is_sell(), is_buy(), is_bidinsert(), is_askinsert(), is_bidcancel(), is_askcancel(), dir_bidmove(), dir_askmove(){}
 	int is_sell, is_buy, is_bidinsert, is_askinsert, is_bidcancel, is_askcancel, dir_bidmove, dir_askmove;
+	int isS1Event() const{
+		return is_sell || is_buy || is_bidinsert || is_askinsert || is_bidcancel || is_askcancel || dir_bidmove || dir_askmove;
+	}
 };
 
 inline Sig1Info ObInfo2Sig1(const ObInfo& obinfo, int ask1price, int bid1price, int direction, int oask1price, int obid1price){
@@ -66,17 +74,25 @@ inline Sig1Info ObInfo2Sig1(const ObInfo& obinfo, int ask1price, int bid1price, 
 			if (obinfo.price[i]==bid1price) ret.is_bidcancel = 1;
 		}
 	}
-	if (oask1price){
-		if (oask1price < ask1price) ret.dir_askmove = 1;
-		else if (oask1price > ask1price) ret.dir_askmove = -1;
-	}
-	else if (obid1price){
-		if (obid1price < bid1price) ret.dir_bidmove = 1;
-		else if (obid1price > bid1price) ret.dir_bidmove = -1;
+	if ((oask1price && ask1price) || (obid1price && bid1price)){
+		if (oask1price && ask1price){
+			if (oask1price < ask1price) ret.dir_askmove = 1;
+			else if (oask1price > ask1price) ret.dir_askmove = -1;
+		}
+		if (obid1price && bid1price){
+			if (obid1price < bid1price) ret.dir_bidmove = 1;
+			else if (obid1price > bid1price) ret.dir_bidmove = -1;
+		}
 	}
 	else{
-		if (direction == 1) ret.dir_askmove = 1;
-		else if (direction == -1) ret.dir_bidmove = -1;
+		if (direction == 1){
+			ret.is_buy = 1;
+			ret.dir_askmove = 1;
+		}
+		else if (direction == -1){
+			ret.is_sell = 1;
+			ret.dir_bidmove = -1;
+		}
 	}
 	return ret;
 }

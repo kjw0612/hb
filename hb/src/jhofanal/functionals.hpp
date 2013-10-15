@@ -110,9 +110,16 @@ inline string filepathdatestr(const string& datestr){
 	return ret;
 }
 
+inline string filepathdatestr_new(const string& datestr){
+	string ret = "D:\\SEOUL_EX_SIG1\\" + datestr + "\\KR4101H90008_" + datestr + ".csv";
+	return ret;
+}
+
+
 template<class T>
 inline void initPtr(shared_ptr<T>& rhs){
-	rhs = shared_ptr<T>(new T());
+	if (rhs==NULL)
+		rhs = shared_ptr<T>(new T());
 }
 
 #endif // functionals_h__

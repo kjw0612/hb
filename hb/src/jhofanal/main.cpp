@@ -5,6 +5,6 @@ void formatAdapt();
 
 int main(){
 	formatAdapt();
-	test();
+	//test();
 	return 0;
 }

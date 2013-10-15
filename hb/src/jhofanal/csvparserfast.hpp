@@ -9,7 +9,7 @@ class CsvParserFast{
 public:
 	CsvParserFast(const std::string& __filename) : fp(NULL) {
 		fopen_s(&fp,__filename.c_str(),"rt");
-		buf = new char[300+1];
+		buf = new char[800+1];
 	}
 	~CsvParserFast() {
 		fclose(fp);
@@ -25,10 +25,12 @@ public:
 		else{
 			lined.clear();
 			lined.reserve(20);
+			offsets.clear();
+			offsets.reserve(20);
 		}
 
 		memset(buf,0,sizeof(buf));
-		fgets(buf,300,fp);
+		fgets(buf,800,fp);
 		if (isstr){
 			str = buf;
 			std::istringstream iss(str);
@@ -47,6 +49,7 @@ public:
 						buf[i] = 0;
 						val = atof(buf+offset);
 						lined.push_back(val);
+						offsets.push_back(offset);
 						offset = i+1;
 					}
 				}
@@ -87,6 +90,7 @@ public:
 	int c;
 	std::vector<std::string> line;
 	std::vector<double> lined;
+	std::vector<int> offsets;
 	std::string substr;
 	std::string str;
 	FILE *fp;
