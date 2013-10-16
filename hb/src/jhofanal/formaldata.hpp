@@ -134,14 +134,14 @@ inline pair<vs, vvd> getDataPool(const string& filename){
 }
 
 #include <queue>
-typedef queue<int> qi;
+typedef deque<int> qi;
 
 class ObDataBase{
 public:
 	vs names;
 	vector<ObField> obdata;
 
-	pvi insdelsign(int floor, int cap, int ins0del1){
+	pvi insdelsign(int floor, int cap, int ins0del1) const{
 		int move = 0;
 		vi is, vals;
 		int multip = (ins0del1==0) ? 1 : -1;
@@ -166,7 +166,7 @@ public:
 		return make_pair(is, vals);
 	}
 
-	pvi tradesign(int floor, int cap){
+	pvi tradesign(int floor, int cap) const{
 		int move = 0;
 		vi is, vals;
 		for (int i=0;i<(int)obdata.size();++i){
@@ -178,7 +178,7 @@ public:
 		return make_pair(is, vals);
 	}
 
-	pvi pricemove(){
+	pvi pricemove() const{
 		int move = 0;
 		vi is, vals;
 		for (int i=0;i<(int)obdata.size();++i){
@@ -190,23 +190,62 @@ public:
 		return make_pair(is, vals);
 	}
 
-	vvd gentset(vpvi target, int topn, int gap){
-		int c = 0;
-		vvd ret;
-		for (int i=0;i<target[0].first.size();++i){
+	static pair<vvd, vvd> genvec(int n/*event num size*/, vvd yvec, vpvi target, int m/*queue size*/, int gap, int minn) {
+		vi it(target.size(),0);
+		vector<qi> targetq(target.size());
+		vector<qi> nq(target.size());
+		for (int j=0;j<(int)targetq.size();++j)
+			for (int k=0;k<m;++k){
+				targetq[j].push_front(0);
+				nq[j].push_front(0);
+			}
 
-			++c;
+		vvd xs, ys;
+		xs.reserve(n/gap);
+		for (int i=minn;i<n;i+=gap){
+			int c=0;
+			vd row(target.size() * m);
+			for (int j=0;j<(int)target.size();++j){
+				while(it[j] < (int)target[j].first.size()){
+					if (target[j].first[it[j]] <= i){
+						targetq[j].push_back(target[j].second[it[j]]);
+						nq[j].push_back(target[j].first[it[j]]);
+						while ((int)targetq[j].size()>m){
+							targetq[j].pop_front();
+							nq[j].pop_front();
+						}
+						++it[j];
+					}
+					else{
+						break;
+					}
+				}
+				//qi::iterator ia = , ib;
+				for (int k=0;k<m;++k){
+					int ndelta = i - nq[j][k];
+					row[c++] = exp(-ndelta / 100.) * targetq[j][k];
+				}
+			}
+			xs.push_back(row);
+			ys.push_back(yvec[i]);
 		}
+		return make_pair(xs,ys);
 	}
 
-	pair<vvd, vvd> tset1(int topn) const{
-		vvd xs,ys;
+	pair<vvd, vvd> tset1(int m, int gap) const{
+		vvd ys(obdata.size(),vd(1,0));
+		vd ychk(obdata.size(),0);
 		vpvi target;
 		pvi pm = pricemove(), ts = tradesign(10,10000), inss = insdelsign(10,10000,0), dels = insdelsign(10,10000,1);
 		target.push_back(pm); target.push_back(ts);
 		target.push_back(inss); target.push_back(dels); 
-		for (int i=0;i<ys.size();++i){
+		for (int i=0;i<(int)ts.first.size();++i){
+			for (int k=(i==0) ? 0 : ts.first[i-1]+1; k<=ts.first[i]; ++k){
+				ys[k][0] = ts.second[i];
+				ychk[k] = ts.second[i];
+			}
 		}
+		return genvec(obdata.size(), ys, target, m, gap, ts.first[0]);
 	}
 
 	void print(const string& filepath, int complex = 0) const {
@@ -302,6 +341,7 @@ public:
 				put(ft, _val, i, addi);
 			}
 		}
+		initPtr(obdata[0].s1info); // init by 0
 		for (int i=1;i<(int)obdata.size();++i){
 			if (obdata[i].s1info == NULL && obdata[i].obinfo){
 				initPtr(obdata[i].s1info);
