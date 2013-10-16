@@ -1,0 +1,6 @@
+1. recent 10 seq price move (dir_k, n-k)
+2. recent 10 seq large trade sign(>=10) (sign_k, n-k)
+3. recent 10 insertion(>=10) (sign_k, n-k)
+4. recent 10 cancellation(>=10) (sign_k, n-k)
+
+

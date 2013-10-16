@@ -25,3 +25,6 @@ typedef vector<string> vs;
 typedef pair<int, int> pi;
 typedef vector<vd> vvd;
 typedef vector<vvd> v3d;
+typedef vector<pi> vpi;
+typedef pair<vi, vi> pvi;
+typedef vector<pvi> vpvi;

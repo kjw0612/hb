@@ -133,11 +133,81 @@ inline pair<vs, vvd> getDataPool(const string& filename){
 	return make_pair(names, data);
 }
 
+#include <queue>
+typedef queue<int> qi;
 
 class ObDataBase{
 public:
 	vs names;
 	vector<ObField> obdata;
+
+	pvi insdelsign(int floor, int cap, int ins0del1){
+		int move = 0;
+		vi is, vals;
+		int multip = (ins0del1==0) ? 1 : -1;
+		for (int i=0;i<(int)obdata.size();++i){
+			if (obdata[i].obinfo){
+				for (int j=0;j<obdata[i].obinfo->n;++j){
+					if ((obdata[i].obinfo->type[j] == ObInfo::INSERTION && ins0del1==0)
+						|| (obdata[i].obinfo->type[j] == ObInfo::CANCEL && ins0del1==1))
+					{
+						if (floor <= obdata[i].obinfo->vol[j] && obdata[i].obinfo->vol[j] <= cap)
+						{
+							is.push_back(i);
+							if (obdata[i].obinfo->price[j] <= obdata[i].obook->bid[0].price)
+								vals.push_back(1 * multip); // bid insertion
+							else
+								vals.push_back(-1 * multip); // ask insertion
+						}
+					}
+				}
+			}
+		}
+		return make_pair(is, vals);
+	}
+
+	pvi tradesign(int floor, int cap){
+		int move = 0;
+		vi is, vals;
+		for (int i=0;i<(int)obdata.size();++i){
+			if (floor <= obdata[i].tinfo->vol && obdata[i].tinfo->vol <= cap){
+				is.push_back(i);
+				vals.push_back(obdata[i].tinfo->direction);
+			}
+		}
+		return make_pair(is, vals);
+	}
+
+	pvi pricemove(){
+		int move = 0;
+		vi is, vals;
+		for (int i=0;i<(int)obdata.size();++i){
+			if (move = sign(obdata[i].s1info->dir_bidmove + obdata[i].s1info->dir_askmove)){
+				is.push_back(i);
+				vals.push_back(move);
+			}
+		}
+		return make_pair(is, vals);
+	}
+
+	vvd gentset(vpvi target, int topn, int gap){
+		int c = 0;
+		vvd ret;
+		for (int i=0;i<target[0].first.size();++i){
+
+			++c;
+		}
+	}
+
+	pair<vvd, vvd> tset1(int topn) const{
+		vvd xs,ys;
+		vpvi target;
+		pvi pm = pricemove(), ts = tradesign(10,10000), inss = insdelsign(10,10000,0), dels = insdelsign(10,10000,1);
+		target.push_back(pm); target.push_back(ts);
+		target.push_back(inss); target.push_back(dels); 
+		for (int i=0;i<ys.size();++i){
+		}
+	}
 
 	void print(const string& filepath, int complex = 0) const {
 		FILE *fo = NULL;
