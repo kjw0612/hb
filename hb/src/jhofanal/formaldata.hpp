@@ -232,13 +232,36 @@ public:
 		return make_pair(xs,ys);
 	}
 
-	pair<vvd, vvd> tset1(int m, int gap) const{
+	enum TSET_TYPE{
+		PRICE_MOVE = 0x0001,
+		TRADE_SIGN = 0x0010,
+		INS_SIGN = 0x0100,
+		DEL_SIGN = 0x1000,
+		TSET1 = 0x1111,
+		TSET2 = 0x0001,
+	};
+
+	pair<vvd, vvd> tset1(int m, int gap, TSET_TYPE type) const{
 		vvd ys(obdata.size(),vd(1,0));
 		vd ychk(obdata.size(),0);
 		vpvi target;
-		pvi pm = pricemove(), ts = tradesign(10,10000), inss = insdelsign(10,10000,0), dels = insdelsign(10,10000,1);
-		target.push_back(pm); target.push_back(ts);
-		target.push_back(inss); target.push_back(dels); 
+		pvi ts = tradesign(10,10000);
+
+		if (type | PRICE_MOVE){
+			pvi pm = pricemove();
+			target.push_back(pm);
+		}
+		if (type | TRADE_SIGN){
+			target.push_back(ts);
+		}
+		if (type | INS_SIGN){
+			pvi inss = insdelsign(10,10000,0);
+			target.push_back(inss);
+		}
+		if (type | DEL_SIGN){
+			pvi dels = insdelsign(10,10000,1);
+			target.push_back(dels); 
+		}
 		for (int i=0;i<(int)ts.first.size();++i){
 			for (int k=(i==0) ? 0 : ts.first[i-1]+1; k<=ts.first[i]; ++k){
 				ys[k][0] = ts.second[i];
@@ -246,6 +269,22 @@ public:
 			}
 		}
 		return genvec(obdata.size(), ys, target, m, gap, ts.first[0]);
+	}
+
+	pair<vs, int> tset1vsnn(int m, int gap, TSET_TYPE type) const{
+		vs xnames;
+		for (int i=0;i<m;++i){
+			if (type | PRICE_MOVE)
+				xnames.push_back("pricemove");
+			if (type | TRADE_SIGN)
+				xnames.push_back("tradesign");
+			if (type | INS_SIGN)
+				xnames.push_back("inssign");
+			if (type | DEL_SIGN)
+				xnames.push_back("delsign");
+		}
+		return make_pair(xnames, 1);
+		//return make_pair(xnames, m);
 	}
 
 	void print(const string& filepath, int complex = 0) const {

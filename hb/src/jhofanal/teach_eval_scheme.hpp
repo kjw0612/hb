@@ -146,6 +146,9 @@ public:
 	void addSet(const string& filename, DataType datatype){
 		dataset[datatype].push_back(filename);
 	}
+	void addData(const string& filename, DataType datatype){
+		dataset[datatype].push_back(filename);
+	}
 	static pair<vvd, vvd> getDataFast(const string& filename, const vs& xnames, const vs& ynames){
 		int volidx = 0;
 		vi xidxs(xnames.size(),-1), yidxs(ynames.size(),-1);
@@ -255,11 +258,11 @@ public:
 			std::chrono::duration<double> elapsed_seconds = end-start;
 			std::cout << "elapsed time ? " << elapsed_seconds.count() << std::endl;
 #endif
-			//timer_.restart();
 			//getData(dataset[Training][i], ls->xnames(), ls->ynames());
-			//std::cout << "slower ? " << timer_.elapsed() << std::endl;
 			ls->adds(xydata.first,xydata.second);
 		}
+		for (int i=0;i<(int)datacache[Training].size();++i)
+			ls->adds(datacache[Training][i].first,datacache[Training][i].second);
 		ls->optimize();
 	}
 
@@ -273,10 +276,20 @@ public:
 				errors[k] += res.first;
 				ndata += res.second;
 			}
+			for (int i=0;i<(int)datacache[k].size();++i){
+				pair<double, int> res = ls->errors(datacache[k][i].first,datacache[k][i].second);
+				errors[k] += res.first;
+				ndata += res.second;
+			}
 			errors[k] /= ndata;
 		}
 	}
 
+	void addData(pair<vvd, vvd>& xydata, DataType datatype){
+		datacache[datatype].push_back(xydata);
+	}
+
+	vector<pair<vvd,vvd> > datacache[3];
 	vs dataset[3];
 	double errors[3];
 };

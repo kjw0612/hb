@@ -6,6 +6,7 @@
 //, public CostFunction
 class NeuralNetwork : public Mto1System{
 public:
+
 	// depth means # of layer on neural network 
 	NeuralNetwork (const vs& xnames_, int nn = 2, int depth = 2, const vi &_layers = vi(),
 		const shared_ptr<VectorFunction>& _g = shared_ptr<VectorFunction>(new LogisticVF()))
