@@ -12,8 +12,10 @@ public:
 		int n = (int)x.size();
 		int ret = 0;
 		for (int i=0;i<n;++i){
-			ret *= 2; ret += (int)x[i]; }
-		ret += 1<<(n+1);
+			ret *= 3;
+			ret += ((int)x[i]+1);
+		}
+		//ret += (int)pow(3,n);
 		return ret;
 	}
 	void add(const vd& x, const vd& y){
@@ -33,7 +35,20 @@ public:
 		double prob = val.first / (double)(val.first + val.second);
 		return prob;
 	}
-	void optimize() {} // do nothing.
+	void print(){
+		map<int, pi>::const_iterator it;
+		for (it = cases.begin();it != cases.end(); ++it){
+			int case_i = it->first;
+			pi val_i = it->second;
+			char buf[20]="";
+			_itoa(case_i,buf,3);
+			printf("(%s,%d,%d) ", buf, val_i.first, val_i.second);
+		}
+		printf("\n");
+	}
+	void lazyOptimize() {
+		//print();
+	} // do nothing.
 	map<int, pi> cases;
 };
 

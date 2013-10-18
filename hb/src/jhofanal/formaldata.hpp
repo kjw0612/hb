@@ -93,7 +93,9 @@ public:
 
 inline pair<vs, vvd> getDataPool(const string& filename){
 	printf("-");
+#ifdef _USE_BOOST_
 	boost::timer timer_;
+#endif
 	CsvParserFast cp(filename);
 	int m = cp.getrow	(1);
 
@@ -148,7 +150,9 @@ inline pair<vs, vvd> getDataPool(const string& filename){
 		}
 		data.push_back(val);
 	}
+#ifdef _USE_BOOST_
 	std::cout << timer_.elapsed() << std::endl;
+#endif
 	return make_pair(names, data);
 }
 

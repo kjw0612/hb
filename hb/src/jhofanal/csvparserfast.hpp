@@ -43,7 +43,7 @@ public:
 	CsvParserFast(const std::string& __filename) : fp(NULL), bufsize(800) {
 		fopen_s(&fp,__filename.c_str(),"rt");
 		buf = new char[bufsize+1];
-		fgetsfastinit();
+		//fgetsfastinit();
 	}
 	~CsvParserFast() {
 		fclose(fp);

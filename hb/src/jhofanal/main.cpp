@@ -7,7 +7,10 @@ void formatAdapt();
 int main(){
 	//fgetstest();
 	test();
-	formatAdapt();
+
+	//formatAdapt();
+
+
 	//test();
 	return 0;
 }

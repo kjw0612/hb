@@ -87,6 +87,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="fgetsfast\fgetsfast.cpp" />
     <ClCompile Include="format_adapt_test.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="tester.cpp" />
@@ -94,6 +95,7 @@
   <ItemGroup>
     <ClInclude Include="csvparser.hpp" />
     <ClInclude Include="csvparserfast.hpp" />
+    <ClInclude Include="fgetsfast\fgetsfast.hpp" />
     <ClInclude Include="formaldata.hpp" />
     <ClInclude Include="functionals.hpp" />
     <ClInclude Include="logistic_model.hpp" />

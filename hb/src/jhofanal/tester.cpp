@@ -35,7 +35,7 @@ inline void test_and_report(const string& name,
 	printf("[%s]\n",name.c_str());
 	tescheme->teach(ls);
 	tescheme->eval(ls);
-	printf("\n%s training set error = %lf\ntest set error = %lf\n\n", name.c_str(), tescheme->errors[0],tescheme->errors[1]);
+	printf("\n%s training set error = %lf(%d)\ntest set error = %lf(%d)\n\n", name.c_str(), tescheme->errors[0],tescheme->sizes[0],tescheme->errors[1],tescheme->sizes[1]);
 }
 
 int test(){
@@ -58,26 +58,26 @@ int test(){
 	for (int i=15;i<16;++i)
 		tescheme->addSet(filepathdatestr(dates[i]),TeachEvalScheme::Test);
 
-	test_and_report("SimpleStat",
-		shared_ptr<LearningSystem> (new SimpleStatSystem(bamnames(),4)), tescheme);
+	/*
+	for (int i=1;i<=10;++i){
+		test_and_report("SimpleStat",
+			shared_ptr<LearningSystem> (new SimpleStatSystem(bamnames(),i)), tescheme);
+	}
+	*/
 
-	test_and_report("SimpleStat",
-		shared_ptr<LearningSystem> (new SimpleStatSystem(bamnames(),1)), tescheme);
-	test_and_report("SimpleStat",
-		shared_ptr<LearningSystem> (new SimpleStatSystem(bamnames(),2)), tescheme);
-	test_and_report("SimpleStat",
-		shared_ptr<LearningSystem> (new SimpleStatSystem(bamnames(),3)), tescheme);
 
-	test_and_report("NeuralNetwork",
-		shared_ptr<LearningSystem> (new NeuralNetwork(bamnames(),1)), tescheme);
-	test_and_report("NeuralNetwork",
-		shared_ptr<LearningSystem> (new NeuralNetwork(bamnames(),7)), tescheme);
-	test_and_report("NeuralNetwork",
-		shared_ptr<LearningSystem> (new NeuralNetwork(bamnames(),5)), tescheme);
-	test_and_report("NeuralNetwork",
-		shared_ptr<LearningSystem> (new NeuralNetwork(bamnames(),4)), tescheme);
-	test_and_report("SimpleLinParam",
-		shared_ptr<LearningSystem> (new SimpleLinparamModel(bamnames(),4)), tescheme);
+	for (int i=1;i<=10;++i){
+		test_and_report("NeuralNetwork",
+			shared_ptr<LearningSystem> (new NeuralNetwork(bamnames(),i)), tescheme);
+	}
+//	test_and_report("NeuralNetwork",
+//		shared_ptr<LearningSystem> (new NeuralNetwork(bamnames(),2)), tescheme);
+//	test_and_report("NeuralNetwork",
+//		shared_ptr<LearningSystem> (new NeuralNetwork(bamnames(),3)), tescheme);
+//	test_and_report("NeuralNetwork",
+//		shared_ptr<LearningSystem> (new NeuralNetwork(bamnames(),4)), tescheme);
+//	test_and_report("SimpleLinParam",
+//		shared_ptr<LearningSystem> (new SimpleLinparamModel(bamnames(),4)), tescheme);
 	return 0;
 
 	/*

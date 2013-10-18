@@ -59,10 +59,12 @@ public:
 		}
 	}
 	inline double errorfunc(double y_guess, double y){
-		return (y - y_guess) * (y - y_guess);
+		return pow(y - y_guess,2.);
+		//return log(y - y_guess);
 	}
 	inline double guess(double expected_value){
-		return expected_value / (1 - 2 * expected_value);
+		return expected_value;
+		//return expected_value / (1 - 2 * expected_value);
 	}
 	template<class T>
 	static int hashy(const vector<T>& y){
@@ -92,7 +94,8 @@ public:
 	vs xnames(){ return xnames_; }
 	vvd remakeX(const vvd& xs){
 		vvd ret;
-		for (int i=0;i+nn<(int)xs.size();i+=nn){
+		//for (int i=0;i+nn-1<(int)xs.size();i+=nn){
+		for (int i=0;i+nn-1<(int)xs.size();++i){
 			vd vr;
 			for (int j=i;j<i+nn;++j){
 				vr.insert(vr.end(),xs[j].begin(),xs[j].end());
@@ -103,7 +106,8 @@ public:
 	}
 	vvd remakeY(const vvd& ys){
 		vvd ret;
-		for (int i=0;i+nn<(int)ys.size();i+=nn){
+		//for (int i=0;i+nn-1<(int)ys.size();i+=nn){
+		for (int i=0;i+nn-1<(int)ys.size();++i){
 			ret.push_back(ys[i+nn-1]);
 		}
 		return ret;
@@ -298,6 +302,7 @@ public:
 				errors[k] += res.first;
 				ndata += res.second;
 			}
+			sizes[k] = ndata;
 			if (ndata>0)
 				errors[k] /= ndata;
 		}
@@ -310,6 +315,7 @@ public:
 	vector<pair<vvd,vvd> > datacache[3];
 	vs dataset[3];
 	double errors[3];
+	int sizes[3];
 };
 
 #endif // teach_eval_scheme_h__

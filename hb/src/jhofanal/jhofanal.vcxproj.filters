@@ -24,6 +24,9 @@
     <ClCompile Include="format_adapt_test.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="fgetsfast\fgetsfast.cpp">
+      <Filter>리소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="csvparser.hpp">
@@ -67,6 +70,9 @@
     </ClInclude>
     <ClInclude Include="obinfo2sig.hpp">
       <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="fgetsfast\fgetsfast.hpp">
+      <Filter>리소스 파일</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
