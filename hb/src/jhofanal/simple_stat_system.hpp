@@ -23,16 +23,15 @@ public:
 		else ++val.second;
 		cases[hashx] = val;
 	}
-	double error(const vd& x, const vd& y){
+	double expect(const vd& x) const{
 		int hashx = hash(x);
-		map<int, pi>::iterator it = cases.lower_bound(hashx);
+		map<int, pi>::const_iterator it = cases.lower_bound(hashx);
 		pi val(1,0);
 		if (it!=cases.end()){
 			val = it->second;
 		}
 		double prob = val.first / (double)(val.first + val.second);
-		double y_real = (double)hashy(y);
-		return fabs(prob - y_real);
+		return prob;
 	}
 	void optimize() {} // do nothing.
 	map<int, pi> cases;

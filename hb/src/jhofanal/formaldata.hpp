@@ -12,7 +12,15 @@ public:
 		BA,TBA,T,NONE,
 	};
 
-	static PACKET_TYPE toType(const string& rhs){
+	static PACKET_TYPE toType(const char * rhs){
+		if (toupper(rhs[0]) == 'B')
+			return BA;
+		if (toupper(rhs[0]) == 'T'){
+			if (toupper(rhs[1]) == 'B')
+				return TBA;
+			return T;
+		}
+		return NONE;
 		if (!strcmpitr(rhs,"BA")) return BA;
 		else if (!strcmpitr(rhs,"TBA")) return TBA;
 		else if (!strcmpitr(rhs,"T")) return T;
@@ -84,18 +92,23 @@ public:
 };
 
 inline pair<vs, vvd> getDataPool(const string& filename){
+	printf("-");
+	boost::timer timer_;
 	CsvParserFast cp(filename);
-	int m = cp.getline(1);
+	int m = cp.getrow	(1);
 
 	vs names;
 	vvd data;
 
-	data.reserve(200000);
+
+	data.reserve(300000);
 	for (int i=0;i<m;++i)
 		names.push_back(ospace::trim(cp.line[i]));
 
+	int mm = names.size();
+
 	std::vector<int> itypes(4,-1);
-	for (int j=0;j<(int)names.size();++j){
+	for (int j=0;j<mm;++j){
 		if (!strcmpitr(names[j].substr(0,4),"type")){
 			if (names[j].length()==4) itypes[0] = j;
 			else{
@@ -105,31 +118,37 @@ inline pair<vs, vvd> getDataPool(const string& filename){
 		}
 	}
 
-	while (m = cp.getline(0)){
+	while (m = cp.getrow(0)){
 #ifdef _DEBUG
 		if (data.size()>30000)
 			break;
 #endif
-		vd val(names.size());
+		//continue;
+		vd val(mm);
 		int j=0;
-		if (!strcmpitr(names[0],"type")){ // 0 col should be type col(BA/TBA/T)
-		}
-		for (int j=0;j<(int)names.size();++j){
+		for (int j=0;j<mm;++j){
 			val[j] = (int)cp.lined[j];
 		}
 		for (int k=0;k<4;++k){
 			if (itypes[k]>=0){
 				int ii = itypes[k];
 				char typebuf[20] = "";
+				if (k==0)
+					val[ii] = ObField::toType(cp.buf+cp.offsets[ii]);
+				else
+					val[ii] = ObInfo::toType(cp.buf+cp.offsets[ii]);
+				/*
 				sscanf_s(cp.buf+cp.offsets[ii],"%s",typebuf, 19);
 				if (k==0)
 					val[ii] = ObField::toType(typebuf);
 				else
 					val[ii] = ObInfo::toType(typebuf);
+					*/
 			}
 		}
 		data.push_back(val);
 	}
+	std::cout << timer_.elapsed() << std::endl;
 	return make_pair(names, data);
 }
 
@@ -246,9 +265,9 @@ public:
 		vd ychk(obdata.size(),0);
 		vpvi target;
 		pvi ts = tradesign(10,10000);
+		pvi pm = pricemove();
 
 		if (type | PRICE_MOVE){
-			pvi pm = pricemove();
 			target.push_back(pm);
 		}
 		if (type | TRADE_SIGN){
@@ -262,10 +281,10 @@ public:
 			pvi dels = insdelsign(10,10000,1);
 			target.push_back(dels); 
 		}
-		for (int i=0;i<(int)ts.first.size();++i){
-			for (int k=(i==0) ? 0 : ts.first[i-1]+1; k<=ts.first[i]; ++k){
-				ys[k][0] = ts.second[i];
-				ychk[k] = ts.second[i];
+		for (int i=0;i<(int)pm.first.size();++i){
+			for (int k=(i==0) ? 0 : pm.first[i-1]+1; k<=pm.first[i]; ++k){
+				ys[k][0] = pm.second[i];
+				ychk[k] = pm.second[i];
 			}
 		}
 		return genvec(obdata.size(), ys, target, m, gap, ts.first[0]);

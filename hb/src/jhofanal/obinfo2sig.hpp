@@ -25,14 +25,22 @@ public:
 		price[0] = price[1] = price[2] = 0;
 		vol[0] = vol[1] = vol[2] = 0;
 	}
-	static TYPE toType(const string& rhs){
+	static TYPE toType(const char * rhs){
+		if (toupper(rhs[0])=='C')
+			return CANCEL;
+		else if (toupper(rhs[0])=='I')
+			return INSERTION;
+		else if (toupper(rhs[0])=='T')
+			return TRADE;
+		else
+			return NONE;
 		if (!strcmpitr(rhs,"INSERTION")) return INSERTION;
 		else if (!strcmpitr(rhs,"CANCEL")) return CANCEL;
 		else if (!strcmpitr(rhs,"TRADE")) return TRADE;
 		else return NONE;
 	}
 	void add(const string& _type, int _price, int _vol){
-		add(toType(_type), _price, _vol);
+		add(toType(_type.c_str()), _price, _vol);
 	}
 	void add(TYPE _type, int _price, int _vol){
 		type[n] = _type; price[n] = _price; vol[n] = _vol;

@@ -20,7 +20,8 @@ void formatAdapt(){
 
 	ObDataBase::TSET_TYPE tsetType = ObDataBase::TSET2;
 
-	for (int i=0;i<3;++i){
+	//for (int i=0;i<3;++i){
+	for (int i=0;i<1;++i){
 		pair<vs, vvd> dp = getDataPool(filepathdatestr_new(datesnew[i]));
 		ObDataBase ob(dp.first, dp.second);
 		pair<vvd, vvd> xyvec = ob.tset1(m, gap, tsetType);

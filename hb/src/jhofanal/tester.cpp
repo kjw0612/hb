@@ -58,6 +58,28 @@ int test(){
 	for (int i=15;i<16;++i)
 		tescheme->addSet(filepathdatestr(dates[i]),TeachEvalScheme::Test);
 
+	test_and_report("SimpleStat",
+		shared_ptr<LearningSystem> (new SimpleStatSystem(bamnames(),4)), tescheme);
+
+	test_and_report("SimpleStat",
+		shared_ptr<LearningSystem> (new SimpleStatSystem(bamnames(),1)), tescheme);
+	test_and_report("SimpleStat",
+		shared_ptr<LearningSystem> (new SimpleStatSystem(bamnames(),2)), tescheme);
+	test_and_report("SimpleStat",
+		shared_ptr<LearningSystem> (new SimpleStatSystem(bamnames(),3)), tescheme);
+
+	test_and_report("NeuralNetwork",
+		shared_ptr<LearningSystem> (new NeuralNetwork(bamnames(),1)), tescheme);
+	test_and_report("NeuralNetwork",
+		shared_ptr<LearningSystem> (new NeuralNetwork(bamnames(),7)), tescheme);
+	test_and_report("NeuralNetwork",
+		shared_ptr<LearningSystem> (new NeuralNetwork(bamnames(),5)), tescheme);
+	test_and_report("NeuralNetwork",
+		shared_ptr<LearningSystem> (new NeuralNetwork(bamnames(),4)), tescheme);
+	test_and_report("SimpleLinParam",
+		shared_ptr<LearningSystem> (new SimpleLinparamModel(bamnames(),4)), tescheme);
+	return 0;
+
 	/*
 	test_and_report("NeuralNetwork",
 		shared_ptr<LearningSystem> (new NeuralNetwork(concat(sbnames(),bamnames()), 3, 2, vi(), shared_ptr<VectorFunction>())), tescheme);

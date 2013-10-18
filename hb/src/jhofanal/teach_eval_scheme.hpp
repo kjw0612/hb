@@ -58,7 +58,26 @@ public:
 			lazyOptimize();
 		}
 	}
-	virtual double error(const vd& x, const vd& y) = 0;
+	inline double errorfunc(double y_guess, double y){
+		return (y - y_guess) * (y - y_guess);
+	}
+	inline double guess(double expected_value){
+		return expected_value / (1 - 2 * expected_value);
+	}
+	template<class T>
+	static int hashy(const vector<T>& y){
+		//assert(y.size()==1); // only damn single value suitable as input.
+		T ret = 0;
+		for (int i=0;i<(int)y.size();++i) ret += y[i];
+		return (ret > 0);
+	}
+	double error(const vd& x, const vd& y){
+		double expected_value = expect(x);
+		double guess_value = guess(expected_value);
+		double yval = hashy(y);
+		return errorfunc(guess_value, yval);
+	}
+	virtual double expect(const vd& x) const = 0;
 	virtual pair<double, int> errors(const vvd& xs, const vvd& ys) {
 		double ret = 0;
 		for (int i=0;i<(int)xs.size();++i) ret += error(xs[i], ys[i]);
@@ -70,13 +89,6 @@ public:
 class Mto1System : public LearningSystem{
 public:
 	Mto1System (const vs& xnames_, int nn = 1) : xnames_(xnames_), nn(nn) {}
-	template<class T>
-	static int hashy(const vector<T>& y){
-		//assert(y.size()==1); // only damn single value suitable as input.
-		T ret = 0;
-		for (int i=0;i<(int)y.size();++i) ret += y[i];
-		return (ret > 0);
-	}
 	vs xnames(){ return xnames_; }
 	vvd remakeX(const vvd& xs){
 		vvd ret;
@@ -111,6 +123,10 @@ public:
 class ParamSystem : public Mto1System, public CostFunction{
 public:
 	ParamSystem (const vs& xnames_, int nn = 1) : Mto1System(xnames_, nn) {}
+
+	double expect(const vd& x) const{
+		return eval(x, paramset);
+	}
 
 	virtual double eval(const vd& x, const vd& param) const = 0;
 	void add(const vd& x, const vd& y){
@@ -157,7 +173,7 @@ public:
 		vvd xs; vvd ys;
 		xs.reserve(200000),ys.reserve(200000);
 		CsvParserFast cp(filename);
-		int m = cp.getline(1);
+		int m = cp.getrow(1);
 		for (int i=0;i<(int)xnames.size();++i){
 			aloneflag[i] = !(!strcmpitr(xnames[i],"bidqty1") || !strcmpitr(xnames[i],"askqty1"));
 			allone |= aloneflag[i];
@@ -179,7 +195,7 @@ public:
 				assert(idxs[j]>=0);
 			}
 		}
-		while (m = cp.getline(0)){
+		while (m = cp.getrow(0)){
 			for (int k=0;k<2;++k){
 				const vs& names = (k==0) ? xnames : ynames;
 				vi& idxs = (k==0) ? xidxs : yidxs;
@@ -211,7 +227,8 @@ public:
 			}
 			if (atleast1one){
 				xxs.push_back(xs[i]);
-				yys.push_back(ys[i]);
+				if ((i+1)==xs.size()) yys.push_back(ys[i]);
+				else yys.push_back(ys[i+1]);
 			}
 		}
 		// normalize data
@@ -281,7 +298,8 @@ public:
 				errors[k] += res.first;
 				ndata += res.second;
 			}
-			errors[k] /= ndata;
+			if (ndata>0)
+				errors[k] /= ndata;
 		}
 	}
 
@@ -304,7 +322,7 @@ vi xidxs(xnames.size(),-1), yidxs(ynames.size(),-1);
 vvi xs; vvi ys;
 xs.reserve(200000),ys.reserve(200000);
 CsvParser cp(filename);
-int m = cp.getline();
+int m = cp.getrow();
 for (int k=0;k<2;++k){
 const vs& names = (k==0) ? xnames : ynames;
 vi& idxs = (k==0) ? xidxs : yidxs;
@@ -316,7 +334,7 @@ idxs[j] = i;
 assert(idxs[j]>=0);
 }
 }
-while (m = cp.getline()){
+while (m = cp.getrow()){
 for (int k=0;k<2;++k){
 const vs& names = (k==0) ? xnames : ynames;
 vi& idxs = (k==0) ? xidxs : yidxs;

@@ -4,19 +4,53 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include "functionals.hpp"
+#include "fgetsfast/fgetsfast.hpp"
+
+template<class T>
+struct FakeFastVector{
+	FakeFastVector(int n = 100) : arr(new T[n]), c(0) {}
+	~FakeFastVector() { delete[] arr; }
+	unsigned int size() const {
+		return c;
+	}
+	void clear(){
+		c = 0;
+	}
+	void reserve(int fakerhs){ }
+	inline void push_back(const T& rhs){
+		arr[c++] = rhs;
+	}
+	inline const T& operator[](int i) const {
+		//assert(i < c);
+		return arr[i];
+	}
+	inline T& operator[](int i) {
+		//assert(i < c);
+		return arr[i];
+	}
+	int c;
+	T *arr;
+};
+
+typedef FakeFastVector<int> fvi;
+typedef FakeFastVector<string> fvs;
+typedef FakeFastVector<double> fvd;
 
 class CsvParserFast{
 public:
-	CsvParserFast(const std::string& __filename) : fp(NULL) {
+	const int bufsize;
+	CsvParserFast(const std::string& __filename) : fp(NULL), bufsize(800) {
 		fopen_s(&fp,__filename.c_str(),"rt");
-		buf = new char[800+1];
+		buf = new char[bufsize+1];
+		fgetsfastinit();
 	}
 	~CsvParserFast() {
 		fclose(fp);
 		delete[] buf;
 	}
 
-	int getline(int isstr = 0){
+	int getrow(int isstr = 0){
 		c=0;
 		if (isstr){
 			line.clear();
@@ -30,7 +64,8 @@ public:
 		}
 
 		memset(buf,0,sizeof(buf));
-		fgets(buf,800,fp);
+		fgets(buf,bufsize,fp);
+		//fgetsfast(buf,bufsize,fp); // not so fast...sorry.
 		if (isstr){
 			str = buf;
 			std::istringstream iss(str);
@@ -40,14 +75,14 @@ public:
 			return line.size();
 		}
 		else{
-
 			int offset = 0, len = strlen(buf);
 			double val = 0;
 			if (len){
 				for (int i=0;i<=len;++i){
 					if (buf[i]==',' || i==len){
 						buf[i] = 0;
-						val = atof(buf+offset);
+						//if (atof(buf+offset) != atofast(buf+offset)) printf("error");
+						val = atofast(buf+offset);
 						lined.push_back(val);
 						offsets.push_back(offset);
 						offset = i+1;
@@ -91,6 +126,9 @@ public:
 	std::vector<std::string> line;
 	std::vector<double> lined;
 	std::vector<int> offsets;
+	//fvs line;
+	//fvd lined;
+	//fvi offsets;
 	std::string substr;
 	std::string str;
 	FILE *fp;

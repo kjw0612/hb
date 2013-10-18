@@ -11,7 +11,7 @@ public:
 	CsvParser(const std::string& __filename) : fi(__filename.c_str()) {}
 	~CsvParser() { fi.close(); }
 
-	int getline(){
+	int getrow(){
 		c=0;
 		line.clear();
 		line.reserve(20);

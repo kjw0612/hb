@@ -45,7 +45,7 @@ public:
 		//xs.resize(200);
 		//ys.resize(200);
 		//double alpha = 0.2;
-		double alpha = 200;
+		double alpha = 2000;
 		if (!g){
 			alpha = 1;
 		}
@@ -68,18 +68,28 @@ public:
 			theta = theta - dtheta * alpha;
 			if (g){
 				alpha *= 0.7;
+				if (i==0){
+					alpha = 10;
+				}
 			}
 			else{
-				alpha *= 0.9;
+				alpha *= 0.8;
 			}
 		}
 	}
 
+	double expect(const vd& x) const{
+		vvd aas = fwdPropagation(x, layers, theta, g);
+		return aas.back()[1];
+	}
+
+	/*
 	double error(const vd& x, const vd& y) {
 		vvd aas = fwdPropagation(x, layers, theta, g);
+		double yval = (double)hashy(y);
 		double _y = aas.back()[1];
-		return fabs((double)hashy(y) - _y);
-	}
+		return fabs(yval  - _y);
+	}*/
 	
 	static v3d diffDeriva(const vvd& _xs, const vvd& _ys, const vi& _layers, const v3d& _theta,
 		const shared_ptr<VectorFunction>& _g)
