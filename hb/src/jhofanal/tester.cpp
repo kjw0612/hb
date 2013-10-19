@@ -58,17 +58,25 @@ int test(){
 	for (int i=15;i<16;++i)
 		tescheme->addSet(filepathdatestr(dates[i]),TeachEvalScheme::Test);
 
+	
 	/*
 	for (int i=1;i<=10;++i){
 		test_and_report("SimpleStat",
 			shared_ptr<LearningSystem> (new SimpleStatSystem(bamnames(),i)), tescheme);
-	}
-	*/
+	}*/
+
+	test_and_report("SimpleStat",
+			shared_ptr<LearningSystem> (new SimpleStatSystem(bamnames(),1,1)), tescheme);
+	test_and_report("NeuralNetwork",
+			shared_ptr<LearningSystem> (new NeuralNetwork(bamnames(),1,2)), tescheme);
+	return 0;
 
 
 	for (int i=1;i<=10;++i){
 		test_and_report("NeuralNetwork",
-			shared_ptr<LearningSystem> (new NeuralNetwork(bamnames(),i)), tescheme);
+			shared_ptr<LearningSystem> (new NeuralNetwork(bamnames(),i,2)), tescheme);
+		test_and_report("NeuralNetwork",
+			shared_ptr<LearningSystem> (new NeuralNetwork(sbnames(),i,2)), tescheme);
 	}
 //	test_and_report("NeuralNetwork",
 //		shared_ptr<LearningSystem> (new NeuralNetwork(bamnames(),2)), tescheme);

@@ -7,7 +7,7 @@
 
 class SimpleStatSystem : public Mto1System{
 public:
-	SimpleStatSystem(const vs& xnames_, int nn = 1) : Mto1System(xnames_, nn) {}
+	SimpleStatSystem(const vs& xnames_, int nn = 1, int _verbose = 0) : Mto1System(xnames_, nn), verbose(_verbose) {}
 	static int hash(const vd& x){
 		int n = (int)x.size();
 		int ret = 0;
@@ -41,15 +41,17 @@ public:
 			int case_i = it->first;
 			pi val_i = it->second;
 			char buf[20]="";
-			_itoa(case_i,buf,3);
+			_itoa_s(case_i,buf,3);
 			printf("(%s,%d,%d) ", buf, val_i.first, val_i.second);
 		}
 		printf("\n");
 	}
 	void lazyOptimize() {
-		//print();
+		if (verbose)
+			print();
 	} // do nothing.
 	map<int, pi> cases;
+	int verbose;
 };
 
 

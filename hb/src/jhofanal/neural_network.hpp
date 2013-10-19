@@ -9,7 +9,8 @@ public:
 
 	// depth means # of layer on neural network 
 	NeuralNetwork (const vs& xnames_, int nn = 2, int depth = 2, const vi &_layers = vi(),
-		const shared_ptr<VectorFunction>& _g = shared_ptr<VectorFunction>(new LogisticVF()))
+		const shared_ptr<VectorFunction>& _g = shared_ptr<VectorFunction>(/*new LogisticVF()*/)
+		)
 		: Mto1System(xnames_, nn), depth(depth), layers(_layers), g(_g)
 	{
 		int m = nn * xnames_.size();
@@ -69,13 +70,37 @@ public:
 			if (g){
 				alpha *= 0.7;
 				if (i==0){
-					alpha = 10;
+					alpha = 100;
 				}
 			}
 			else{
-				alpha *= 0.8;
+				alpha *= 0.9;
 			}
 		}
+		print_as_stat();
+	}
+
+	void printstat_recursive(vd& x, int i, int n){
+		if (i==n){
+			double prob = expect(x);
+			for (int j=0;j<n;++j){
+				printf("%d",(int)(x[j]+1));
+			}
+			printf("(%lf) ",prob);
+		}
+		else{
+			for (int k=-1;k<=1;++k){
+				x[i] = k;
+				printstat_recursive(x, i+1, n);
+			}
+		}
+	}
+
+	void print_as_stat(){
+		printf("\n");
+		int n = layers[0]-1;
+		vd x(n,0);
+		printstat_recursive(x, 0, n);
 	}
 
 	double expect(const vd& x) const{
