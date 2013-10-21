@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
+    <Filter Include="gnuplot">
+      <UniqueIdentifier>{c7e987bf-7a75-4b0e-9996-a6b3628800cc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -26,6 +29,12 @@
     </ClCompile>
     <ClCompile Include="fgetsfast\fgetsfast.cpp">
       <Filter>리소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="pianal.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="gnuplot\pGNUPlot.cpp">
+      <Filter>gnuplot</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -73,6 +82,9 @@
     </ClInclude>
     <ClInclude Include="fgetsfast\fgetsfast.hpp">
       <Filter>리소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="gnuplot\pGNUPlot.h">
+      <Filter>gnuplot</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

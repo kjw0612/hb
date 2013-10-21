@@ -189,6 +189,26 @@ public:
 		return make_pair(is, vals);
 	}
 
+	pair<vi, vd> wmprices() const{
+		vi is; vd prcs;
+		for (int i=0;i<(int)obdata.size();++i){
+			is.push_back(i);
+			prcs.push_back(obdata[i].obook->wmprice());
+		}
+		return make_pair(is, prcs);
+	}
+
+	pvi tradeqty() const{
+		vi is, qtys;
+		for (int i=0;i<(int)obdata.size();++i){
+			if (obdata[i].tinfo->vol){
+				is.push_back(i);
+				qtys.push_back(obdata[i].tinfo->vol * obdata[i].tinfo->direction);
+			}
+		}
+		return make_pair(is, qtys);
+	}
+
 	pvi tradesign(int floor, int cap) const{
 		int move = 0;
 		vi is, vals;

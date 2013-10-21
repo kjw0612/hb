@@ -5,6 +5,10 @@
 
 class OrderBook{
 public:
+	double wmprice() const{
+		if (ask.size()==0 || bid.size()==0) return 0;
+		return (ask[0].price*ask[0].qty + bid[0].price*bid[0].qty) / (double)(ask[0].qty+bid[0].qty);
+	}
 	class Container{
 	public:
 		int price, qty;

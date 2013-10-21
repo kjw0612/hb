@@ -19,13 +19,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <PlatformToolset>v110</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <PlatformToolset>v110</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -89,7 +89,9 @@
   <ItemGroup>
     <ClCompile Include="fgetsfast\fgetsfast.cpp" />
     <ClCompile Include="format_adapt_test.cpp" />
+    <ClCompile Include="gnuplot\pGNUPlot.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="pianal.cpp" />
     <ClCompile Include="tester.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -98,6 +100,7 @@
     <ClInclude Include="fgetsfast\fgetsfast.hpp" />
     <ClInclude Include="formaldata.hpp" />
     <ClInclude Include="functionals.hpp" />
+    <ClInclude Include="gnuplot\pGNUPlot.h" />
     <ClInclude Include="logistic_model.hpp" />
     <ClInclude Include="neural_network.hpp" />
     <ClInclude Include="obinfo2sig.hpp" />
