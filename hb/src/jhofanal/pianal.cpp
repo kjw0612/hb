@@ -65,7 +65,7 @@ struct datter{
 	}
 	template<class T>
 	void adddat(const vi& idx, const vector<T>& rhs){
-		if (rhs.size() != idx_.size()){
+		if (rhs.size() != idx.size()){
 			printf("idx-data dimension mismatches");
 			return;
 		}
@@ -125,6 +125,62 @@ private:
 	shared_ptr<CpGnuplot> gplot_;
 };
 
+#include "optimization_method.hpp"
+
+class SimplePolyCF : public CostFunction{
+public:
+	SimplePolyCF(int _n) : n(_n), param(_n+1,0), calculated(0) {}
+	
+	static double polyFunction(double xval, const vd& poly){
+		double ret = 0, yval = 0, multip = 1;
+		for (int j=0;j<(int)poly.size();++j){
+			yval = yval + multip * poly[j];
+			multip *= xval;
+		}
+		return ret;
+	}
+
+	double costFunction(const vd& _param) const {
+		double ret = 0;
+		for (int i=0;i<(int)x.size();++i){
+			double yval = polyFunction(x[i], _param);
+			ret += pow(yval - y[i],2);
+		}
+		return ret;
+	}
+
+	void setData(const vd& _x, const vd& _y){ x = _x; y = _y; }
+
+	void calculate(){
+		if (!calculated){
+			calculated = true;
+			GradientDescent gd;
+			gd.minimize(*this, param);
+			param = gd.param;
+		}
+	}
+
+	vd getParam(){
+		calculate();
+		return param;
+	}
+
+	vd getFittedData(){
+		calculate();
+		vd ret(x.size());
+		for (int i=0;i<(int)x.size();++i){
+			ret[i] = polyFunction(x[i], param);
+		}
+		return ret;
+	}
+
+	vd x, y, param;
+	int n, calculated;
+};
+
+void rmsepoly(const vd& a, const vd& b){
+};
+
 void pplottest(){
 	//CpGnuplot plot ("C:\\Program Files\\gnuplot\\bin\\wgnuplot.exe");
 #ifdef _USE_BOOST_
@@ -146,15 +202,34 @@ void pianal(){
 		pair<vs, vvd> dp = getDataPool(filepathdatestr_new(datesnew[i]));
 		ObDataBase ob(dp.first, dp.second);
 		dt.resize(ob.size());
+		int imin = 0;
 		pair<vi, vd> wmp = ob.wmprices();
 		for (int j=0;j<(int)wmp.second.size();++j){
 			if (wmp.second[j]>0){
+				imin = j;
+				setMinMax(wmp.second.begin()+imin,wmp.second.end(),1.,2.);
 				dt.setmin(j);
 				break;
 			}
 		}
 		dt.adddat(wmp);
-		dt.adddat(ob.accumqty());
+		pair<vi, vd> accumqty = ob.accumqty();
+		setMinMax(accumqty.second.begin()+imin,accumqty.second.end(),1.,2.);
+		dt.adddat(accumqty);
+		vi xidxs;
+		vd xs, ys;
+		for (int i=0;i<(int)wmp.first.size();++i){
+			if (wmp.second[i] > 0){
+				xidxs.push_back(wmp.first[i]);
+				xs.push_back(wmp.first[i]);
+				ys.push_back(accumqty.second[i] / wmp.second[i]);
+			}
+		}
+		dt.adddat(xidxs,ys);
+		dt.adddat(ob.accumqtyabs());
+		//SimplePolyCF spcf(3);
+		//spcf.setData(xs,ys);
+		//dt.adddat(xidxs,spcf.getFittedData());
 		dt.print_and_plot("simple");
 	}
 }

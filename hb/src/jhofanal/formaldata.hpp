@@ -228,6 +228,20 @@ public:
 		return make_pair(is, accumqtys);
 	}
 
+	pair<vi, vd> accumqtyabs(int minVol = 1, int maxVol = 5000) const{
+		vi is; vd accumqtys;
+		double accumqty = 0;
+		for (int i=0;i<(int)obdata.size();++i){
+			if (obdata[i].tinfo->vol >= minVol && obdata[i].tinfo->vol <= maxVol){
+				accumqty += obdata[i].tinfo->vol;
+			}
+			is.push_back(i);
+			accumqtys.push_back(accumqty);
+		}
+		return make_pair(is, accumqtys);
+	}
+
+
 	pvi tradesign(int floor, int cap) const{
 		int move = 0;
 		vi is, vals;
