@@ -21,7 +21,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			CharacterSet="1"
+			CharacterSet="2"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -92,7 +92,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			CharacterSet="1"
+			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -179,6 +179,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\pianal.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\tester.cpp"
 				>
 			</File>
@@ -252,6 +256,14 @@
 			</File>
 			<File
 				RelativePath=".\fgetsfast\fgetsfast.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\gnuplot\pGNUPlot.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\gnuplot\pGNUPlot.h"
 				>
 			</File>
 		</Filter>

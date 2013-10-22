@@ -164,6 +164,10 @@ public:
 	vs names;
 	vector<ObField> obdata;
 
+	unsigned int size() const{
+		return obdata.size();
+	}
+
 	pvi insdelsign(int floor, int cap, int ins0del1) const{
 		int move = 0;
 		vi is, vals;
@@ -194,6 +198,8 @@ public:
 		for (int i=0;i<(int)obdata.size();++i){
 			is.push_back(i);
 			prcs.push_back(obdata[i].obook->wmprice());
+			if (prcs[i]==0 && i>0)
+				prcs[i] = prcs[i-1];
 		}
 		return make_pair(is, prcs);
 	}
@@ -207,6 +213,19 @@ public:
 			}
 		}
 		return make_pair(is, qtys);
+	}
+
+	pair<vi, vd> accumqty(int minVol = 1, int maxVol = 5000) const{
+		vi is; vd accumqtys;
+		double accumqty = 0;
+		for (int i=0;i<(int)obdata.size();++i){
+			if (obdata[i].tinfo->vol >= minVol && obdata[i].tinfo->vol <= maxVol){
+				accumqty += obdata[i].tinfo->vol * obdata[i].tinfo->direction;
+			}
+			is.push_back(i);
+			accumqtys.push_back(accumqty);
+		}
+		return make_pair(is, accumqtys);
 	}
 
 	pvi tradesign(int floor, int cap) const{

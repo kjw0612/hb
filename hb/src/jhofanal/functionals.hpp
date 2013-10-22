@@ -129,6 +129,48 @@ inline int sign(T rhs){
 	else return 0;
 }
 
+#include <Windows.h>
+
+inline std::vector<std::string> filenames(const std::string& dirpath, int topN = -1){
+	std::vector<std::string> ret;
+	WIN32_FIND_DATA search_data;
+	memset(&search_data, 0, sizeof(WIN32_FIND_DATA));
+	HANDLE handle = FindFirstFile(dirpath.c_str(), &search_data);
+	while(handle != INVALID_HANDLE_VALUE)
+	{
+		if (topN--==0){
+			break;
+		}
+		ret.push_back(search_data.cFileName);
+		if(FindNextFile(handle, &search_data) == FALSE)
+			break;
+	}
+	//Close the handle after use or memory/resource leak
+	FindClose(handle);
+	return ret;
+}
+
+inline void check_and_create_directory(const std::string& dirpath){
+	std::vector<std::string> files = filenames(dirpath + "*");
+	if (files.size()==0)
+		system(("mkdir " + dirpath).c_str());
+}
+
+template <class Iterator, class T2>
+inline void setMinMax(Iterator& vs_begin, Iterator& vs_end, T2 mint, T2 maxt){
+	T2 real_min = *std::min_element(vs_begin,vs_end);
+	T2 real_max = *std::max_element(vs_begin,vs_end);
+	for (Iterator it=vs_begin;it!=vs_end;++it){
+		T2 val = *(it);
+		if ((real_max - real_min)==0)
+			val = 0;
+		else{
+			val = (val - real_min)/(real_max - real_min); // [0 to 1]
+			val = mint * (1-val) + maxt * val; // [mint to maxt]
+		}
+		*(it) = val;
+	}
+}
 
 #define white_space(c) ((c) == ' ' || (c) == '\t')
 #define valid_digit(c) ((c) >= '0' && (c) <= '9')
