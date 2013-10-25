@@ -53,8 +53,6 @@ struct datter{
 		check_and_create_directory(BASEPATH);
 		resize(_n);
 		gplot_->cmd("set terminal png size 800,600 enhanced font \"Consolas,10\"");
-		string setoutput = string("set output \'") + BASEPATH + "output.png" + "\'";
-		gplot_->cmd(setoutput.c_str());
 		gplot_->cmd("set style line 1 lt 1 lw 1");
 	}
 	void setmin(int _st){ st_ = _st; }
@@ -97,6 +95,9 @@ struct datter{
 		fclose(fo);
 	}
 	void plot(std::string filename, int ns){
+		string setoutput = string("set output \'") + BASEPATH + filename + ".png";
+		gplot_->cmd(setoutput.c_str());
+
 		filename = BASEPATH + filename;
 		string command = "plot ";
 		for (int i=0;i<ns;++i){
@@ -111,6 +112,9 @@ struct datter{
 		command += " \n";
 		Sleep(5000);
 		//scanf_s("%c");
+	}
+	void clear(){
+		dat_.clear();
 	}
 	void print_and_plot(std::string filename){
 		print(filename);
@@ -179,7 +183,7 @@ public:
 };
 
 void rmsepoly(const vd& a, const vd& b){
-};
+}
 
 void pplottest(){
 	//CpGnuplot plot ("C:\\Program Files\\gnuplot\\bin\\wgnuplot.exe");
@@ -225,11 +229,15 @@ void pianal(){
 				ys.push_back(accumqty.second[i] / wmp.second[i]);
 			}
 		}
-		dt.adddat(xidxs,ys);
-		dt.adddat(ob.accumqtyabs());
+		dt.print_and_plot("simple");
+		dt.clear();
+		//dt.adddat(xidxs,ys);
+		//dt.adddat(ob.accumqtyabs());
+		dt.adddat(ob.accumqtyabsavg(5000));
+		dt.adddat(ob.wmpdeltas(5000));
 		//SimplePolyCF spcf(3);
 		//spcf.setData(xs,ys);
 		//dt.adddat(xidxs,spcf.getFittedData());
-		dt.print_and_plot("simple");
+		dt.print_and_plot("simple2");
 	}
 }

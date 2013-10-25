@@ -204,6 +204,13 @@ public:
 		return make_pair(is, prcs);
 	}
 
+	pair<vi, vd> wmpdeltas(int ndelta) const{
+		pair<vi, vd> ret = wmprices();
+		ret.second = val_to_diff(ndelta, ret.second);
+		sidecut(ret.second, ndelta);
+		return ret;
+	}
+
 	pvi tradeqty() const{
 		vi is, qtys;
 		for (int i=0;i<(int)obdata.size();++i){
@@ -213,6 +220,33 @@ public:
 			}
 		}
 		return make_pair(is, qtys);
+	}
+
+	static vd val_to_diff(int ndelta, const vd& accs){
+		vd ret = accs;
+		int n = accs.size(), sti = 0;
+		for (int i=0;i<n;++i){
+			int ns = (i<ndelta) ? i+1 : ndelta;
+			int st = (i<ndelta) ? i-1 : i-ndelta;
+			double diff = (st<0) ? accs[i] : accs[i] - accs[st];
+			ret[i] = diff / ns;
+		}
+		return ret;
+	}
+
+	static void sidecut(vd& rhs, int ndelta){
+		int n = rhs.size(), sti = 0;
+		for (int i=0;i<n;++i){
+			if (sti <= 0 && rhs[i]){
+				sti = i;
+				break;
+			}
+		}
+		rhs[n-1] = rhs[n-2];
+		for (int i=sti+ndelta;i>=sti;--i){
+			rhs[i] = rhs[i+1];
+		}
+
 	}
 
 	pair<vi, vd> accumqty(int minVol = 1, int maxVol = 5000) const{
@@ -241,6 +275,12 @@ public:
 		return make_pair(is, accumqtys);
 	}
 
+	pair<vi, vd> accumqtyabsavg(int ndelta, int minVol = 1, int maxVol = 5000) const{
+		pair<vi, vd> ret = accumqtyabs(minVol, maxVol);
+		ret.second = val_to_diff(ndelta, ret.second);
+		sidecut(ret.second, ndelta);
+		return ret;
+	}
 
 	pvi tradesign(int floor, int cap) const{
 		int move = 0;
