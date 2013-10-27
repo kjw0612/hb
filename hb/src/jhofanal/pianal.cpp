@@ -52,7 +52,7 @@ struct datter{
 	{
 		check_and_create_directory(BASEPATH);
 		resize(_n);
-		gplot_->cmd("set terminal png size 800,600 enhanced font \"Consolas,10\"");
+		gplot_->cmd("set terminal png size 1000,800 enhanced font \"Consolas,10\"");
 		gplot_->cmd("set style line 1 lt 1 lw 1");
 	}
 	void setmin(int _st){ st_ = _st; }
@@ -222,19 +222,35 @@ void pianal(){
 		dt.adddat(accumqty);
 		vi xidxs;
 		vd xs, ys;
-		for (int i=0;i<(int)wmp.first.size();++i){
-			if (wmp.second[i] > 0){
+		int dn = 400;
+		for (int i=0;i<(int)wmp.first.size()-700;++i){
+			double acmdelta = 0;
+			double wmpdelta = 0;
+			if (wmp.second[i] > 0 && i-2*dn >=0 && wmp.second[i-2*dn]>0){
+				for (int j=i-dn;j<i;++j){
+					acmdelta += accumqty.second[j];
+					wmpdelta += wmp.second[j];
+					//acmdelta += fabs(accumqty.second[i] - accumqty.second[j]);
+					//wmpdelta += fabs(wmp.second[i] - wmp.second[j]);
+					/*
+					if (fabs(acmdelta) < fabs(accumqty.second[i] - accumqty.second[j]))
+						acmdelta = accumqty.second[i] - accumqty.second[j];
+					if (fabs(wmpdelta) < wmp.second[i] - wmp.second[j])
+						wmpdelta = wmp.second[i] - wmp.second[j];
+						*/
+				}
 				xidxs.push_back(wmp.first[i]);
-				xs.push_back(wmp.first[i]);
-				ys.push_back(accumqty.second[i] / wmp.second[i]);
+				//xs.push_back(wmp.first[i]);
+				ys.push_back(wmpdelta / acmdelta);
 			}
 		}
+		dt.adddat(xidxs, ys);
 		dt.print_and_plot("simple");
 		dt.clear();
 		//dt.adddat(xidxs,ys);
 		//dt.adddat(ob.accumqtyabs());
 		dt.adddat(ob.accumqtyabsavg(5000));
-		dt.adddat(ob.wmpdeltas(5000));
+		//dt.adddat(ob.wmpdeltas(5000));
 		//SimplePolyCF spcf(3);
 		//spcf.setData(xs,ys);
 		//dt.adddat(xidxs,spcf.getFittedData());
