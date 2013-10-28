@@ -2,6 +2,13 @@
 #define functionals_h__
 #include "settings.hpp"
 
+template <class Type>
+class Null {
+public:
+	Null() {}
+	operator Type() const { return std::numeric_limits<Type>::max(); }
+};
+
 template<class T>
 inline vector<T> operator+(const vector<T>& lhs, const vector<T>& rhs) {
 	assert(lhs.size()==rhs.size());

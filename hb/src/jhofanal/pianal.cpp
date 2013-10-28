@@ -43,29 +43,36 @@ struct datter{
 		for (int i=0;i<n_;++i) idx_[i] = i;
 	}
 #define BASEPATH "D:\\PLOTDATA\\"
-	datter(int _n = 0) : n_(_n), st_(0)
+	datter(int _n = 0, shared_ptr<CpGnuplot> _gplot = 
 #ifdef _USE_BOOST_
-		, gplot_ (new CpGnuplot("C:\\Program Files\\gnuplot\\bin\\wgnuplot.exe"))
+		shared_ptr<CpGnuplot>(new CpGnuplot("C:\\Program Files\\gnuplot\\bin\\wgnuplot.exe"))
 #else
-		, gplot_ (new CpGnuplot("C:\\Program Files (x86)\\gnuplot\\bin\\wgnuplot.exe"))
+		shared_ptr<CpGnuplot>(new CpGnuplot("C:\\Program Files (x86)\\gnuplot\\bin\\wgnuplot.exe"))
 #endif
+		) : n_(_n), st_(0), gplot_(_gplot)
 	{
 		check_and_create_directory(BASEPATH);
 		resize(_n);
-		gplot_->cmd("set terminal png size 1000,800 enhanced font \"Consolas,10\"");
+		gplot_->cmd("set terminal png size 1200,800 enhanced font \"Consolas,10\"");
 		gplot_->cmd("set style line 1 lt 1 lw 1");
+		gplot_->cmd("set grid");
 	}
 	void setmin(int _st){ st_ = _st; }
 	template<class T>
-	void adddat(const pair<vi, vector<T>>& dat)
+	void adddat(const pair<vi, vector<T>>& dat, const std::string& str, double miny = -0.5, double maxy = 0.5)
 	{
-		adddat(dat.first,dat.second);
+		adddat(dat.first,dat.second,str,miny,maxy);
 	}
 	template<class T>
-	void adddat(const vi& idx, const vector<T>& rhs){
+	void adddat(const vi& idx, const vector<T>& rhs, const std::string& str, double miny = -0.5, double maxy = 0.5){
+		names_.push_back(str);
 		if (rhs.size() != idx.size()){
 			printf("idx-data dimension mismatches");
 			return;
+		}
+		if (n_==0){
+			idx_ = idx;
+			n_ = idx_.size();
 		}
 		vd row(n_,0);
 		for (int i=0;i<(int)idx.size();++i){
@@ -73,25 +80,33 @@ struct datter{
 				row[j] = rhs[i];
 			}
 		}
+		minmax_.push_back(std::make_pair(miny,maxy));
 		dat_.push_back(row);
 	}
-	void print(std::string filename){
+	void print(std::string filename, vvd dat, const vs& names, int print_index = 1){
 		filename = BASEPATH + filename;
 		FILE *fo = NULL;
 		fopen_s(&fo, filename.c_str(), "wt");
 
-		vvd dat = dat_;
+		for (int j=0;j<(int)dat.size();++j){
+			if (minmax_[j].first != Null<double>())
+				setMinMax(dat[j].begin()+st_,dat[j].begin()+n_, minmax_[j].first, minmax_[j].second);
+		}
 
-		for (int j=0;j<(int)dat.size();++j)
-			setMinMax(dat[j].begin()+st_,dat[j].begin()+n_, -0.5, 0.5);
+		/*
+		if (print_index) fprintf(fo,"idx ");
+		for (int j=0;j<(int)dat.size();++j) fprintf(fo,"%s ",names[j].c_str());
+		fprintf(fo,"\n");*/
 
 		for(int i=st_;i<n_;++i){
-			fprintf(fo,"%d ",idx_[i]);
+			if (print_index)
+				fprintf(fo,"%d ",idx_[i]);
 			for (int j=0;j<(int)dat.size();++j){
 				fprintf(fo,"%lf ",dat[j][i]);
 			}
 			fprintf(fo,"\n");
 		}
+		fflush(fo);
 		fclose(fo);
 	}
 	void plot(std::string filename, int ns){
@@ -104,6 +119,7 @@ struct datter{
 			char buf[10+1] = "";
 			sprintf_s(buf,10,"%d",i+2);
 			command += "\'" + filename + "\' using 1:" + buf +  " with lines";
+			command += " title \'" + names_[i] + "\'";
 			if (i!=ns-1) command += ",\\";
 			printf("%s\n",command.c_str());
 			gplot_->cmd(command.c_str());
@@ -115,10 +131,20 @@ struct datter{
 	}
 	void clear(){
 		dat_.clear();
+		names_.clear();
+		minmax_.clear();
 	}
-	void print_and_plot(std::string filename){
-		print(filename);
+	void print_and_plot(const std::string& filename){
+		print(filename, dat_, names_);
 		plot(filename, dat_.size());
+	}
+
+	void print_and_plot_xy(const vd& xs, const vd& ys, string xname, string yname, const std::string& filename){
+		vs names; vvd dt;
+		dt.push_back(xs); dt.push_back(ys);
+		names.push_back(xname); names.push_back(yname);
+		print(filename, dt, names, 0);
+		plot(filename, dt.size());
 	}
 #undef BASEPATH
 private:
@@ -126,6 +152,8 @@ private:
 	int n_;
 	vi idx_;
 	vvd dat_;
+	vector<pair<double,double> > minmax_;
+	vs names_;
 	shared_ptr<CpGnuplot> gplot_;
 };
 
@@ -197,6 +225,26 @@ void pplottest(){
 	scanf_s("%c");
 }
 
+void pnlanal(){
+	// which volumer is worth follow?
+	datter dt;
+	for (int i=0;i<19;++i){
+		pair<vs, vvd> dp = getDataPool(filepathdatestr_new(datesnew[i]));
+		ObDataBase ob(dp.first, dp.second);
+		vi buckets;
+		buckets.push_back(1);buckets.push_back(2);buckets.push_back(3);buckets.push_back(5);buckets.push_back(10);
+		buckets.push_back(20);buckets.push_back(30);buckets.push_back(40);buckets.push_back(50);buckets.push_back(100);buckets.push_back(500);
+		for (int j=0;j+1<(int)buckets.size();++j){
+			int minvol = buckets[j], maxvol = buckets[j+1]-1;
+			char namebuf[201] = "";
+			sprintf_s(namebuf,200,"pnl of volume range(%d to %d)",minvol,maxvol);
+			dt.adddat(ob.accumpnl(minvol, maxvol),namebuf,Null<double>(),Null<double>());
+		}
+		dt.print_and_plot("pnl" + datesnew[i]);
+		dt.clear();
+	}
+}
+
 void pianal(){
 	//plottest();
 	//return;
@@ -216,20 +264,21 @@ void pianal(){
 				break;
 			}
 		}
-		dt.adddat(wmp);
+		dt.adddat(wmp, "weighted midprices");
 		pair<vi, vd> accumqty = ob.accumqty();
 		setMinMax(accumqty.second.begin()+imin,accumqty.second.end(),1.,2.);
-		dt.adddat(accumqty);
+		dt.adddat(accumqty, "all accum signed qtys");
 		vi xidxs;
 		vd xs, ys;
-		int dn = 400;
-		for (int i=0;i<(int)wmp.first.size()-700;++i){
+		int dn = 1000;
+		int ddn = 200;
+		for (int i=0;i<(int)wmp.first.size();++i){
 			double acmdelta = 0;
 			double wmpdelta = 0;
 			if (wmp.second[i] > 0 && i-2*dn >=0 && wmp.second[i-2*dn]>0){
-				for (int j=i-dn;j<i;++j){
-					acmdelta += accumqty.second[j];
-					wmpdelta += wmp.second[j];
+				for (int j=i-dn+ddn;j<i;j+=ddn){
+					acmdelta += fabs(accumqty.second[j] - accumqty.second[j-ddn]);
+					wmpdelta += fabs(wmp.second[j] - wmp.second[j-ddn]);
 					//acmdelta += fabs(accumqty.second[i] - accumqty.second[j]);
 					//wmpdelta += fabs(wmp.second[i] - wmp.second[j]);
 					/*
@@ -244,12 +293,28 @@ void pianal(){
 				ys.push_back(wmpdelta / acmdelta);
 			}
 		}
-		dt.adddat(xidxs, ys);
+		//dt.print_and_plot_xy(accumqty.second, wmp.second, "accum qtys", "weighted midprices", "xyplot");
+		//dt.adddat(xidxs, ys);
 		dt.print_and_plot("simple");
 		dt.clear();
+
+		dt.adddat(wmp, "weighted midprices");
+		//dt.adddat(ob.accumqty(), "all accum signed qtys");
+		dt.adddat(ob.accumqty(1,2), "small accum signed qtys(1to2)");
+		dt.adddat(ob.accumqty(10,20), "mid accum signed qtys(10to20)");
+		dt.adddat(ob.accumqty(20,30), "large accum signed qtys(20to30)");
+		dt.adddat(ob.accumqty(30,50), "verylarge accum signed qtys(30to50)");
+		//dt.adddat(ob.accumqty(50,300), "large accum signed qtys(50to300)");
+
+		pair<vi, vd> acabs = ob.accumqtyabs(), acabsmalls = ob.accumqtyabs(1,2), acabmids = ob.accumqtyabs(10,20), acablarges = ob.accumqtyabs(50,300);
+
+		//dt.adddat(acabsmalls, "small accum unsigned qtys(1to2)",0,acabsmalls.second.back()/acabs.second.back());
+		//dt.adddat(acablarges, "mid accum unsigned qtys(10to20)",0,acabmids.second.back()/acabs.second.back());
+		//dt.adddat(acablarges, "large accum unsigned qtys(50to300)",0,acablarges.second.back()/acabs.second.back());
+		dt.print_and_plot("accumqtys");
 		//dt.adddat(xidxs,ys);
 		//dt.adddat(ob.accumqtyabs());
-		dt.adddat(ob.accumqtyabsavg(5000));
+		dt.adddat(ob.accumqtyabsavg(5000), "accum avg unsigned qtys");
 		//dt.adddat(ob.wmpdeltas(5000));
 		//SimplePolyCF spcf(3);
 		//spcf.setData(xs,ys);

@@ -282,6 +282,27 @@ public:
 		return ret;
 	}
 
+	pair<vi, vd> accumpnl(int minVol = 1, int maxVol = 500) const{
+		pair<vi, vd> acqty = accumqty(minVol, maxVol);
+		pair<vi, vd> wmp = wmprices();
+		vd retpnl(acqty.second.size(),0);
+		double position = 0, avgprice = 0, pnl = 0;
+		double realizedpnl = 0, potentialpnl = 0;
+		for (int i=0;i<(int)obdata.size();++i){
+			if (obdata[i].tinfo->vol >= minVol && obdata[i].tinfo->vol <= maxVol){
+				double dpos = obdata[i].tinfo->vol * obdata[i].tinfo->direction;
+				double davgprice = obdata[i].tinfo->price;
+				if (position + dpos==0) avgprice = 0;
+				else avgprice = (position * avgprice + dpos * davgprice) / (position + dpos);
+				position += dpos;
+				realizedpnl += (-dpos * davgprice);
+			}
+			potentialpnl = position * wmp.second[i];
+			retpnl[i] = realizedpnl + potentialpnl;
+		}
+		return std::make_pair(acqty.first,retpnl);
+	}
+
 	pvi tradesign(int floor, int cap) const{
 		int move = 0;
 		vi is, vals;

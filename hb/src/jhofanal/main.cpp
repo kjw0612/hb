@@ -3,10 +3,12 @@
 int test();
 void formatAdapt();
 void pianal();
+void pnlanal();
 //void fgetstest();
 
 int main(){
-	pianal();
+	pnlanal();
+	//pianal();
 	//fgetstest();
 	//test();
 
