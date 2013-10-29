@@ -228,7 +228,7 @@ void pplottest(){
 void pnlanal(){
 	// which volumer is worth follow?
 	datter dt;
-	for (int i=0;i<19;++i){
+	for (int i=0;i<1;++i){
 		pair<vs, vvd> dp = getDataPool(filepathdatestr_new(datesnew[i]));
 		ObDataBase ob(dp.first, dp.second);
 		vi buckets;
@@ -250,8 +250,8 @@ void pianal(){
 	//return;
 	datter dt;
 	//dt.plot("asdfadf",4);
-	for (int i=0;i<1;++i){
-		pair<vs, vvd> dp = getDataPool(filepathdatestr_new(datesnew[i]));
+	for (int di=0;di<11;++di){
+		pair<vs, vvd> dp = getDataPool(filepathdatestr_new(datesnew[di]));
 		ObDataBase ob(dp.first, dp.second);
 		dt.resize(ob.size());
 		int imin = 0;
@@ -295,15 +295,16 @@ void pianal(){
 		}
 		//dt.print_and_plot_xy(accumqty.second, wmp.second, "accum qtys", "weighted midprices", "xyplot");
 		//dt.adddat(xidxs, ys);
-		dt.print_and_plot("simple");
+
+		//dt.print_and_plot("simple");
 		dt.clear();
 
 		dt.adddat(wmp, "weighted midprices");
 		//dt.adddat(ob.accumqty(), "all accum signed qtys");
 		dt.adddat(ob.accumqty(1,2), "small accum signed qtys(1to2)");
 		dt.adddat(ob.accumqty(10,20), "mid accum signed qtys(10to20)");
-		dt.adddat(ob.accumqty(20,30), "large accum signed qtys(20to30)");
-		dt.adddat(ob.accumqty(30,50), "verylarge accum signed qtys(30to50)");
+		//dt.adddat(ob.accumqty(20,30), "large accum signed qtys(20to30)");
+		dt.adddat(ob.accumqty(30,300), "verylarge accum signed qtys(30to300)");
 		//dt.adddat(ob.accumqty(50,300), "large accum signed qtys(50to300)");
 
 		pair<vi, vd> acabs = ob.accumqtyabs(), acabsmalls = ob.accumqtyabs(1,2), acabmids = ob.accumqtyabs(10,20), acablarges = ob.accumqtyabs(50,300);
@@ -311,14 +312,16 @@ void pianal(){
 		//dt.adddat(acabsmalls, "small accum unsigned qtys(1to2)",0,acabsmalls.second.back()/acabs.second.back());
 		//dt.adddat(acablarges, "mid accum unsigned qtys(10to20)",0,acabmids.second.back()/acabs.second.back());
 		//dt.adddat(acablarges, "large accum unsigned qtys(50to300)",0,acablarges.second.back()/acabs.second.back());
-		dt.print_and_plot("accumqtys");
+		dt.print_and_plot("accumqtys" + datesnew[di]);
 		//dt.adddat(xidxs,ys);
 		//dt.adddat(ob.accumqtyabs());
-		dt.adddat(ob.accumqtyabsavg(5000), "accum avg unsigned qtys");
 		//dt.adddat(ob.wmpdeltas(5000));
 		//SimplePolyCF spcf(3);
 		//spcf.setData(xs,ys);
 		//dt.adddat(xidxs,spcf.getFittedData());
-		dt.print_and_plot("simple2");
+		
+		//dt.adddat(ob.accumqtyabsavg(5000), "accum avg unsigned qtys");
+		//dt.print_and_plot("simple2");
+		dt.clear();
 	}
 }

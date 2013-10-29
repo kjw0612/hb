@@ -7,8 +7,8 @@ void pnlanal();
 //void fgetstest();
 
 int main(){
-	pnlanal();
-	//pianal();
+	//pnlanal();
+	pianal();
 	//fgetstest();
 	//test();
 
