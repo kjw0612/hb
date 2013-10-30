@@ -56,6 +56,9 @@ struct datter{
 		gplot_->cmd("set terminal png size 1200,800 enhanced font \"Consolas,10\"");
 		gplot_->cmd("set style line 1 lt 1 lw 1");
 		gplot_->cmd("set grid");
+		gplot_->cmd("set mxtics 15");
+		gplot_->cmd("set mytics 15");
+		gplot_->cmd("set grid mxtics mytics");
 	}
 	void setmin(int _st){ st_ = _st; }
 	template<class T>
@@ -302,9 +305,9 @@ void pianal(){
 		dt.adddat(wmp, "weighted midprices");
 		//dt.adddat(ob.accumqty(), "all accum signed qtys");
 		dt.adddat(ob.accumqty(1,2), "small accum signed qtys(1to2)");
-		dt.adddat(ob.accumqty(10,20), "mid accum signed qtys(10to20)");
+		dt.adddat(ob.accumqty(10,30), "mid accum signed qtys(10to30)");
 		//dt.adddat(ob.accumqty(20,30), "large accum signed qtys(20to30)");
-		dt.adddat(ob.accumqty(30,300), "verylarge accum signed qtys(30to300)");
+		dt.adddat(ob.accumqty(40,300), "verylarge accum signed qtys(40to300)");
 		//dt.adddat(ob.accumqty(50,300), "large accum signed qtys(50to300)");
 
 		pair<vi, vd> acabs = ob.accumqtyabs(), acabsmalls = ob.accumqtyabs(1,2), acabmids = ob.accumqtyabs(10,20), acablarges = ob.accumqtyabs(50,300);
