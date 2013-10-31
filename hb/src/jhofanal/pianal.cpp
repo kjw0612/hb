@@ -253,7 +253,7 @@ void caseaccumanal(){
 	//return;
 	datter dt;
 	//dt.plot("asdfadf",4);
-	for (int di=0;di<11;++di){
+	for (int di=0;di<1;++di){
 		pair<vs, vvd> dp = getDataPool(filepathdatestr_new(datesnew[di]));
 		ObDataBase ob(dp.first, dp.second);
 		dt.resize(ob.size());
@@ -273,6 +273,7 @@ void caseaccumanal(){
 		
 		dt.adddat(ob.accumqty_conseq(5,1,5), "conseq adjacent accumqty small(1~5)"); // 10ms
 		dt.adddat(ob.pnls, "conseq adjacent pnl small(1~5)");
+		dt.adddat(ob.tdensity(ob.accumqty_conseq(5,1,5).first,50),"density of it.");
 		//dt.adddat(ob.accumqty_conseq(5,11,500), "conseq adjacent accumqty large(11~500)"); // 10ms
 		//dt.adddat(ob.pnls, "conseq adjacent pnl large(11~500)");
 		dt.print_and_plot("case_accumqtys" + datesnew[di]);

@@ -410,6 +410,21 @@ public:
 		return make_pair(is, vals);
 	}
 
+	static pair<vi, vd> tdensity(const vi& rhs, int nbasket){
+		vi is; vd dens;
+		for (int i=0;i<(int)rhs.size();++i){
+			int count = 0;
+			for (int j=i;j>=0;--j){
+				if (rhs[i] - rhs[j] <= nbasket)
+					++count;
+				else break;
+			}
+			is.push_back(rhs[i]);
+			dens.push_back((int)count);
+		}
+		return make_pair(is, dens);
+	}
+
 	static pair<vvd, vvd> genvec(int n/*event num size*/, vvd yvec, vpvi target, int m/*queue size*/, int gap, int minn) {
 		vi it(target.size(),0);
 		vector<qi> targetq(target.size());
