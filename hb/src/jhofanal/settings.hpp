@@ -15,6 +15,7 @@ using namespace boost;
 #include <vector>
 #include <string>
 #include <iostream>
+#include <map>
 #include <assert.h>
 using namespace std;
 

@@ -4,11 +4,13 @@ int test();
 void formatAdapt();
 void pianal();
 void pnlanal();
+void caseaccumanal();
 //void fgetstest();
 
 int main(){
 	//pnlanal();
-	pianal();
+	caseaccumanal();
+	//pianal();
 	//fgetstest();
 	//test();
 

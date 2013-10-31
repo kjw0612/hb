@@ -259,4 +259,16 @@ inline double atofast (const char *p)
 	return sign * (frac ? (value / scale) : (value * scale));
 }
 
+inline double atofremblank(const char *p, int len)
+{
+	int c = 0;
+	char buf[50] = "";
+	for (int i=0;i<len;++i){
+		if (('0' <= p[i] && p[i] <= '9') || p[i] == '.')
+			buf[c++] = p[i];
+	}
+	return atofast(buf);
+}
+
+
 #endif // functionals_h__

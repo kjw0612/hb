@@ -75,17 +75,29 @@ public:
 			return line.size();
 		}
 		else{
-			int offset = 0, len = strlen(buf);
+			int offset = 0, len = strlen(buf), whitespaced = -1, first_whitespace = 0, second_whitespace = 0;
 			double val = 0;
 			if (len){
 				for (int i=0;i<=len;++i){
 					if (buf[i]==',' || i==len){
 						buf[i] = 0;
 						//if (atof(buf+offset) != atofast(buf+offset)) printf("error");
-						val = atofast(buf+offset);
+						if (offset < whitespaced && whitespaced < i-1){
+							// why first whitespace? omitting arrivalDate. this is EXCEPTIONAL code that neccessarily poor, I admit.
+							val = atofremblank(buf+second_whitespace, i-second_whitespace);
+						}
+						else
+							val = atofast(buf+offset);
 						lined.push_back(val);
 						offsets.push_back(offset);
 						offset = i+1;
+						whitespaced = -1;
+						first_whitespace = 0, second_whitespace=0;
+					}
+					if (buf[i]==' '){
+						whitespaced = i;
+						if (!first_whitespace) first_whitespace = i;
+						else if (!second_whitespace) second_whitespace = i;
 					}
 				}
 			}

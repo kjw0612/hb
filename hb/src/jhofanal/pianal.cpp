@@ -248,6 +248,48 @@ void pnlanal(){
 	}
 }
 
+void caseaccumanal(){
+	//plottest();
+	//return;
+	datter dt;
+	//dt.plot("asdfadf",4);
+	for (int di=0;di<11;++di){
+		pair<vs, vvd> dp = getDataPool(filepathdatestr_new(datesnew[di]));
+		ObDataBase ob(dp.first, dp.second);
+		dt.resize(ob.size());
+		int imin = 0;
+		pair<vi, vd> wmp = ob.wmprices();
+		for (int j=0;j<(int)wmp.second.size();++j){
+			if (wmp.second[j]>0){
+				imin = j;
+				setMinMax(wmp.second.begin()+imin,wmp.second.end(),1.,2.);
+				dt.setmin(j);
+				break;
+			}
+		}
+
+		dt.adddat(wmp, "weighted midprices");
+
+		
+		dt.adddat(ob.accumqty_conseq(5,1,5), "conseq adjacent accumqty small(1~5)"); // 10ms
+		dt.adddat(ob.pnls, "conseq adjacent pnl small(1~5)");
+		//dt.adddat(ob.accumqty_conseq(5,11,500), "conseq adjacent accumqty large(11~500)"); // 10ms
+		//dt.adddat(ob.pnls, "conseq adjacent pnl large(11~500)");
+		dt.print_and_plot("case_accumqtys" + datesnew[di]);
+		
+
+		/*
+		dt.adddat(ob.accumqty_before_pricemove(50,1,5), "before pricemove adjacent accumqty small(1~5)"); // 10ms
+		dt.adddat(ob.pnls, "before pricemove adjacent pnl small(1~5)");
+		dt.adddat(ob.accumqty_before_pricemove(50,50,500), "before pricemove adjacent accumqty large(50~500)"); // 10ms
+		dt.adddat(ob.pnls, "before pricemove adjacent pnl large(50~500)");
+		dt.print_and_plot("fast_accumqtys" + datesnew[di]);
+		*/
+
+		dt.clear();
+	}
+}
+
 void pianal(){
 	//plottest();
 	//return;

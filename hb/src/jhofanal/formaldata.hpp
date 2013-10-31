@@ -41,7 +41,7 @@ public:
 	};
 
 	PACKET_TYPE pType;
-	int arrivalTime;
+	double arrivalTime;
 	shared_ptr<TradeInfo> tinfo;
 	shared_ptr<OrderBook> obook;
 	shared_ptr<Sig1Info> s1info;
@@ -76,15 +76,15 @@ public:
 		}
 	}
 	
-	void setValue(FieldType ft, int val){
+	void setValue(FieldType ft, double val){
 		switch (ft){
 		case TRADEPRICE: case TRADEVOL: case DIRECTION: initPtr(tinfo);
-			if (ft==TRADEPRICE) tinfo->price = val;
-			else if (ft==TRADEVOL) tinfo->vol = val;
-			else tinfo->direction = val;
+			if (ft==TRADEPRICE) tinfo->price = (int)val;
+			else if (ft==TRADEVOL) tinfo->vol = (int)val;
+			else tinfo->direction = (int)val;
 			break;
 		case PACKETTYPE: case ARRIVALTIME:
-			if (ft==PACKETTYPE) pType = (PACKET_TYPE)val;
+			if (ft==PACKETTYPE) pType = (PACKET_TYPE)(int)val;
 			else arrivalTime = val;
 			break;
 		}
@@ -129,7 +129,7 @@ inline pair<vs, vvd> getDataPool(const string& filename){
 		vd val(mm);
 		int j=0;
 		for (int j=0;j<mm;++j){
-			val[j] = (int)cp.lined[j];
+			val[j] = cp.lined[j];
 		}
 		for (int k=0;k<4;++k){
 			if (itypes[k]>=0){
@@ -163,6 +163,8 @@ class ObDataBase{
 public:
 	vs names;
 	vector<ObField> obdata;
+	mutable vector<ObField> obdata_only_trades;
+	mutable vi obdatais;
 
 	unsigned int size() const{
 		return obdata.size();
@@ -247,6 +249,87 @@ public:
 			rhs[i] = rhs[i+1];
 		}
 
+	}
+
+	mutable pair<vi, vd> pnls;
+
+	pair<vi, vd> getpnls(const pair<vi, vd>& accumqtys) const{
+		double position = 0, avgprice = 0, pnl = 0;
+		double realizedpnl = 0, potentialpnl = 0;
+		pair<vi, vd> wmp = wmprices();
+
+		int j=0;
+		vi is; vd retpnl;
+		is.resize(obdata.size()); retpnl.resize(obdata.size());
+
+		for (int i=0;i<(int)obdata.size();++i){
+			if (j<(int)accumqtys.second.size() && accumqtys.first[j] == i){
+				double dpos = (accumqtys.second[j] - position);
+				double davgprice = obdata[i].tinfo->price;
+
+				if (accumqtys.second[j] == 0) avgprice = 0;
+				else avgprice = (position * avgprice + dpos * davgprice) / (position + dpos);
+				position += dpos;
+				realizedpnl += (-dpos * davgprice);
+				++j;
+			}
+			is[i] = i;
+			potentialpnl = position * wmp.second[i];
+			retpnl[i] = realizedpnl + potentialpnl;
+		}
+		return make_pair(is, retpnl);
+	}
+
+	pair<vi, vd> accumqty_before_pricemove(int interval_milliseconds, int minVol = 1, int maxVol = 5000) const{
+		map<int, int> mapis;
+		for (int i=0;i<(int)obdata.size();++i){
+			if (obdata[i].s1info->dir_bidmove || obdata[i].s1info->dir_askmove){
+				for (int j=i;j>=0;--j){
+					if (obdata[i].arrivalTime - obdata[j].arrivalTime < interval_milliseconds / 10. && obdata[j].tinfo->vol >= 1
+						&& (obdata[i].tinfo->vol >= minVol && obdata[i].tinfo->vol <= maxVol)){
+						mapis[j] = obdata[j].tinfo->vol * obdata[j].tinfo->direction;
+					}
+					else break;
+				}
+			}
+		}
+		vi is; vd accumqtys; double accumqty = 0;
+		for (map<int, int>::const_iterator it=mapis.begin();it!=mapis.end();++it){
+			accumqty += it->second;
+			is.push_back(it->first);
+			accumqtys.push_back(accumqty);
+		}
+		pair<vi, vd> ret = make_pair(is, accumqtys);
+		pnls = getpnls(ret);
+		return ret;
+	}
+
+	pair<vi, vd> accumqty_conseq(int interval_milliseconds, int minVol = 1, int maxVol = 5000) const{
+		vi is; vd accumqtys;
+		double accumqty = 0;
+		if (!obdata_only_trades.size()){
+			obdata_only_trades.reserve(obdata.size()/5);
+			obdatais.reserve(obdata.size()/5);
+			for (int i=0;i<(int)obdata.size();++i)
+				if (obdata[i].tinfo->vol >= 1){
+					obdata_only_trades.push_back(obdata[i]);
+					obdatais.push_back(i);
+				}
+		}
+		for (int i=1;i<(int)obdata_only_trades.size()-1;++i){
+			if (obdata_only_trades[i].tinfo->vol >= minVol && obdata_only_trades[i].tinfo->vol <= maxVol){
+				if ((obdata_only_trades[i].arrivalTime - obdata_only_trades[i-1].arrivalTime < (interval_milliseconds/10.))
+					|| (obdata_only_trades[i+1].arrivalTime - obdata_only_trades[i].arrivalTime < (interval_milliseconds/10.)))
+				{
+					accumqty += obdata_only_trades[i].tinfo->vol * obdata_only_trades[i].tinfo->direction;
+					is.push_back(obdatais[i]);
+					accumqtys.push_back(accumqty);
+				}
+			}
+		}
+		pair<vi, vd> ret = make_pair(is, accumqtys);
+		pnls = getpnls(ret);
+		return ret;
 	}
 
 	pair<vi, vd> accumqty(int minVol = 1, int maxVol = 5000) const{
@@ -447,13 +530,13 @@ public:
 
 	void put(ObField::FieldType _ft, const vvd& _val, int _idx, int _addi = -1){
 		for (int i=0;i<(int)_val.size();++i){
-			int __val = (int)_val[i][_idx];
+			double __val = _val[i][_idx];
 			if (_addi==-1){
 				obdata[i].setValue(_ft, __val);
 			}
 			else{
 				pi __vpi;
-				__vpi.first = _addi; __vpi.second = __val;
+				__vpi.first = _addi; __vpi.second = (int)__val;
 				obdata[i].setValue(_ft, __vpi);
 			}
 		}
