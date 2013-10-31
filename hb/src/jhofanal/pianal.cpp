@@ -271,8 +271,8 @@ void caseaccumanal(){
 		dt.adddat(wmp, "weighted midprices");
 
 		
-		dt.adddat(ob.accumqty_conseq(5,1,5), "conseq adjacent accumqty small(1~5)"); // 10ms
-		dt.adddat(ob.pnls, "conseq adjacent pnl small(1~5)");
+		//dt.adddat(ob.accumqty_conseq(5,1,5), "conseq adjacent accumqty small(1~5)"); // 10ms
+		//dt.adddat(ob.pnls, "conseq adjacent pnl small(1~5)");
 		dt.adddat(ob.tdensity(ob.accumqty_conseq(5,1,5).first,50),"density of it.");
 		//dt.adddat(ob.accumqty_conseq(5,11,500), "conseq adjacent accumqty large(11~500)"); // 10ms
 		//dt.adddat(ob.pnls, "conseq adjacent pnl large(11~500)");
