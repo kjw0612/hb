@@ -16,7 +16,9 @@ using namespace boost;
 #include <string>
 #include <iostream>
 #include <map>
+#include <set>
 #include <assert.h>
+#include <algorithm>
 using namespace std;
 
 typedef vector<double> vd;

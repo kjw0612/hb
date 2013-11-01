@@ -270,5 +270,24 @@ inline double atofremblank(const char *p, int len)
 	return atofast(buf);
 }
 
+template <class elem_type>
+set<elem_type> set_union(const set<elem_type>& lhs, const set<elem_type>& rhs)
+{
+	set<elem_type> ret = lhs;
+	for (set<elem_type>::const_iterator it = rhs.begin();it!=rhs.end();++it)
+		ret.insert(*it);
+	return ret;
+}
+
+template <class elem_type>
+set<elem_type> set_intersection(const set<elem_type>& lhs, const set<elem_type>& rhs)
+{
+	set<elem_type> ret;
+	for (set<elem_type>::const_iterator it = lhs.begin();it!=lhs.end();++it){
+		if (rhs.find(*it)!=rhs.end())
+			ret.insert(*it);
+	}
+	return ret;
+}
 
 #endif // functionals_h__

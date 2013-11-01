@@ -5,11 +5,13 @@ void formatAdapt();
 void pianal();
 void pnlanal();
 void caseaccumanal();
+void crazy_analysis();
 //void fgetstest();
 
 int main(){
 	//pnlanal();
-	caseaccumanal();
+	crazy_analysis();
+	//caseaccumanal();
 	//pianal();
 	//fgetstest();
 	//test();

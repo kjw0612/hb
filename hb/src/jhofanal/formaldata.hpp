@@ -195,6 +195,85 @@ public:
 		return make_pair(is, vals);
 	}
 
+	
+	static vd val_to_diff(int ndelta, const vd& accs){
+		vd ret = accs;
+		int n = accs.size(), sti = 0;
+		for (int i=0;i<n;++i){
+			int ns = (i<ndelta) ? i+1 : ndelta;
+			int st = (i<ndelta) ? i-1 : i-ndelta;
+			double diff = (st<0) ? accs[i] : accs[i] - accs[st];
+			ret[i] = diff / ns;
+		}
+		return ret;
+	}
+
+	static void sidecut(vd& rhs, int ndelta){
+		int n = rhs.size(), sti = 0;
+		for (int i=0;i<n;++i){
+			if (sti <= 0 && rhs[i]){
+				sti = i;
+				break;
+			}
+		}
+		rhs[n-1] = rhs[n-2];
+		for (int i=sti+ndelta;i>=sti;--i){
+			rhs[i] = rhs[i+1];
+		}
+
+	}
+
+	mutable pair<vi, vd> pnls;
+	set<int> selis;
+	mutable set<int> wholeis;
+
+	void idx_set(const set<int>& idxset){
+		selis = idxset;
+	}
+
+	set<int> idx_volminmax(int minVol, int maxVol) const{
+		set<int> ret; 
+		for (int i=0;i<(int)obdata.size();++i)
+			if(obdata[i].tinfo->vol >= minVol && obdata[i].tinfo->vol <= maxVol) ret.insert(i);
+		return ret;
+	}
+	set<int> idx_conseqadj(int interval_milliseconds) const{
+		set<int> ret; 
+		for (int i=0;i<(int)obdata.size();++i)
+			if ((i>0 && obdata[i].arrivalTime - obdata[i-1].arrivalTime < (interval_milliseconds/10.))
+				|| (i<(int)obdata.size()-1 && obdata[i+1].arrivalTime - obdata[i].arrivalTime < (interval_milliseconds/10.)))
+				ret.insert(i);
+		return ret;
+	}
+	set<int> idx_pricemoveadj(int before_milliseconds, int after_milliseconds) const{
+		set<int> ret; 
+		int j=0;
+		for (int i=0;i<(int)obdata.size();++i)
+			if (obdata[i].s1info->dir_bidmove || obdata[i].s1info->dir_askmove){
+				while (obdata[i].arrivalTime - before_milliseconds/10. < obdata[j].arrivalTime){ ++j; }
+				while (obdata[j].arrivalTime <= obdata[i].arrivalTime + after_milliseconds/10.){ ret.insert(j++); }
+			}
+		return ret;
+	}
+
+	void clear_idx(){
+		selis.clear();
+	}
+
+	void setiset(set<int>& iset) const {
+		if (iset.size()==0){
+			if (selis.size()==0){
+				if (wholeis.size()==0){
+					for (int i=0;i<(int)obdata.size();++i)
+						wholeis.insert(i);
+				}
+				iset = wholeis;
+			}
+			else
+				iset = selis;
+		}
+	}
+
 	pair<vi, vd> wmprices() const{
 		vi is; vd prcs;
 		for (int i=0;i<(int)obdata.size();++i){
@@ -224,36 +303,8 @@ public:
 		return make_pair(is, qtys);
 	}
 
-	static vd val_to_diff(int ndelta, const vd& accs){
-		vd ret = accs;
-		int n = accs.size(), sti = 0;
-		for (int i=0;i<n;++i){
-			int ns = (i<ndelta) ? i+1 : ndelta;
-			int st = (i<ndelta) ? i-1 : i-ndelta;
-			double diff = (st<0) ? accs[i] : accs[i] - accs[st];
-			ret[i] = diff / ns;
-		}
-		return ret;
-	}
-
-	static void sidecut(vd& rhs, int ndelta){
-		int n = rhs.size(), sti = 0;
-		for (int i=0;i<n;++i){
-			if (sti <= 0 && rhs[i]){
-				sti = i;
-				break;
-			}
-		}
-		rhs[n-1] = rhs[n-2];
-		for (int i=sti+ndelta;i>=sti;--i){
-			rhs[i] = rhs[i+1];
-		}
-
-	}
-
-	mutable pair<vi, vd> pnls;
-
-	pair<vi, vd> getpnls(const pair<vi, vd>& accumqtys) const{
+	pair<vi, vd> getpnls(set<int> iset = set<int>()) const{ // (caveat)! pnl domain is everywhere.)
+		setiset(iset);
 		double position = 0, avgprice = 0, pnl = 0;
 		double realizedpnl = 0, potentialpnl = 0;
 		pair<vi, vd> wmp = wmprices();
@@ -261,17 +312,16 @@ public:
 		int j=0;
 		vi is; vd retpnl;
 		is.resize(obdata.size()); retpnl.resize(obdata.size());
-
 		for (int i=0;i<(int)obdata.size();++i){
-			if (j<(int)accumqtys.second.size() && accumqtys.first[j] == i){
-				double dpos = (accumqtys.second[j] - position);
-				double davgprice = obdata[i].tinfo->price;
-
-				if (accumqtys.second[j] == 0) avgprice = 0;
-				else avgprice = (position * avgprice + dpos * davgprice) / (position + dpos);
-				position += dpos;
-				realizedpnl += (-dpos * davgprice);
-				++j;
+			if (obdata[i].tinfo->vol >= 1){
+				if (iset.find(i) != iset.end()){
+					double dpos = obdata[i].tinfo->vol * obdata[i].tinfo->direction;
+					double davgprice = obdata[i].tinfo->price;
+					if (position + dpos == 0) avgprice = 0;
+					else avgprice = (position * avgprice + dpos * davgprice) / (position + dpos);
+					position += dpos;
+					realizedpnl += (-dpos * davgprice);
+				}
 			}
 			is[i] = i;
 			potentialpnl = position * wmp.second[i];
@@ -280,120 +330,68 @@ public:
 		return make_pair(is, retpnl);
 	}
 
-	pair<vi, vd> accumqty_before_pricemove(int interval_milliseconds, int minVol = 1, int maxVol = 5000) const{
-		map<int, int> mapis;
-		for (int i=0;i<(int)obdata.size();++i){
-			if (obdata[i].s1info->dir_bidmove || obdata[i].s1info->dir_askmove){
-				for (int j=i;j>=0;--j){
-					if (obdata[i].arrivalTime - obdata[j].arrivalTime < interval_milliseconds / 10. && obdata[j].tinfo->vol >= 1
-						&& (obdata[i].tinfo->vol >= minVol && obdata[i].tinfo->vol <= maxVol)){
-						mapis[j] = obdata[j].tinfo->vol * obdata[j].tinfo->direction;
+	pair<vi, vd> acclimit(int isbid, int isask, set<int> iset = set<int>()) const{
+		setiset(iset);
+		vi is; double acc = 0, dacc; vd accs;
+		for (set<int>::const_iterator it=iset.begin();it!=iset.end();++it){
+			int i = (*it);
+			if (obdata[i].obinfo != NULL){
+				dacc = 0;
+				for (int j=0;j<3;++j){
+					int multip = 0;
+					if (obdata[i].obinfo->type[j] == ObInfo::INSERTION) multip = 1;
+					if (obdata[i].obinfo->type[j] == ObInfo::CANCEL) multip = -1;
+					if (obdata[i].obook->bid[0].price >= obdata[i].obinfo->price[j]){ // bid event
+						if (isbid) dacc += obdata[i].obinfo->vol[j] * multip;
 					}
-					else break;
+					else if (isask) // ask event
+						dacc += obdata[i].obinfo->vol[j] * multip;
+				}
+				if (dacc){
+					acc += dacc;
+					is.push_back(i);
+					accs.push_back(acc);
 				}
 			}
 		}
+		return make_pair(is, accs);
+	}
+
+	pair<vi, vd> accumqty(set<int> iset = set<int>(), int isabs = 0) const{
+		setiset(iset);
 		vi is; vd accumqtys; double accumqty = 0;
-		for (map<int, int>::const_iterator it=mapis.begin();it!=mapis.end();++it){
-			accumqty += it->second;
-			is.push_back(it->first);
-			accumqtys.push_back(accumqty);
-		}
-		pair<vi, vd> ret = make_pair(is, accumqtys);
-		pnls = getpnls(ret);
-		return ret;
-	}
-
-	pair<vi, vd> accumqty_conseq(int interval_milliseconds, int minVol = 1, int maxVol = 5000) const{
-		vi is; vd accumqtys;
-		double accumqty = 0;
-		if (!obdata_only_trades.size()){
-			obdata_only_trades.reserve(obdata.size()/5);
-			obdatais.reserve(obdata.size()/5);
-			for (int i=0;i<(int)obdata.size();++i)
-				if (obdata[i].tinfo->vol >= 1){
-					obdata_only_trades.push_back(obdata[i]);
-					obdatais.push_back(i);
-				}
-		}
-		for (int i=1;i<(int)obdata_only_trades.size()-1;++i){
-			if (obdata_only_trades[i].tinfo->vol >= minVol && obdata_only_trades[i].tinfo->vol <= maxVol){
-				if ((obdata_only_trades[i].arrivalTime - obdata_only_trades[i-1].arrivalTime < (interval_milliseconds/10.))
-					|| (obdata_only_trades[i+1].arrivalTime - obdata_only_trades[i].arrivalTime < (interval_milliseconds/10.)))
-				{
-					accumqty += obdata_only_trades[i].tinfo->vol * obdata_only_trades[i].tinfo->direction;
-					is.push_back(obdatais[i]);
-					accumqtys.push_back(accumqty);
-				}
+		for (set<int>::const_iterator it=iset.begin();it!=iset.end();++it){
+			int i = (*it);
+			if (obdata[i].tinfo->vol >= 1){
+				is.push_back(i);
+				if (!isabs) accumqty += obdata[i].tinfo->vol * obdata[i].tinfo->direction;
+				else accumqty += obdata[i].tinfo->vol;
+				accumqtys.push_back(accumqty);
 			}
 		}
-		pair<vi, vd> ret = make_pair(is, accumqtys);
-		pnls = getpnls(ret);
-		return ret;
-	}
-
-	pair<vi, vd> accumqty(int minVol = 1, int maxVol = 5000) const{
-		vi is; vd accumqtys;
-		double accumqty = 0;
-		for (int i=0;i<(int)obdata.size();++i){
-			if (obdata[i].tinfo->vol >= minVol && obdata[i].tinfo->vol <= maxVol){
-				accumqty += obdata[i].tinfo->vol * obdata[i].tinfo->direction;
-			}
-			is.push_back(i);
-			accumqtys.push_back(accumqty);
-		}
+		pnls = getpnls(iset);
 		return make_pair(is, accumqtys);
 	}
 
-	pair<vi, vd> accumqtyabs(int minVol = 1, int maxVol = 5000) const{
-		vi is; vd accumqtys;
-		double accumqty = 0;
-		for (int i=0;i<(int)obdata.size();++i){
-			if (obdata[i].tinfo->vol >= minVol && obdata[i].tinfo->vol <= maxVol){
-				accumqty += obdata[i].tinfo->vol;
-			}
-			is.push_back(i);
-			accumqtys.push_back(accumqty);
-		}
-		return make_pair(is, accumqtys);
+	pair<vi, vd> accumqtyabs(set<int> iset = set<int>()) const{
+		return accumqty(iset, 1);
 	}
 
-	pair<vi, vd> accumqtyabsavg(int ndelta, int minVol = 1, int maxVol = 5000) const{
-		pair<vi, vd> ret = accumqtyabs(minVol, maxVol);
+	pair<vi, vd> accumqtyabsavg(int ndelta, set<int> iset = set<int>()) const{
+		pair<vi, vd> ret = accumqtyabs(iset);
 		ret.second = val_to_diff(ndelta, ret.second);
 		sidecut(ret.second, ndelta);
 		return ret;
 	}
 
-	pair<vi, vd> accumpnl(int minVol = 1, int maxVol = 500) const{
-		pair<vi, vd> acqty = accumqty(minVol, maxVol);
-		pair<vi, vd> wmp = wmprices();
-		vd retpnl(acqty.second.size(),0);
-		double position = 0, avgprice = 0, pnl = 0;
-		double realizedpnl = 0, potentialpnl = 0;
-		for (int i=0;i<(int)obdata.size();++i){
-			if (obdata[i].tinfo->vol >= minVol && obdata[i].tinfo->vol <= maxVol){
-				double dpos = obdata[i].tinfo->vol * obdata[i].tinfo->direction;
-				double davgprice = obdata[i].tinfo->price;
-				if (position + dpos==0) avgprice = 0;
-				else avgprice = (position * avgprice + dpos * davgprice) / (position + dpos);
-				position += dpos;
-				realizedpnl += (-dpos * davgprice);
-			}
-			potentialpnl = position * wmp.second[i];
-			retpnl[i] = realizedpnl + potentialpnl;
-		}
-		return std::make_pair(acqty.first,retpnl);
-	}
-
-	pvi tradesign(int floor, int cap) const{
+	pvi tradesign(set<int> iset = set<int>()) const{
+		setiset(iset);
 		int move = 0;
 		vi is, vals;
-		for (int i=0;i<(int)obdata.size();++i){
-			if (floor <= obdata[i].tinfo->vol && obdata[i].tinfo->vol <= cap){
-				is.push_back(i);
-				vals.push_back(obdata[i].tinfo->direction);
-			}
+		for (set<int>::const_iterator it=iset.begin();it!=iset.end();++it){
+			int i = (*it);
+			is.push_back(i);
+			vals.push_back(obdata[i].tinfo->direction);
 		}
 		return make_pair(is, vals);
 	}
@@ -480,7 +478,7 @@ public:
 		vvd ys(obdata.size(),vd(1,0));
 		vd ychk(obdata.size(),0);
 		vpvi target;
-		pvi ts = tradesign(10,10000);
+		pvi ts = tradesign(idx_volminmax(10,10000));
 		pvi pm = pricemove();
 
 		if (type | PRICE_MOVE){

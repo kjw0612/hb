@@ -40,16 +40,17 @@ void plottest(){
 struct datter{
 	void resize(int _n){
 		n_ = _n; idx_ = vi(n_,0);
+		end_ = _n;
 		for (int i=0;i<n_;++i) idx_[i] = i;
 	}
-#define BASEPATH "D:\\PLOTDATA\\"
+#define BASEPATH "D:\\PLOTDATA\\CRAZY\\"
 	datter(int _n = 0, shared_ptr<CpGnuplot> _gplot = 
 #ifdef _USE_BOOST_
 		shared_ptr<CpGnuplot>(new CpGnuplot("C:\\Program Files\\gnuplot\\bin\\wgnuplot.exe"))
 #else
 		shared_ptr<CpGnuplot>(new CpGnuplot("C:\\Program Files (x86)\\gnuplot\\bin\\wgnuplot.exe"))
 #endif
-		) : n_(_n), st_(0), gplot_(_gplot)
+		) : n_(_n), st_(0), gplot_(_gplot), end_(_n)
 	{
 		check_and_create_directory(BASEPATH);
 		resize(_n);
@@ -60,7 +61,20 @@ struct datter{
 		gplot_->cmd("set mytics 15");
 		gplot_->cmd("set grid mxtics mytics");
 	}
+	int getmin(){ return st_;}
+	int getmax(){ return n_; }
 	void setmin(int _st){ st_ = _st; }
+	void setmini(const vd& rhs){
+		for (int i=0;i<(int)rhs.size();++i){
+			if (rhs[i]>0){
+				setmin(i);
+				break;
+			}
+		}
+	}
+	void setminmax(int _st, int _end){
+		st_ = _st; end_ = _end;
+	}
 	template<class T>
 	void adddat(const pair<vi, vector<T>>& dat, const std::string& str, double miny = -0.5, double maxy = 0.5)
 	{
@@ -76,6 +90,7 @@ struct datter{
 		if (n_==0){
 			idx_ = idx;
 			n_ = idx_.size();
+			end_ = n_;
 		}
 		vd row(n_,0);
 		for (int i=0;i<(int)idx.size();++i){
@@ -93,7 +108,7 @@ struct datter{
 
 		for (int j=0;j<(int)dat.size();++j){
 			if (minmax_[j].first != Null<double>())
-				setMinMax(dat[j].begin()+st_,dat[j].begin()+n_, minmax_[j].first, minmax_[j].second);
+				setMinMax(dat[j].begin()+st_,dat[j].begin()+min(end_,n_), minmax_[j].first, minmax_[j].second);
 		}
 
 		/*
@@ -101,7 +116,7 @@ struct datter{
 		for (int j=0;j<(int)dat.size();++j) fprintf(fo,"%s ",names[j].c_str());
 		fprintf(fo,"\n");*/
 
-		for(int i=st_;i<n_;++i){
+		for(int i=st_;i<min(end_,n_);++i){
 			if (print_index)
 				fprintf(fo,"%d ",idx_[i]);
 			for (int j=0;j<(int)dat.size();++j){
@@ -151,7 +166,7 @@ struct datter{
 	}
 #undef BASEPATH
 private:
-	int st_;
+	int st_, end_;
 	int n_;
 	vi idx_;
 	vvd dat_;
@@ -241,10 +256,37 @@ void pnlanal(){
 			int minvol = buckets[j], maxvol = buckets[j+1]-1;
 			char namebuf[201] = "";
 			sprintf_s(namebuf,200,"pnl of volume range(%d to %d)",minvol,maxvol);
-			dt.adddat(ob.accumpnl(minvol, maxvol),namebuf,Null<double>(),Null<double>());
+			dt.adddat(ob.getpnls(ob.idx_volminmax(minvol, maxvol)),namebuf,Null<double>(),Null<double>());
 		}
 		dt.print_and_plot("pnl" + datesnew[i]);
 		dt.clear();
+	}
+}
+
+void crazy_analysis(){
+	datter dt;
+	for (int di=0;di<1;++di){
+		pair<vs, vvd> dp = getDataPool(filepathdatestr_new(datesnew[di]));
+		ObDataBase ob(dp.first, dp.second);
+		dt.resize(ob.size());
+		pair<vi, vd> wmp = ob.wmprices(), accumtot = ob.accumqty();
+		dt.setmini(wmp.second);
+		dt.adddat(wmp, "weighted midprices");
+		dt.adddat(accumtot,"accumqty of trades.");
+		//ob.idx_set(set_intersection(ob.idx_conseqadj(50), ob.idx_volminmax(1,5)));
+		//pair<vi, vd> accumspec = ob.accumqty();
+		//dt.adddat(accumspec,"accumqty of consq trades.");
+		dt.adddat(ob.tdensity(accumtot.first,50),"density of trades.");
+		dt.adddat(ob.acclimit(1,0),"accum limit buy.");
+		dt.adddat(ob.acclimit(0,1),"accum limit sell.");
+		char buf[101] = "";
+		int n=0;
+		int width = 5000;
+		for(int i=dt.getmin();i<dt.getmax();i+=width,++n){
+			dt.setminmax(i,i+width); // to be modified.
+			sprintf_s(buf,100,"crazy_%s_%d",datesnew[di].c_str(),n);
+			dt.print_and_plot(buf);
+		}
 	}
 }
 
@@ -268,17 +310,18 @@ void caseaccumanal(){
 			}
 		}
 
+		printf("tic");
 		dt.adddat(wmp, "weighted midprices");
 
 		
 		//dt.adddat(ob.accumqty_conseq(5,1,5), "conseq adjacent accumqty small(1~5)"); // 10ms
 		//dt.adddat(ob.pnls, "conseq adjacent pnl small(1~5)");
-		dt.adddat(ob.tdensity(ob.accumqty_conseq(5,1,5).first,50),"density of it.");
+		ob.idx_set(set_union(ob.idx_conseqadj(50), ob.idx_volminmax(1,5)));
+		dt.adddat(ob.tdensity(ob.accumqty().first,50),"density of it.");
 		//dt.adddat(ob.accumqty_conseq(5,11,500), "conseq adjacent accumqty large(11~500)"); // 10ms
 		//dt.adddat(ob.pnls, "conseq adjacent pnl large(11~500)");
+		printf("toc");
 		dt.print_and_plot("case_accumqtys" + datesnew[di]);
-		
-
 		/*
 		dt.adddat(ob.accumqty_before_pricemove(50,1,5), "before pricemove adjacent accumqty small(1~5)"); // 10ms
 		dt.adddat(ob.pnls, "before pricemove adjacent pnl small(1~5)");
@@ -286,7 +329,6 @@ void caseaccumanal(){
 		dt.adddat(ob.pnls, "before pricemove adjacent pnl large(50~500)");
 		dt.print_and_plot("fast_accumqtys" + datesnew[di]);
 		*/
-
 		dt.clear();
 	}
 }
@@ -347,13 +389,14 @@ void pianal(){
 
 		dt.adddat(wmp, "weighted midprices");
 		//dt.adddat(ob.accumqty(), "all accum signed qtys");
-		dt.adddat(ob.accumqty(1,2), "small accum signed qtys(1to2)");
-		dt.adddat(ob.accumqty(10,30), "mid accum signed qtys(10to30)");
+		dt.adddat(ob.accumqty(ob.idx_volminmax(1,2)), "small accum signed qtys(1to2)");
+		dt.adddat(ob.accumqty(ob.idx_volminmax(10,30)), "mid accum signed qtys(10to30)");
 		//dt.adddat(ob.accumqty(20,30), "large accum signed qtys(20to30)");
-		dt.adddat(ob.accumqty(40,300), "verylarge accum signed qtys(40to300)");
+		dt.adddat(ob.accumqty(ob.idx_volminmax(40,300)), "verylarge accum signed qtys(40to300)");
 		//dt.adddat(ob.accumqty(50,300), "large accum signed qtys(50to300)");
 
-		pair<vi, vd> acabs = ob.accumqtyabs(), acabsmalls = ob.accumqtyabs(1,2), acabmids = ob.accumqtyabs(10,20), acablarges = ob.accumqtyabs(50,300);
+		pair<vi, vd> acabs = ob.accumqtyabs(), acabsmalls = ob.accumqtyabs(ob.idx_volminmax(1,2)),
+			acabmids = ob.accumqtyabs(ob.idx_volminmax(10,20)), acablarges = ob.accumqtyabs(ob.idx_volminmax(50,300));
 
 		//dt.adddat(acabsmalls, "small accum unsigned qtys(1to2)",0,acabsmalls.second.back()/acabs.second.back());
 		//dt.adddat(acablarges, "mid accum unsigned qtys(10to20)",0,acabmids.second.back()/acabs.second.back());
