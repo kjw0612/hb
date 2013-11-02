@@ -357,6 +357,20 @@ public:
 		return make_pair(is, accs);
 	}
 
+	pair<vi, vd> obookslope(set<int> iset = set<int>()) const{
+		setiset(iset);
+		vi is; vd slopes; double slope = 0.5;
+		for (set<int>::const_iterator it=iset.begin();it!=iset.end();++it){
+			int i = (*it);
+			if (obdata[i].obook == NULL);
+			else if (obdata[i].obook->ask.size()>0 && (obdata[i].obook->ask[0].qty+obdata[i].obook->bid[0].qty)>0)
+				slope = obdata[i].obook->bid[0].qty / (double)(obdata[i].obook->ask[0].qty+obdata[i].obook->bid[0].qty);
+			is.push_back(i);
+			slopes.push_back(slope);
+		}
+		return make_pair(is,slopes);
+	}
+
 	pair<vi, vd> accumqty(set<int> iset = set<int>(), int isabs = 0) const{
 		setiset(iset);
 		vi is; vd accumqtys; double accumqty = 0;

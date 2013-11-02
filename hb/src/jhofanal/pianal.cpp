@@ -276,12 +276,13 @@ void crazy_analysis(){
 		//ob.idx_set(set_intersection(ob.idx_conseqadj(50), ob.idx_volminmax(1,5)));
 		//pair<vi, vd> accumspec = ob.accumqty();
 		//dt.adddat(accumspec,"accumqty of consq trades.");
-		dt.adddat(ob.tdensity(accumtot.first,50),"density of trades.");
-		dt.adddat(ob.acclimit(1,0),"accum limit buy.");
-		dt.adddat(ob.acclimit(0,1),"accum limit sell.");
+		dt.adddat(ob.tdensity(accumtot.first,20),"density of trades.",-1.0,-0.5);
+		//dt.adddat(ob.acclimit(1,0),"accum limit buy.");
+		//dt.adddat(ob.acclimit(0,1),"accum limit sell.");
+		dt.adddat(ob.obookslope(), "order book inclination",-1.0,-0.5);
 		char buf[101] = "";
 		int n=0;
-		int width = 5000;
+		int width = 2000;
 		for(int i=dt.getmin();i<dt.getmax();i+=width,++n){
 			dt.setminmax(i,i+width); // to be modified.
 			sprintf_s(buf,100,"crazy_%s_%d",datesnew[di].c_str(),n);
