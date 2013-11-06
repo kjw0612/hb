@@ -209,6 +209,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\hidden_markov_model.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\logistic_model.hpp"
 				>
 			</File>
