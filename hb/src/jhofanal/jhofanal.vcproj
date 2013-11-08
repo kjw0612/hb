@@ -175,6 +175,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\hmmtest.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\main.cpp"
 				>
 			</File>

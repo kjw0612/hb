@@ -274,6 +274,28 @@ public:
 		}
 	}
 
+
+	pair<vi, vi> pmseq_strict() const {
+		pair<vi, vi> ret;
+		int amove=0,bmove=0;
+		for (int i=1;i<(int)obdata.size();++i){
+			if (obdata[i].obook->ask[0].price > obdata[i-1].obook->ask[0].price)
+				amove = 1;
+			else if (obdata[i].obook->ask[0].price < obdata[i-1].obook->ask[0].price)
+				amove = -1;
+			if (obdata[i].obook->bid[0].price > obdata[i-1].obook->bid[0].price)
+				bmove = 1;
+			else if (obdata[i].obook->bid[0].price < obdata[i-1].obook->bid[0].price)
+				bmove = -1;
+			if (amove == bmove && amove!=0){
+				ret.first.push_back(i);
+				ret.second.push_back(amove);
+				amove = bmove = 0;
+			}
+		}
+		return ret;
+	}
+
 	pair<vi, vd> wmprices() const{
 		vi is; vd prcs;
 		for (int i=0;i<(int)obdata.size();++i){

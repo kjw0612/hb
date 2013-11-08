@@ -5,7 +5,6 @@
 #include "simple_poly_model.hpp"
 #include "logistic_model.hpp"
 #include "neural_network.hpp"
-#include "hidden_markov_model.hpp"
 
 string dates[19] = {"20130805", "20130806", "20130807", "20130808", "20130809", 
 					"20130812", "20130813", "20130814", "20130816", "20130819",

@@ -69,29 +69,45 @@ public:
 		return ret;
 	}
 
-	void fitting(const vi& obsdata, int n, int m){ // Baum Welch Algorithm..
+	vvd getforward(const vi& obsdata, const vvd& _obsprob, const vvd& _transprob) const {
+		int T = obsdata.size();
+		vvd alphas(T,vd(n,0));
+		for (int i=0;i<T;++i){
+			for (int j=0;j<n;++j){
+				if (i==0) alphas[0][j] = _transprob[0][j] * _obsprob[j][obsdata[i]];
+				else{
+					for (int k=0;k<n;++k)
+						alphas[i][j] += alphas[i-1][k] * _transprob[k][j] * _obsprob[j][obsdata[i]];
+				}
+			}
+		}
+		return alphas;
+	}
 
+	vvd getbackward(const vi& obsdata, const vvd& _obsprob, const vvd& _transprob) const {
+		int T = obsdata.size();
+		vvd betas(T,vd(n,0));
+		for (int i=0;i<T;++i){
+			int ib = (T-1) - i;
+			for (int j=0;j<n;++j){
+				if (i==0) betas[ib][j] = _transprob[j][n-1];
+				else{
+					for (int k=0;k<n;++k)
+						betas[ib][j] += betas[ib+1][j] * _transprob[j][k] * _obsprob[k][obsdata[i]];
+				}
+			}
+		}
+		return betas;
+	}
+
+	void calibrate(const vi& obsdata){ // Baum Welch Algorithm..
 		int T = obsdata.size();
 		vvd obsprob_ = random_probmat(n,m), transprob_ = random_probmat(n,n);
 		double diff;
 
 		do{
-			vvd alphas(T,vd(n,0)), betas(T,vd(n,0));
-			for (int i=0;i<T;++i){
-				int ib = (T-1) - i;
-				for (int j=0;j<n;++j){
-					if (i==0){
-						alphas[0][j] = transprob_[0][j] * obsprob_[j][obsdata[i]];
-						betas[ib][j] = transprob_[j][n-1];
-					}
-					else{
-						for (int k=0;k<n;++k){
-							alphas[i][j] += alphas[i-1][k] * transprob_[k][j] * obsprob_[j][obsdata[i]];
-							betas[ib][j] += betas[ib+1][j] * transprob_[j][k] * obsprob_[k][obsdata[i]];
-						}
-					}
-				}
-			}
+			vvd alphas = getforward(obsdata, obsprob_, transprob_);
+			vvd betas = getbackward(obsdata, obsprob_, transprob_);
 			double P_O_given_lambda = 0;
 			for (int k=0;k<n;++k)
 				P_O_given_lambda += transprob_[0][k] * obsprob_[k][obsdata[0]] * betas[0][k];
@@ -142,9 +158,31 @@ public:
 					transprob_[i][j] = transprob_new[i][j];
 				}
 			}
-		}while(diff < 1e-3); // until converges
+		}while(diff > 1e-3); // until converges
 
+		obsprob = obsprob_;
+		transprob = transprob_;
 		// M step
+	}
+
+	void print_prob(int len){
+		vvd prob_times(len,vd(n,0));
+		prob_times[0] = vd(n,1./n);
+
+		vi states(len,0);
+
+		for (int i=0;i<(int)pow(m,len);++i){
+			int permu = i;
+			for (int j=0;j<len;++j){
+				states[j] = permu%m;
+				permu = permu / m;
+			}
+			
+			for (int j=0;j<n;++j){
+				for (int k=0;k<n;++k)
+					prob_times[i][j] += prob_times[0][j] * transprob[j][k];
+			}
+		}
 	}
 
 	vvd transprob;
@@ -155,29 +193,34 @@ public:
 };
 
 //, public CostFunction
-class HiddenMarkovModel : public Mto1System{
+class HiddenMarkovModel{
 public:
 
 	// depth means # of layer on neural network 
-	HiddenMarkovModel (const vs& xnames_, int nn, int nstates = 2, int mobstates = 2)
-		: Mto1System(xnames_, nn) , nstates(nstates), mobstates(mobstates)
-	{}
+	HiddenMarkovModel (int nstates = 2, int mobstates = 2)
+		: nstates(nstates), mobstates(mobstates), himpl(nstates, mobstates) {}
 
-	void add(const vd& x, const vd& y){
-		xs.push_back(x); ys.push_back(y); // lazy evaluation
-	}
-	virtual void adds(const vvd& xs_, const vvd& ys_){
-		vvd xxs_ = remakeX(xs_), yys_ = remakeY(ys_);
-		xs.insert(xs.end(),xxs_.begin(),xxs_.end());
-		ys.insert(ys.end(),yys_.begin(),yys_.end());
+	void train_state(const vi& stseq){
+		himpl.calibrate(stseq);
 	}
 
-	void lazyOptimize(){
+	template<class T>
+	void train(const vector<T>& seqs){
+		map<T, int> states;
+		vi stseq(seqs.size());
+		int nenc = 0;
+		for (int i=0;i<(int)seqs.size();++i){
+			if (states.find(seqs[i]) == states.end())
+				states[seqs[i]] = nenc++;
+			stseq[i] = states[seqs[i]];
+		}
+		train_state(stseq);
 	}
+
 
 	vvd xs, ys;
 	int nstates, mobstates;
-	//HMMImpl himpl;
+	HMMImpl himpl;
 };
 
 

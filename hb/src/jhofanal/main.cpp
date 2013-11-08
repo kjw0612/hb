@@ -6,11 +6,13 @@ void pianal();
 void pnlanal();
 void caseaccumanal();
 void crazy_analysis();
+void hmmtest();
 //void fgetstest();
 
 int main(){
+	hmmtest();
 	//pnlanal();
-	crazy_analysis();
+	//crazy_analysis();
 	//caseaccumanal();
 	//pianal();
 	//fgetstest();
