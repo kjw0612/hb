@@ -176,7 +176,9 @@ public:
 			for (int j=0;j<len;++j){
 				states[j] = permu%m;
 				permu = permu / m;
+				printf("%d")
 			}
+			printf(" : %lf",getforward())
 			
 			for (int j=0;j<n;++j){
 				for (int k=0;k<n;++k)
