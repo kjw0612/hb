@@ -69,12 +69,12 @@ public:
 		return ret;
 	}
 
-	vvd getforward(const vi& obsdata, const vvd& _obsprob, const vvd& _transprob) const {
+	vvd getforward(const vi& obsdata, const vvd& _obsprob, const vvd& _transprob, int init_state = 0) const {
 		int T = obsdata.size();
 		vvd alphas(T,vd(n,0));
 		for (int i=0;i<T;++i){
 			for (int j=0;j<n;++j){
-				if (i==0) alphas[0][j] = _transprob[0][j] * _obsprob[j][obsdata[i]];
+				if (i==0) alphas[0][j] = _transprob[init_state][j] * _obsprob[j][obsdata[i]];
 				else{
 					for (int k=0;k<n;++k)
 						alphas[i][j] += alphas[i-1][k] * _transprob[k][j] * _obsprob[j][obsdata[i]];
@@ -132,8 +132,12 @@ public:
 					double totprob = 0;
 					for (int j=0;j<n;++j)
 						totprob += epsilons[t][i][j];
-					for (int j=0;j<n;++j)
-						transprob_new[i][j] = epsilons[t][i][j] / totprob;
+					for (int j=0;j<n;++j){
+						if (totprob>0)
+							transprob_new[i][j] = epsilons[t][i][j] / totprob;
+						else
+							transprob_new[i][j] = transprob_[i][j];
+					}
 				}
 			}
 			vvd sumgammacond(m,vd(n,0));
@@ -144,7 +148,10 @@ public:
 					sumgamma[j] += gammas[t][j];
 				}
 				for (int k=0;k<m;++k){
-					obsprob_new[j][k] = sumgammacond[k][j] / sumgamma[j];
+					if (sumgamma[j]>0)
+						obsprob_new[j][k] = sumgammacond[k][j] / sumgamma[j];
+					else
+						obsprob_new[j][k] = obsprob_[j][k];
 				}
 			}
 			diff = 0;
@@ -158,31 +165,43 @@ public:
 					transprob_[i][j] = transprob_new[i][j];
 				}
 			}
-		}while(diff > 1e-3); // until converges
+		}while(diff > 0.5); // until converges
 
 		obsprob = obsprob_;
 		transprob = transprob_;
 		// M step
 	}
 
-	void print_prob(int len){
+	void print(int len){
 		vvd prob_times(len,vd(n,0));
 		prob_times[0] = vd(n,1./n);
 
-		vi states(len,0);
+		vi obstates(len,0);
 
-		for (int i=0;i<(int)pow(m,len);++i){
-			int permu = i;
-			for (int j=0;j<len;++j){
-				states[j] = permu%m;
-				permu = permu / m;
-				printf("%d")
-			}
-			printf(" : %lf",getforward())
+		for (int l=0;l<n;++l){
+			printf("state %d\n",l);
+			for (int i=0;i<(int)pow(m,len);++i){
+				int permu = i;
+				for (int j=0;j<len;++j){
+					obstates[j] = permu%m;
+					permu = permu / m;
+					printf("%d",obstates[j]);
+				}
+
+				//getforward(const vi& obsdata, const vvd& _obsprob, const vvd& _transprob)
+				vvd res = getforward(obstates, obsprob, transprob, l);
+				double tot=0;
+				for (int j=0;j<(int)res.back().size();++j){
+					tot += res.back()[j];
+				}
+				printf(" : %lf\n",tot);
+				//printf(" : %lf",);
 			
-			for (int j=0;j<n;++j){
-				for (int k=0;k<n;++k)
-					prob_times[i][j] += prob_times[0][j] * transprob[j][k];
+				/*
+				for (int j=0;j<n;++j){
+					for (int k=0;k<n;++k)
+						prob_times[i][j] += prob_times[0][j] * transprob[j][k];
+				}*/
 			}
 		}
 	}
@@ -219,6 +238,9 @@ public:
 		train_state(stseq);
 	}
 
+	void display(int len){
+		himpl.print(len);
+	}
 
 	vvd xs, ys;
 	int nstates, mobstates;

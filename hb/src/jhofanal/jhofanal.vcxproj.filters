@@ -36,6 +36,9 @@
     <ClCompile Include="gnuplot\pGNUPlot.cpp">
       <Filter>gnuplot</Filter>
     </ClCompile>
+    <ClCompile Include="hmmtest.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="csvparser.hpp">

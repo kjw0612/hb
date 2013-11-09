@@ -90,6 +90,7 @@
     <ClCompile Include="fgetsfast\fgetsfast.cpp" />
     <ClCompile Include="format_adapt_test.cpp" />
     <ClCompile Include="gnuplot\pGNUPlot.cpp" />
+    <ClCompile Include="hmmtest.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="pianal.cpp" />
     <ClCompile Include="tester.cpp" />

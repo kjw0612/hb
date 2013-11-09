@@ -14,8 +14,10 @@ void hmmtest(){
 		pair<vs, vvd> dp = getDataPool(filepathdatestr_new(datesnew[di]));
 		ObDataBase ob(dp.first, dp.second);
 		pair<vi, vi> pmdt = ob.pmseq_strict();
-		HiddenMarkovModel hmm(30,2);
+		HiddenMarkovModel hmm(20,2);
 		hmm.train(pmdt.second);
+		freopen("output.txt","wt",stdout);
+		hmm.display(3);
 		//pmdt.second;
 	}
 }
