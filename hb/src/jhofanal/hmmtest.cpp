@@ -17,6 +17,20 @@ void hmmtest(){
 		HiddenMarkovModel hmm(20,2);
 		hmm.train(pmdt.second);
 		freopen("output.txt","wt",stdout);
+
+		int countcase[(1<<3)+1] = {0,};
+
+		for (int i=0;i<(int)pmdt.second.size()-3;++i){
+			int seq = 0;
+			for (int j=0;j<3;++j){
+				seq += (pmdt.second[i+j]==1) * (1<<j);
+			}
+			++countcase[seq];
+		}
+		for (int i=0;i<8;++i){
+			printf("%d%d%d %d\n",(i&(1<<0))>0,(i&(1<<1))>0,(i&(1<<2))>0,countcase[i]);
+		}
+
 		hmm.display(3);
 		//pmdt.second;
 	}

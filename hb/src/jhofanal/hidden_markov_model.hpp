@@ -69,31 +69,31 @@ public:
 		return ret;
 	}
 
-	vvd getforward(const vi& obsdata, const vvd& _obsprob, const vvd& _transprob, int init_state = 0) const {
+	// well.. floating point precision overflows..
+	vvd getforward(const vi& obsdata, const vvd& _obsprob, const vvd& _transprob, int init_state = 0) const { // 100% confirmed.
 		int T = obsdata.size();
 		vvd alphas(T,vd(n,0));
-		for (int i=0;i<T;++i){
+		for (int t=0;t<T;++t){
 			for (int j=0;j<n;++j){
-				if (i==0) alphas[0][j] = _transprob[init_state][j] * _obsprob[j][obsdata[i]];
+				if (t==0) alphas[0][j] = _transprob[init_state][j] * _obsprob[j][obsdata[t]];
 				else{
 					for (int k=0;k<n;++k)
-						alphas[i][j] += alphas[i-1][k] * _transprob[k][j] * _obsprob[j][obsdata[i]];
+						alphas[t][j] += alphas[t-1][k] * _transprob[k][j] * _obsprob[j][obsdata[t]];
 				}
 			}
 		}
 		return alphas;
 	}
 
-	vvd getbackward(const vi& obsdata, const vvd& _obsprob, const vvd& _transprob) const {
+	vvd getbackward(const vi& obsdata, const vvd& _obsprob, const vvd& _transprob) const { // 100% confirmed.
 		int T = obsdata.size();
 		vvd betas(T,vd(n,0));
-		for (int i=0;i<T;++i){
-			int ib = (T-1) - i;
-			for (int j=0;j<n;++j){
-				if (i==0) betas[ib][j] = _transprob[j][n-1];
+		for (int t=T-1;t>=0;--t){
+			for (int i=0;i<n;++i){
+				if (t==T-1) betas[t][i] = _transprob[i][n-1];
 				else{
-					for (int k=0;k<n;++k)
-						betas[ib][j] += betas[ib+1][j] * _transprob[j][k] * _obsprob[k][obsdata[i]];
+					for (int j=0;j<n;++j)
+						betas[t][i] += _transprob[i][j] * _obsprob[j][obsdata[t+1]] * betas[t+1][j];
 				}
 			}
 		}
@@ -102,42 +102,67 @@ public:
 
 	void calibrate(const vi& obsdata){ // Baum Welch Algorithm..
 		int T = obsdata.size();
-		vvd obsprob_ = random_probmat(n,m), transprob_ = random_probmat(n,n);
+		obsprob = random_probmat(n,m), transprob = random_probmat(n,n);
 		double diff;
 
 		do{
-			vvd alphas = getforward(obsdata, obsprob_, transprob_);
-			vvd betas = getbackward(obsdata, obsprob_, transprob_);
-			double P_O_given_lambda = 0;
-			for (int k=0;k<n;++k)
-				P_O_given_lambda += transprob_[0][k] * obsprob_[k][obsdata[0]] * betas[0][k];
+			vvd alphas = getforward(obsdata, obsprob, transprob);
+			vvd betas = getbackward(obsdata, obsprob, transprob);
+			/*
+			for (int i=0;i<T;++i)
+				for (int j=0;j<n;++j){
+					if (0 <= alphas[i][j] && alphas[i][j] <= 1);
+					else printf("error");
+					if (0 <= betas[i][j] && betas[i][j] <= 1);
+					else printf("error");
+				}*/
+
+			//double P_O_given_lambda = 0;
+			//for (int j=0;j<n;++j)
+			//	P_O_given_lambda += transprob_[0][j] * obsprob_[j][obsdata[0]] * betas[0][j];
 			vvd gammas(T,vd(n,0));
 			vector<vvd> epsilons(T,vvd(n,vd(n,0)));
 			// E step
 			for (int t=0;t<T;++t){
+				double P_O_given_lambda = 0;
+				for (int j=0;j<n;++j) P_O_given_lambda += (alphas[t][j] * betas[t][j]);
+
+				if (P_O_given_lambda == 0) printf("P_O_given_lambda zero!\n");
+
+				double tot_eps = 0;
+				for (int j=0;j<n;++j){
+					if (t < T-1){
+						for (int i=0;i<n;++i)
+							tot_eps += alphas[t][i] * transprob[i][j] * obsprob[j][obsdata[t+1]] * betas[t+1][j];
+						if (tot_eps == 0) printf("tot_eps zero!\n");
+					}
+				}
+
 				for (int j=0;j<n;++j){
 					gammas[t][j] = (alphas[t][j] * betas[t][j]) /  P_O_given_lambda;
 					if (t < T-1){
 						for (int i=0;i<n;++i){
-							epsilons[t][i][j] =
-								alphas[t][i] * transprob_[i][j] * obsprob_[j][obsdata[t+1]] * betas[t+1][j] / alphas[T-1][n-1];
+							epsilons[t][i][j] = alphas[t][i] * transprob[i][j] * obsprob[j][obsdata[t+1]] * betas[t+1][j] / tot_eps;
+							//epsilons[t][i][j] =
+							//	alphas[t][i] * transprob_[i][j] * obsprob_[j][obsdata[t+1]] * betas[t+1][j] / alphas[T-1][n-1];
 						}
 					}
 				}
 			}
 			vvd obsprob_new(n,vd(m,0)), transprob_new(n,vd(n,0));
 			// M step
-			for (int t=0;t<n;++t){
-				for (int i=0;i<n;++i){
+			for (int i=0;i<n;++i){
+				double sumtotprob = 0;
+				for (int t=0;t<T-1;++t)
+					sumtotprob += gammas[t][i];
+				for (int j=0;j<n;++j){
 					double totprob = 0;
-					for (int j=0;j<n;++j)
+					for (int t=0;t<T-1;++t)
 						totprob += epsilons[t][i][j];
-					for (int j=0;j<n;++j){
-						if (totprob>0)
-							transprob_new[i][j] = epsilons[t][i][j] / totprob;
-						else
-							transprob_new[i][j] = transprob_[i][j];
-					}
+					if (totprob>0)
+						transprob_new[i][j] = totprob / sumtotprob;
+					else
+						transprob_new[i][j] = transprob[i][j];
 				}
 			}
 			vvd sumgammacond(m,vd(n,0));
@@ -151,24 +176,23 @@ public:
 					if (sumgamma[j]>0)
 						obsprob_new[j][k] = sumgammacond[k][j] / sumgamma[j];
 					else
-						obsprob_new[j][k] = obsprob_[j][k];
+						obsprob_new[j][k] = obsprob[j][k];
 				}
 			}
+			//print(3);
 			diff = 0;
 			for (int i=0;i<n;++i){
 				for (int j=0;j<m;++j){
-					diff += fabs(obsprob_[i][j]-obsprob_new[i][j]);
-					obsprob_[i][j] = obsprob_new[i][j];
+					diff += fabs(obsprob[i][j]-obsprob_new[i][j]);
+					obsprob[i][j] = obsprob_new[i][j];
 				}
 				for (int j=0;j<n;++j){
-					diff += fabs(transprob_[i][j]-transprob_new[i][j]);
-					transprob_[i][j] = transprob_new[i][j];
+					diff += fabs(transprob[i][j]-transprob_new[i][j]);
+					transprob[i][j] = transprob_new[i][j];
 				}
 			}
-		}while(diff > 0.5); // until converges
-
-		obsprob = obsprob_;
-		transprob = transprob_;
+			printf("diff : %lf\n",diff);
+		}while(diff > 0.01); // until converges
 		// M step
 	}
 
@@ -180,7 +204,7 @@ public:
 
 		for (int l=0;l<n;++l){
 			printf("state %d\n",l);
-			for (int i=0;i<(int)pow(m,len);++i){
+			for (int i=0;i<(int)pow((double)m,(int)len);++i){
 				int permu = i;
 				for (int j=0;j<len;++j){
 					obstates[j] = permu%m;
