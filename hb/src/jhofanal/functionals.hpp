@@ -290,4 +290,16 @@ set<elem_type> set_intersection(const set<elem_type>& lhs, const set<elem_type>&
 	return ret;
 }
 
+template <class elem_type>
+vector<vector<elem_type> > splitvec(const vector<elem_type>& lhs, int max_buckets)
+{
+	vector<vector<elem_type> > ret;
+	for (int i=0;i<(int)lhs.size();++i){
+		if (ret.size()==0 || ret.back().size()==max_buckets)
+			ret.push_back(vector<elem_type>());
+		ret.back().push_back(lhs[i]);
+	}
+	return ret;
+}
+
 #endif // functionals_h__

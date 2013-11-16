@@ -69,7 +69,51 @@ public:
 		return ret;
 	}
 
-	// well.. floating point precision overflows..
+	/*
+	vvd getforward(const vi& obsdata, const vvd& _obsprob, const vvd& _transprob, int init_state = 0) const {
+		int T = obsdata.size();
+		vvd alphas(T,vd(n,0)), alphahats(T,vd(n,0));
+		vd cs(T,0); double cphi = 1.0;
+		for (int t=0;t<T;++t){
+			for (int j=0;j<n;++j){
+				if (t==0) alphahats[0][j] = _transprob[init_state][j] * _obsprob[j][obsdata[t]];
+				else{
+					for (int k=0;k<n;++k)
+						alphahats[t][j] += alphahats[t-1][k] * _transprob[k][j] * _obsprob[j][obsdata[t]];
+				}
+				cs[t] += alphahats[t][j];
+			}
+			cphi *= cs[t];
+			for (int j=0;j<n;++j){
+				alphahats[t][j] /= cs[t];
+				alphas[t][j] = alphahats[t][j] * cphi;
+			}
+		}
+		return alphas;
+	}
+
+	vvd getbackward(const vi& obsdata, const vvd& _obsprob, const vvd& _transprob) const {
+		int T = obsdata.size();
+		vvd betas(T,vd(n,0)), betahats(T,vd(n,0));
+		vd cs(T,0); double cphi = 1.0;
+		for (int t=T-1;t>=0;--t){
+			for (int i=0;i<n;++i){
+				if (t==T-1) betahats[t][i] = _transprob[i][n-1];
+				else{
+					for (int j=0;j<n;++j)
+						betahats[t][i] += _transprob[i][j] * _obsprob[j][obsdata[t+1]] * betahats[t+1][j];
+				}
+				cs[t] += betahats[t][i];
+			}
+			cphi *= cs[t];
+			for (int i=0;i<n;++i){
+				betahats[t][i] /= cs[t];
+				betas[t][i] = betahats[t][i] * cphi;
+			}
+		}
+		return betas;
+	}*/
+
 	vvd getforward(const vi& obsdata, const vvd& _obsprob, const vvd& _transprob, int init_state = 0) const { // 100% confirmed.
 		int T = obsdata.size();
 		vvd alphas(T,vd(n,0));
@@ -192,7 +236,7 @@ public:
 				}
 			}
 			printf("diff : %lf\n",diff);
-		}while(diff > 0.01); // until converges
+		}while(diff > 0.05); // until converges
 		// M step
 	}
 
@@ -246,11 +290,21 @@ public:
 		: nstates(nstates), mobstates(mobstates), himpl(nstates, mobstates) {}
 
 	void train_state(const vi& stseq){
-		himpl.calibrate(stseq);
+		vvi trseqs = splitvec(stseq, 500);
+		//for (int i=0;i<(int)trseqs.size();++i){
+		for (int i=0;i<1;++i){
+			himpl.calibrate(trseqs[i]);
+		}
+	}
+
+	void test_state(const vi& testseq){
+		vvi trseqs = splitvec(testseq, 500);
+		for (int i=0;i<(int)trseqs.size();++i){
+		}
 	}
 
 	template<class T>
-	void train(const vector<T>& seqs){
+	vi raw2states(const vector<T>& seqs){
 		map<T, int> states;
 		vi stseq(seqs.size());
 		int nenc = 0;
@@ -259,7 +313,17 @@ public:
 				states[seqs[i]] = nenc++;
 			stseq[i] = states[seqs[i]];
 		}
-		train_state(stseq);
+		return stseq;
+	}
+
+	template<class T>
+	void test(const vector<T>& seqs){
+		test_state(raw2states(seqs));
+	}
+
+	template<class T>
+	void train(const vector<T>& seqs){
+		train_state(raw2states(seqs));
 	}
 
 	void display(int len){
