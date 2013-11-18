@@ -121,10 +121,10 @@ inline pair<vs, vvd> getDataPool(const string& filename){
 	}
 
 	while (m = cp.getrow(0)){
-#ifdef _DEBUG
-		if (data.size()>30000)
-			break;
-#endif
+//#ifdef _DEBUG
+//		if (data.size()>30000)
+//			break;
+//#endif
 		//continue;
 		vd val(mm);
 		int j=0;

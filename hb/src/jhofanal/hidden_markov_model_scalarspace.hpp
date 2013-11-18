@@ -69,33 +69,53 @@ public:
 		return ret;
 	}
 
-	static double logsum(const vd& logprobs)
-	{
-		double ret = 0;
-		ret += logprobs[0];
-		double sumrhs = 1;
-		for (int i=1;i<(int)logprobs.size();++i)
-			sumrhs += exp(logprobs[i] - logprobs[0]);
-		ret += log(sumrhs);
-		return ret;
-	}
-
-	vvd log_getforward(const vi& obsdata, const vvd& _obsprob, const vvd& _transprob, int init_state = 0) const { // 100% confirmed.
+	/*
+	vvd getforward(const vi& obsdata, const vvd& _obsprob, const vvd& _transprob, int init_state = 0) const {
 		int T = obsdata.size();
-		vvd log_alphas(T,vd(n,0));
+		vvd alphas(T,vd(n,0)), alphahats(T,vd(n,0));
+		vd cs(T,0); double cphi = 1.0;
 		for (int t=0;t<T;++t){
 			for (int j=0;j<n;++j){
-				if (t==0) log_alphas[0][j] = log(_transprob[init_state][j] * _obsprob[j][obsdata[t]]);
+				if (t==0) alphahats[0][j] = _transprob[init_state][j] * _obsprob[j][obsdata[t]];
 				else{
-					vd logprobs(n,0);
 					for (int k=0;k<n;++k)
-						logprobs[k] = log_alphas[t-1][k] + log(_transprob[k][j] * _obsprob[j][obsdata[t]]);
-					log_alphas[t][j] = logsum(logprobs);
+						alphahats[t][j] += alphahats[t-1][k] * _transprob[k][j] * _obsprob[j][obsdata[t]];
 				}
+				cs[t] += alphahats[t][j];
+			}
+			cphi *= cs[t];
+			for (int j=0;j<n;++j){
+				alphahats[t][j] /= cs[t];
+				alphas[t][j] = alphahats[t][j] * cphi;
 			}
 		}
-		return log_alphas;
-		/*
+		return alphas;
+	}
+
+	vvd getbackward(const vi& obsdata, const vvd& _obsprob, const vvd& _transprob) const {
+		int T = obsdata.size();
+		vvd betas(T,vd(n,0)), betahats(T,vd(n,0));
+		vd cs(T,0); double cphi = 1.0;
+		for (int t=T-1;t>=0;--t){
+			for (int i=0;i<n;++i){
+				if (t==T-1) betahats[t][i] = _transprob[i][n-1];
+				else{
+					for (int j=0;j<n;++j)
+						betahats[t][i] += _transprob[i][j] * _obsprob[j][obsdata[t+1]] * betahats[t+1][j];
+				}
+				cs[t] += betahats[t][i];
+			}
+			cphi *= cs[t];
+			for (int i=0;i<n;++i){
+				betahats[t][i] /= cs[t];
+				betas[t][i] = betahats[t][i] * cphi;
+			}
+		}
+		return betas;
+	}*/
+
+	vvd getforward(const vi& obsdata, const vvd& _obsprob, const vvd& _transprob, int init_state = 0) const { // 100% confirmed.
+		int T = obsdata.size();
 		vvd alphas(T,vd(n,0));
 		for (int t=0;t<T;++t){
 			for (int j=0;j<n;++j){
@@ -106,10 +126,10 @@ public:
 				}
 			}
 		}
-		return alphas;*/
+		return alphas;
 	}
 
-	vvd getbackward(const vi& obsdata, const vvd& _obsprob,		const vvd& _transprob) const { // 100% confirmed.
+	vvd getbackward(const vi& obsdata, const vvd& _obsprob, const vvd& _transprob) const { // 100% confirmed.
 		int T = obsdata.size();
 		vvd betas(T,vd(n,0));
 		for (int t=T-1;t>=0;--t){
@@ -130,7 +150,7 @@ public:
 		double diff;
 
 		do{
-			vvd alphas = log_getforward(obsdata, obsprob, transprob);
+			vvd alphas = getforward(obsdata, obsprob, transprob);
 			vvd betas = getbackward(obsdata, obsprob, transprob);
 			/*
 			for (int i=0;i<T;++i)
@@ -237,7 +257,7 @@ public:
 				}
 
 				//getforward(const vi& obsdata, const vvd& _obsprob, const vvd& _transprob)
-				vvd res = log_getforward(obstates, obsprob, transprob, l);
+				vvd res = getforward(obstates, obsprob, transprob, l);
 				double tot=0;
 				for (int j=0;j<(int)res.back().size();++j){
 					tot += res.back()[j];
@@ -270,8 +290,6 @@ public:
 		: nstates(nstates), mobstates(mobstates), himpl(nstates, mobstates) {}
 
 	void train_state(const vi& stseq){
-		himpl.calibrate(stseq);
-		return;
 		vvi trseqs = splitvec(stseq, 500);
 		//for (int i=0;i<(int)trseqs.size();++i){
 		for (int i=0;i<1;++i){
